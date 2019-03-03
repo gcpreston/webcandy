@@ -1,6 +1,6 @@
 import controller
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__,
             static_folder='../static/dist', template_folder='../static')
@@ -14,7 +14,12 @@ def index():
 
 @app.route('/scripts')
 def scripts():
-    return ', '.join(controller.list_scripts())
+    return jsonify(scripts=controller.get_script_names())
+
+
+@app.route('/run/<script>')
+def run(script: str):
+    return jsonify(success=controller.run_script(script))
 
 
 if __name__ == '__main__':
