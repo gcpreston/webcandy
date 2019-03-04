@@ -1,4 +1,3 @@
-# import sys
 import subprocess
 import asyncio
 import atexit
@@ -13,7 +12,6 @@ class FCServer:
     """
 
     def __init__(self):
-        # TODO: Switch over sys.platform
         self._server_running: bool = False
         self._fcserver_proc: subprocess.Popen = None
 

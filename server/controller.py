@@ -33,8 +33,8 @@ class Controller:
 
     def run_script(self, name: str) -> bool:
         """
-        Run the Fadecandy script with the given name. Requires a Fadecandy server to
-        be started.
+        Run the Fadecandy script with the given name. Requires a Fadecandy
+        server to be started.
 
         :param name: the name of the script to run
         :return: True if script exists, False otherwise
