@@ -21,6 +21,7 @@ def scripts():
     return jsonify(scripts=control.get_script_names())
 
 
+# TODO: Use POST request
 @app.route('/run/<script>')
 def run(script: str):
     return jsonify(success=control.run_script(script))
