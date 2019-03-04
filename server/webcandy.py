@@ -1,6 +1,7 @@
 import controller
 
 from flask import Flask, render_template, jsonify
+from fcserver import FCServer
 
 app = Flask(__name__,
             static_folder='../static/dist', template_folder='../static')
@@ -23,5 +24,5 @@ def run(script: str):
 
 
 if __name__ == '__main__':
-    controller.start_fcserver()
+    FCServer().start()
     app.run(debug=debug)
