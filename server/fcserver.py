@@ -4,6 +4,7 @@ import asyncio
 import atexit
 
 from types import FunctionType
+from definitions import ROOT_DIR
 
 
 class FCServer:
@@ -20,10 +21,9 @@ class FCServer:
         """
         Run the Fadecandy server. Terminates on program exit.
         """
-        # TODO: Fix "ERR: ERROR on binding to port 7890 (-1 0)"
-        # TODO: Fix "ERR: libwebsocket init failed"
         async def _go(stop_fn: FunctionType):
-            _fcserver_proc = subprocess.Popen('../bin/fcserver.exe')  # TODO: Absolute path
+            _fcserver_proc = subprocess.Popen(ROOT_DIR + '/bin/fcserver.exe')
+            print('PROCESS STARTED')
             atexit.register(stop_fn)
             return _fcserver_proc
 

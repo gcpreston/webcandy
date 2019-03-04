@@ -5,7 +5,8 @@ from fcserver import FCServer
 
 app = Flask(__name__,
             static_folder='../static/dist', template_folder='../static')
-debug = True
+server = FCServer()
+debug = False
 
 
 @app.route('/')
@@ -24,5 +25,6 @@ def run(script: str):
 
 
 if __name__ == '__main__':
-    FCServer().start()
+    if not debug:
+        server.start()
     app.run(debug=debug)

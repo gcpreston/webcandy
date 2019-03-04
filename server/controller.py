@@ -3,6 +3,7 @@ import subprocess
 import asyncio
 
 from pathlib import Path
+from definitions import ROOT_DIR
 
 
 def get_script_names() -> list:
@@ -14,8 +15,7 @@ def get_script_names() -> list:
     ignore = ['__pycache__', '__init__.py', 'opc.py', 'opcutil.py']
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
-                           os.listdir(os.path.dirname(os.path.abspath(__file__))
-                                      + '/scripts'))))
+                           os.listdir(ROOT_DIR + '/scripts'))))
 
 
 def run_script(name: str) -> bool:
@@ -29,7 +29,7 @@ def run_script(name: str) -> bool:
     async def _go(_path: str) -> None:
         subprocess.Popen(['python', _path])
 
-    path = os.path.dirname(os.path.abspath(__file__)) + f'/scripts/{name}.py'
+    path = f'{ROOT_DIR}/scripts/{name}.py'
     script = Path(path)
     if script.is_file():
         asyncio.run(_go(path))
