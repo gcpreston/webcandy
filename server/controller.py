@@ -1,4 +1,12 @@
 import os
+import subprocess
+import asyncio
+
+
+def start_fcserver() -> None:
+    async def _go():
+        subprocess.Popen('../bin/fcserver.exe')
+    asyncio.run(_go())
 
 
 def get_script_names() -> list:

@@ -23,5 +23,5 @@ def run(script: str):
 
 
 if __name__ == '__main__':
-    app.debug = debug
-    app.run()
+    controller.start_fcserver()
+    app.run(debug=debug)
