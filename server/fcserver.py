@@ -23,7 +23,6 @@ class FCServer:
         """
         async def _go(stop_fn: FunctionType):
             _fcserver_proc = subprocess.Popen(ROOT_DIR + '/bin/fcserver.exe')
-            print('PROCESS STARTED')
             atexit.register(stop_fn)
             return _fcserver_proc
 
@@ -35,5 +34,6 @@ class FCServer:
         """
         Stop the Fadecandy serer.
         """
+        print('Stopping fcserver...')
         self._server_running = False
         self._fcserver_proc.terminate()
