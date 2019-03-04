@@ -1,5 +1,5 @@
 import time
-from . import opc
+import opc
 
 numLEDs = 512
 client = opc.Client('localhost:7890')

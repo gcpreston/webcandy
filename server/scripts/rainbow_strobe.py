@@ -1,6 +1,6 @@
 import time
-from . import opc
-from . import opcutil
+import opc
+import opcutil
 
 client = opc.Client('localhost:7890')
 
