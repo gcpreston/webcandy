@@ -16,11 +16,11 @@ def index():
     return render_template('index.html')
 
 
-# TODO: Fix scripts not terminating?
 @app.route('/submit', methods=['POST'])
 def submit():
     script = request.form.get('script')
-    return jsonify(success=control.run_script(script))
+    color = request.form.get('color')
+    return jsonify(success=control.run_script(script, color=color))
 
 
 @app.route('/scripts')

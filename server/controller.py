@@ -1,6 +1,7 @@
 import os
 import subprocess
 import asyncio
+import re
 
 from pathlib import Path
 from definitions import ROOT_DIR
@@ -31,26 +32,39 @@ class Controller:
                         filter(lambda e: e not in ignore,
                                os.listdir(ROOT_DIR + '/server/scripts'))))
 
-    def run_script(self, name: str) -> bool:
+    def run_script(self, name: str, color: str = None) -> bool:
         """
         Run the Fadecandy script with the given name. Requires a Fadecandy
         server to be started.
 
         :param name: the name of the script to run
-        :return: True if script exists, False otherwise
+        :param color: the hex of the color to display (#RRGGBB); for color.py
+        :return: True if a script was successfully executed, False otherwise
         """
+
         async def _go(_path: str) -> subprocess.Popen:
-            return subprocess.Popen(['python', _path])
+            # TODO: Explicit Python path
+            args = ['python', _path]
+            if color:
+                args.append(color)
+            return subprocess.Popen(args)
 
         path = f'{ROOT_DIR}/server/scripts/{name}.py'
         script = Path(path)
         if script.is_file():
+            # terminate script currently running
             if self._current_proc:
                 self.debug_log(f'Terminating {self._current_proc}')
                 self._current_proc.terminate()
 
-            self.debug_log(f'Running {name}.py')
-            self._current_proc = asyncio.run(_go(path))
+            if name == 'color' and not re.match(r'^#([A-Fa-f0-9]{6})$', color):
+                self.debug_log('WARNING: Invalid color provided. '
+                               'No script will be run. ')
+            else:
+                self.debug_log(f'Running {name}.py')
+                self._current_proc = asyncio.run(_go(path))
+                return False
+
             return True
         else:
             return False
