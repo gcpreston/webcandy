@@ -1,7 +1,8 @@
 body {
-    margin-top: 4em;
+    margin: 4% 30%;
 }
 
-#configs {
-    text-align: center;
+#content {
+    position: relative;
+    margin-top: 20%;
 }

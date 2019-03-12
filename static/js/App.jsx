@@ -3,79 +3,96 @@ import axios from 'axios';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Col from "react-bootstrap/Col";
 
 export default class App extends React.Component {
 
-  constructor(props) {
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.state = {
-      scripts: [],
-    };
+        this.state = {
+            scripts: [],
+            usePost: false,
+        };
 
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
 
-  // TODO: Better way to do this?
-  componentWillMount() {
-    axios.get("/scripts").then(response => {
-      this.setState({ scripts: response.data.scripts });
-    });
-  }
+    // TODO: Better way to do this?
+    componentWillMount() {
+        axios.get("/scripts").then(response => {
+            this.setState({scripts: response.data.scripts});
+        });
+    }
 
-  renderDropdown() {
-    return (
-      <Dropdown id="configs">
-        <Dropdown.Toggle>
-          Configurations
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-          {this.state.scripts.map((name, idx) => {
-            return (
-                <Dropdown.Item key={idx} onClick={this.handleClick(name)}>
-                  {name}
-                </Dropdown.Item>
-            );
-          })}
-        </Dropdown.Menu>
-      </Dropdown>
-    );
-  }
+    renderDropdown() {
+        return (
+            <Dropdown id="configs">
+                <Dropdown.Toggle>
+                    Configurations
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                    {this.state.scripts.map((name, idx) => {
+                        return (
+                            <Dropdown.Item key={idx}
+                                           onClick={this.handleClick(name)}>
+                                {name}
+                            </Dropdown.Item>
+                        );
+                    })}
+                </Dropdown.Menu>
+            </Dropdown>
+        );
+    }
 
-  render() {
-    return (
-      <Form onSubmit={this.handleSubmit}>
-        <Form.Group controlId="script">
-          <Form.Label>Script</Form.Label>
-          <Form.Control as="select">
-            {this.state.scripts.map((name, idx) => {
-              return <option key={idx}>{name}</option>;
-            })}
-          </Form.Control>
-          <Button variant="primary" type="submit">
-            Submit
-          </Button>
-        </Form.Group>
-      </Form>
-    );
-  }
+    render() {
+        return (
+            <Form onSubmit={this.handleSubmit}>
+                <Form.Row>
+                    <Form.Group as={Col} controlId="script">
+                        <Form.Label>Script</Form.Label>
+                        <Form.Control as="select">
+                            {this.state.scripts.map((name, idx) => {
+                                return <option key={idx}>{name}</option>;
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+                </Form.Row>
 
-  handleClick(script) {
-    return () => axios.get(`/run/${script}`)
-        .then(response => console.log(response))
-        .catch(error => console.log(error));
-  }
+                <Button variant="secondary"
+                        onClick={() => this.setState({ usePost: !this.state.usePost })}>
+                    {`Use POST: ${this.state.usePost}`}
+                </Button>
 
-  handleSubmit(event) {
-    event.preventDefault();
+                <Button variant="primary" type="submit">
+                    Submit
+                </Button>
+            </Form>
+        );
+    }
 
-    const target = event.currentTarget;
+    handleClick(script) {
+        return () => axios.get(`/run/${script}`)
+            .then(response => console.log(response))
+            .catch(error => console.log(error));
+    }
 
-    let form = new FormData();
-    form.set("script", target["script"].value);
+    handleSubmit(event) {
+        event.preventDefault();
 
-    axios.post("/submit", form)
-        .then(response => console.log(response))
-        .catch(error => console.log(error));
-  }
+        const target = event.currentTarget;
+
+        if (this.state.usePost) {
+            let form = new FormData();
+            form.set("script", target["script"].value);
+
+            axios.post("/submit", form)
+                .then(response => console.log(response))
+                .catch(error => console.log(error));
+        } else {
+            axios.get(`/run/${target["script"].value}`)
+            .then(response => console.log(response))
+            .catch(error => console.log(error));
+        }
+    }
 }

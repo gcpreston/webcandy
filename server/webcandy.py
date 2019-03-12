@@ -30,7 +30,6 @@ def scripts():
 
 @app.route('/run/<script>')
 def run(script: str):
-    print(request.form)
     return jsonify(success=control.run_script(script))
 
 
