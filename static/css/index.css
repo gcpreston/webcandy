@@ -2,6 +2,10 @@ body {
     margin: 4% 30%;
 }
 
+#title {
+    text-align: center;
+}
+
 #content {
     position: relative;
     margin-top: 20%;

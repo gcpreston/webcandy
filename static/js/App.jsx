@@ -1,19 +1,20 @@
 import React from 'react';
 import axios from 'axios';
-import Dropdown from 'react-bootstrap/Dropdown';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import Col from "react-bootstrap/Col";
+import {
+    Button,
+    Form,
+} from 'react-bootstrap';
 
 export default class App extends React.Component {
-
     constructor(props) {
         super(props);
 
         this.state = {
             scripts: [],
+            solidColor: false,
         };
 
+        this.updateSolidColor = this.updateSolidColor.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -24,45 +25,37 @@ export default class App extends React.Component {
         });
     }
 
-    renderDropdown() {
-        return (
-            <Dropdown id="configs">
-                <Dropdown.Toggle>
-                    Configurations
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                    {this.state.scripts.map((name, idx) => {
-                        return (
-                            <Dropdown.Item key={idx}
-                                           onClick={this.handleClick(name)}>
-                                {name}
-                            </Dropdown.Item>
-                        );
-                    })}
-                </Dropdown.Menu>
-            </Dropdown>
-        );
-    }
-
     render() {
         return (
             <Form onSubmit={this.handleSubmit}>
-                <Form.Row>
-                    <Form.Group as={Col} controlId="script">
-                        <Form.Label>Script</Form.Label>
-                        <Form.Control as="select">
-                            {this.state.scripts.map((name, idx) => {
-                                return <option key={idx}>{name}</option>;
-                            })}
-                        </Form.Control>
-                    </Form.Group>
-                </Form.Row>
+                <Form.Group controlId="script">
+                    <Form.Label>Script</Form.Label>
+                    <Form.Control as="select" onChange={this.updateSolidColor}>
+                        {this.state.scripts.map((name, idx) => {
+                            return <option key={idx}>{name}</option>;
+                        })}
+                    </Form.Control>
+                </Form.Group>
+
+                {this.state.solidColor ?
+                <Form.Group controlId="color">
+                    <Form.Label>Color entry</Form.Label>
+                    <Form.Control type="text" size="sm" placeholder="#RRGGBB"/>
+                </Form.Group> : null}
 
                 <Button variant="primary" type="submit">
                     Submit
                 </Button>
             </Form>
         );
+    }
+
+    updateSolidColor(e) {
+        if (e.target.value === "solid_color") {
+            this.setState({ solidColor: true });
+        } else {
+            this.setState({ solidColor: false });
+        }
     }
 
     handleClick(script) {
@@ -78,7 +71,7 @@ export default class App extends React.Component {
 
         let form = new FormData();
         form.set("script", target["script"].value);
-        form.set("color", null);  // TODO: Set color
+        form.set("color", target["color"] ? target["color"].value : null);
 
         axios.post("/submit", form)
             .then(response => console.log(response))

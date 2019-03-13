@@ -35,7 +35,8 @@ class Controller:
         server to be started.
 
         :param name: the name of the script to run
-        :param color: the hex of the color to display (#RRGGBB); for color.py
+        :param color: the hex of the color to display (#RRGGBB); for use in
+            solid_color.py
         :return: True if a script was successfully executed, False otherwise
         """
 
