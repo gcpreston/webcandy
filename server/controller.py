@@ -3,6 +3,7 @@ import subprocess
 import asyncio
 import re
 import logging
+import json
 
 from pathlib import Path
 from definitions import ROOT_DIR
@@ -28,6 +29,16 @@ class Controller:
         return list(map(lambda e: e[:-3],
                         filter(lambda e: e not in ignore,
                                os.listdir(ROOT_DIR + '/server/scripts'))))
+
+    @staticmethod
+    def get_saved_colors() -> dict:
+        """
+        Retrieve the contents of the saved_colors.json file.
+
+        :return: a mapping from name to hex value of the saved colors
+        """
+        with open(ROOT_DIR + '/server/assets/saved_colors.json') as file:
+            return json.load(file)
 
     def run_script(self, name: str, color: str = None) -> bool:
         """

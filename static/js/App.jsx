@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
     Button,
     Form,
+    Col
 } from 'react-bootstrap';
 
 export default class App extends React.Component {
@@ -11,10 +12,14 @@ export default class App extends React.Component {
 
         this.state = {
             scripts: [],
+            colors: {},
             solidColor: false,
+            colorEntryDisabled: true,
+            currentColor: "",
         };
 
         this.updateSolidColor = this.updateSolidColor.bind(this);
+        this.updateCurrentColor = this.updateCurrentColor.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -22,6 +27,16 @@ export default class App extends React.Component {
     componentWillMount() {
         axios.get("/scripts").then(response => {
             this.setState({scripts: response.data.scripts});
+        });
+
+        axios.get("/colors").then(response => {
+            let colors = response.data.colors;
+            this.setState({colors: colors});
+
+            // Set currentColor initial value
+            if (colors) {
+                this.setState({currentColor: Object.values(colors)[0]})
+            }
         });
     }
 
@@ -38,10 +53,26 @@ export default class App extends React.Component {
                 </Form.Group>
 
                 {this.state.solidColor ?
-                <Form.Group controlId="color">
-                    <Form.Label>Color entry</Form.Label>
-                    <Form.Control type="text" size="sm" placeholder="#RRGGBB"/>
-                </Form.Group> : null}
+                    <React.Fragment>
+                        <Form.Label>Color entry</Form.Label>
+                        <Form.Row>
+                            <Form.Group as={Col} controlId="color">
+                                <Form.Control type="text"
+                                              placeholder="#RRGGBB"
+                                              value={this.state.currentColor}
+                                              disabled={this.state.colorEntryDisabled}/>
+                            </Form.Group>
+                            <Form.Group as={Col}>
+                                <Form.Control as="select"
+                                              onChange={this.updateCurrentColor}>
+                                    {Object.keys(this.state.colors).map((name, idx) => {
+                                        return <option
+                                            key={idx}>{name}</option>;
+                                    })}
+                                </Form.Control>
+                            </Form.Group>
+                        </Form.Row>
+                    </React.Fragment> : null}
 
                 <Button variant="primary" type="submit">
                     Submit
@@ -50,12 +81,26 @@ export default class App extends React.Component {
         );
     }
 
-    updateSolidColor(e) {
-        if (e.target.value === "solid_color") {
-            this.setState({ solidColor: true });
+    /**
+     * Update state to indicate if solid_color is selected.
+     *
+     * @param event - The script selection event
+     */
+    updateSolidColor(event) {
+        if (event.target.value === "solid_color") {
+            this.setState({solidColor: true});
         } else {
-            this.setState({ solidColor: false });
+            this.setState({solidColor: false});
         }
+    }
+
+    /**
+     * Update state to reflect currently selected saved color.
+     *
+     * @param event - The color selection event
+     */
+    updateCurrentColor(event) {
+        this.setState({currentColor: this.state.colors[event.target.value]});
     }
 
     handleClick(script) {
@@ -74,7 +119,6 @@ export default class App extends React.Component {
         form.set("color", target["color"] ? target["color"].value : null);
 
         axios.post("/submit", form)
-            .then(response => console.log(response))
             .catch(error => console.log(error));
     }
 }
