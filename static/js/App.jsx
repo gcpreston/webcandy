@@ -12,7 +12,6 @@ export default class App extends React.Component {
 
         this.state = {
             scripts: [],
-            usePost: false,
         };
 
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -59,11 +58,6 @@ export default class App extends React.Component {
                     </Form.Group>
                 </Form.Row>
 
-                <Button variant="secondary"
-                        onClick={() => this.setState({ usePost: !this.state.usePost })}>
-                    {`Use POST: ${this.state.usePost}`}
-                </Button>
-
                 <Button variant="primary" type="submit">
                     Submit
                 </Button>
@@ -82,17 +76,12 @@ export default class App extends React.Component {
 
         const target = event.currentTarget;
 
-        if (this.state.usePost) {
-            let form = new FormData();
-            form.set("script", target["script"].value);
+        let form = new FormData();
+        form.set("script", target["script"].value);
+        form.set("color", null);  // TODO: Set color
 
-            axios.post("/submit", form)
-                .then(response => console.log(response))
-                .catch(error => console.log(error));
-        } else {
-            axios.get(`/run/${target["script"].value}`)
+        axios.post("/submit", form)
             .then(response => console.log(response))
             .catch(error => console.log(error));
-        }
     }
 }

@@ -2,6 +2,7 @@ import os
 import subprocess
 import asyncio
 import re
+import logging
 
 from pathlib import Path
 from definitions import ROOT_DIR
@@ -15,10 +16,6 @@ class Controller:
     def __init__(self, debug=False):
         self.debug = debug
         self._current_proc: subprocess.Popen = None
-
-    def debug_log(self, v):
-        if self.debug:
-            print(v)
 
     @staticmethod
     def get_script_names() -> list:
@@ -54,14 +51,14 @@ class Controller:
         if script.is_file():
             # terminate script currently running
             if self._current_proc:
-                self.debug_log(f'Terminating {self._current_proc}')
+                logging.debug(f'Terminating {self._current_proc}')
                 self._current_proc.terminate()
 
-            if name == 'color' and not re.match(r'^#([A-Fa-f0-9]{6})$', color):
-                self.debug_log('WARNING: Invalid color provided. '
-                               'No script will be run. ')
+            if name == 'color' and not re.match(r'^#[A-Fa-f0-9]{6}$', color):
+                logging.warning('Invalid color provided. '
+                                'No script will be run. ')
             else:
-                self.debug_log(f'Running {name}.py')
+                logging.debug(f'Running {name}.py')
                 self._current_proc = asyncio.run(_go(path))
                 return False
 

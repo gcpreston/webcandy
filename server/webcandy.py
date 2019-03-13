@@ -1,4 +1,5 @@
 import socket
+import logging
 
 from flask import Flask, render_template, jsonify, request
 from fcserver import FCServer
@@ -20,17 +21,13 @@ def index():
 def submit():
     script = request.form.get('script')
     color = request.form.get('color')
+    logging.debug(f'Running script: {script}, color: {color}')
     return jsonify(success=control.run_script(script, color=color))
 
 
 @app.route('/scripts')
 def scripts():
     return jsonify(scripts=control.get_script_names())
-
-
-@app.route('/run/<script>')
-def run(script: str):
-    return jsonify(success=control.run_script(script))
 
 
 if __name__ == '__main__':
@@ -40,4 +37,5 @@ if __name__ == '__main__':
     if result == 10061:  # Nothing running
         server.start()
 
+    logging.basicConfig(level=logging.DEBUG)
     app.run(debug=debug)
