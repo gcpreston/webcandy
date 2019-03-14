@@ -30,6 +30,6 @@ Then, install the project requirements:
 
 ## Running
 To run Webcandy, do the following:
-1. Run `npm run watch` from the `webcandy/static` directory. This watches for any changes made to the front-end and will let you see them by refreshing the page.
-2. Run `python webcandy.py` from the `webcandy/server` directory to start the Flask server.
+1. Run `npm run watch` from the `static` directory. This watches for any changes made to the front-end and will let you see them by refreshing the page.
+2. Run `python webcandy.py` from the `server` directory to start the Flask server.
 3. Navigate to the link in the Python console output to view the website!
