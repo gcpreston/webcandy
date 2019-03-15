@@ -132,9 +132,10 @@ export default class App extends React.Component {
 
         let form = new FormData();
         form.set("script", target["script"].value);
-        form.set("color", target["color"] ? target["color"].value : null);
+        form.set("color", target["colorField"] ? target["colorField"].value : null);
 
         axios.post("/submit", form)
+            .then(response => console.log(response))
             .catch(error => console.log(error));
     }
 }
