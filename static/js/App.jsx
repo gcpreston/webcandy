@@ -17,10 +17,6 @@ export default class App extends React.Component {
             customColor: false,
             currentColor: "",
         };
-
-        this.handleScriptSelect = this.handleScriptSelect.bind(this);
-        this.handleColorSelect = this.handleColorSelect.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     // TODO: Better way to do this?
@@ -45,11 +41,17 @@ export default class App extends React.Component {
             <Form onSubmit={this.handleSubmit}>
                 <Form.Group controlId="script">
                     <Form.Label>Script</Form.Label>
-                    <Form.Control as="select" onChange={this.handleScriptSelect}>
+                    <Form.Control as="select" disabled={this.state.solidColor}>
                         {this.state.scripts.map((name, idx) => {
                             return <option key={idx}>{name}</option>;
                         })}
                     </Form.Control>
+                </Form.Group>
+
+                <Form.Group controlId="solidColorCheck">
+                    <Form.Check value={this.state.solidColor}
+                                onChange={this.handleSolidColorCheck}
+                                label="Solid color"/>
                 </Form.Group>
 
                 {this.state.solidColor ?
@@ -89,43 +91,43 @@ export default class App extends React.Component {
     }
 
     /**
-     * Update state to indicate if the solid_color script is selected.
-     * @param event - The script selection event
+     * Change whether the user can select a script or a solid color.
+     * @param event - The change event from the checkbox
      */
-    handleScriptSelect(event) {
-        if (event.target.value === "solid_color") {
-            this.setState({solidColor: true});
-        } else {
-            this.setState({solidColor: false});
-        }
-    }
+    handleSolidColorCheck = (event) => {
+        this.setState({solidColor: event.target.checked})
+    };
 
     /**
      * Update the currently entered color based on an input change event.
      * @param event - The change event from the text input
      */
-    handleColorInput(event) {
+    handleColorInput = (event) => {
         this.setState({currentColor: event.target.value})
-    }
+    };
 
     /**
      * Update the currently entered color based on a select change event.
      * @param event - The change event from the select
      */
-    handleColorSelect(event) {
+    handleColorSelect = (event) => {
         this.setState({currentColor: this.state.colors[event.target.value]});
-    }
+    };
 
     /**
      * Change whether the user can type the hex of a custom color or select from
      * the list of saved colors.
      * @param event - The change event from the checkbox
      */
-    handleCustomColorCheck(event) {
+    handleCustomColorCheck = (event) => {
         this.setState({customColor: event.target.checked})
-    }
+    };
 
-    handleSubmit(event) {
+    /**
+     * Submit the form data.
+     * @param event - The submit event
+     */
+    handleSubmit = (event) => {
         event.preventDefault();
 
         const target = event.currentTarget;
@@ -137,5 +139,5 @@ export default class App extends React.Component {
         axios.post("/submit", form)
             .then(response => console.log(response))
             .catch(error => console.log(error));
-    }
+    };
 }

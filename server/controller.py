@@ -25,7 +25,8 @@ class Controller:
 
         :return: a list of names of existing scripts
         """
-        ignore = ['__pycache__', '__init__.py', 'opc.py', 'opcutil.py']
+        ignore = ['__pycache__', '__init__.py', 'opc.py', 'opcutil.py',
+                  'solid_color.py']
         return list(map(lambda e: e[:-3],
                         filter(lambda e: e not in ignore,
                                os.listdir(ROOT_DIR + '/server/scripts'))))
