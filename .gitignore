@@ -1,5 +1,5 @@
 .idea/
-*/__pycache__
+*.pyc
 
 static/node_modules
 static/dist
