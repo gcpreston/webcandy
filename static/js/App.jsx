@@ -41,7 +41,8 @@ export default class App extends React.Component {
             <Form onSubmit={this.handleSubmit}>
                 <Form.Group controlId="script">
                     <Form.Label>Script</Form.Label>
-                    <Form.Control as="select" disabled={this.state.solidColor}>
+                    <Form.Control as="select"
+                                  disabled={this.state.solidColor}>
                         {this.state.scripts.map((name, idx) => {
                             return <option key={idx}>{name}</option>;
                         })}
@@ -83,9 +84,17 @@ export default class App extends React.Component {
                         </Form.Group>
                     </React.Fragment> : null}
 
-                <Button variant="primary" type="submit">
-                    Submit
-                </Button>
+                <Form.Group controlId="submitButton">
+                    <Button variant="primary" type="submit">
+                        Submit
+                    </Button>
+                </Form.Group>
+
+                <Form.Group controlId="offButton">
+                    <Button variant="danger" onClick={this.handleOff}>
+                        Turn off
+                    </Button>
+                </Form.Group>
             </Form>
         );
     }
@@ -140,4 +149,19 @@ export default class App extends React.Component {
             .then(response => console.log(response))
             .catch(error => console.log(error));
     };
+
+    /**
+     * Submit a request to turn off the lights.
+     * @param event - The "Turn off" button event
+     */
+    handleOff = (event) => {
+        event.preventDefault();
+
+        const form = new FormData();
+        form.set("script", "off");
+
+        axios.post("/submit", form)
+            .then(response => console.log(response))
+            .catch(error => console.log(error));
+    }
 }
