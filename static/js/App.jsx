@@ -1,9 +1,12 @@
 import React from 'react';
 import axios from 'axios';
+import ChromePicker from 'react-color';
 import {
     Button,
     Form,
-    Col
+    Col,
+    Overlay,
+    Popover,
 } from 'react-bootstrap';
 
 export default class App extends React.Component {
@@ -22,16 +25,16 @@ export default class App extends React.Component {
     // TODO: Better way to do this?
     componentWillMount() {
         axios.get("/scripts").then(response => {
-            this.setState({scripts: response.data.scripts});
+            this.setState({ scripts: response.data.scripts });
         });
 
         axios.get("/colors").then(response => {
             let colors = response.data.colors;
-            this.setState({colors: colors});
+            this.setState({ colors: colors });
 
             // Set currentColor initial value
             if (colors) {
-                this.setState({currentColor: Object.values(colors)[0]})
+                this.setState({ currentColor: Object.values(colors)[0] })
             }
         });
     }
@@ -56,15 +59,9 @@ export default class App extends React.Component {
 
                 {this.state.solidColor ?
                     <React.Fragment>
+
                         <Form.Label>Color entry</Form.Label>
                         <Form.Row>
-                            <Form.Group as={Col} controlId="colorField">
-                                <Form.Control type="text"
-                                              placeholder="#RRGGBB"
-                                              value={this.state.currentColor}
-                                              onChange={this.handleColorInput}
-                                              disabled={!this.state.customColor}/>
-                            </Form.Group>
                             <Form.Group as={Col} controlId="colorSelect">
                                 <Form.Control as="select"
                                               disabled={this.state.customColor}
@@ -75,7 +72,25 @@ export default class App extends React.Component {
                                     })}
                                 </Form.Control>
                             </Form.Group>
+                            <Form.Group as={Col} controlId="colorField">
+                                <Overlay target={this.refs.colorField}
+                                         show={this.state.customColor}
+                                         placement="right">
+                                    <Popover>
+                                        <ChromePicker
+                                            color={this.state.currentColor}
+                                            onChange={e => this.updateCurrentColor(e.hex)}/>
+                                    </Popover>
+                                </Overlay>
+                                <Form.Control ref="colorField"
+                                              type="text"
+                                              placeholder="#RRGGBB"
+                                              value={this.state.currentColor}
+                                              onChange={e => this.updateCurrentColor(e.target.value)}
+                                              disabled={!this.state.customColor}/>
+                            </Form.Group>
                         </Form.Row>
+
                         <Form.Group controlId="customColorCheck">
                             <Form.Check value={this.state.customColor}
                                         onChange={this.handleCustomColorCheck}
@@ -91,19 +106,19 @@ export default class App extends React.Component {
     }
 
     /**
+     * Update the currently entered color.
+     * @param color - The new color
+     */
+    updateCurrentColor = (color) => {
+        this.setState({ currentColor: color })
+    };
+
+    /**
      * Change whether the user can select a script or a solid color.
      * @param event - The change event from the checkbox
      */
     handleSolidColorCheck = (event) => {
-        this.setState({solidColor: event.target.checked})
-    };
-
-    /**
-     * Update the currently entered color based on an input change event.
-     * @param event - The change event from the text input
-     */
-    handleColorInput = (event) => {
-        this.setState({currentColor: event.target.value})
+        this.setState({ solidColor: event.target.checked })
     };
 
     /**
@@ -111,7 +126,7 @@ export default class App extends React.Component {
      * @param event - The change event from the select
      */
     handleColorSelect = (event) => {
-        this.setState({currentColor: this.state.colors[event.target.value]});
+        this.setState({ currentColor: this.state.colors[event.target.value] });
     };
 
     /**
@@ -120,7 +135,7 @@ export default class App extends React.Component {
      * @param event - The change event from the checkbox
      */
     handleCustomColorCheck = (event) => {
-        this.setState({customColor: event.target.checked})
+        this.setState({ customColor: event.target.checked })
     };
 
     /**
