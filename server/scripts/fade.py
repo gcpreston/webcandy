@@ -7,12 +7,12 @@ def run(*args, **kwargs):
     client = opc.Client('localhost:7890')
 
     num_leds = 512
-    colors = [(255, 0, 0),  # red
-            (255, 127, 0),  # orange
-            (255, 255, 0),  # yellow
-            (0, 255, 0),  # green
-            (0, 0, 255),  # blue
-            (139, 0, 255)]  # violet
+    colors = [(255, 0, 0),    # red
+              (255, 127, 0),  # orange
+              (255, 255, 0),  # yellow
+              (0, 255, 0),    # green
+              (0, 0, 255),    # blue
+              (139, 0, 255)]  # violet
     i = 0
     current = colors[i]
     pixels = [current] * num_leds

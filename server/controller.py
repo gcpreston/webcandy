@@ -29,8 +29,7 @@ class Controller:
     Controls for lighting configuration.
     """
 
-    def __init__(self, debug: bool = False):
-        self.debug: bool = debug
+    def __init__(self):
         self._current_proc: multiprocessing.Process = None
 
     @staticmethod

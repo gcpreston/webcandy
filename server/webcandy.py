@@ -26,7 +26,7 @@ def submit():
     if color == 'null':
         color = None
 
-    logging.debug(f'Running script: {script_name}, color: {color}')
+    logging.info(f'Running script: {script_name}, color: {color}')
     control.execute_script(script_name, color=color)
 
     return jsonify(name=script_name, color=color)
