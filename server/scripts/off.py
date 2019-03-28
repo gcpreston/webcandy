@@ -1,8 +1,9 @@
 import time
-import opc
+
+from . import opc
 
 
-def run():
+def run(*args, **kwargs):
     numLEDs = 512
     client = opc.Client('localhost:7890')
 

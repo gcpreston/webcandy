@@ -10,6 +10,7 @@ app = Flask(__name__, static_folder='../static/dist',
             template_folder='../static')
 server = FCServer()
 control = Controller(debug=debug)
+logging.basicConfig(level=logging.DEBUG)
 
 
 @app.route('/')
@@ -19,10 +20,16 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    script = request.form.get('script')
+    script_name = request.form.get('script')
     color = request.form.get('color')
-    logging.debug(f'Running script: {script}, color: {color}')
-    return jsonify(success=control.run_script(script, color=color))
+
+    if color == 'null':
+        color = None
+
+    logging.debug(f'Running script: {script_name}, color: {color}')
+    control.execute_script(script_name, color=color)
+
+    return jsonify(name=script_name, color=color)
 
 # TODO: [BUG] favicon.ico load blocked on GET to jsonify functions
 

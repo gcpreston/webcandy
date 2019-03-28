@@ -1,6 +1,9 @@
 import sys
 import time
-import opc
+import re
+import logging
+
+from . import opc
 
 
 def get_color(hex):
@@ -16,17 +19,15 @@ def get_color(hex):
     return tuple([red, blue, green])
 
 
-def main(args):
-    if len(args) != 2:
-        raise ValueError('Please provide a color in the format #RRGGBB.')
-    else:
-        color_tup = get_color(args[-1])
+def run(color=None, *args, **kwargs):
+    if not color or not re.match(r'^#[A-Fa-f0-9]{6}$', color):
+        raise ValueError(f'Please provide a color in the format #RRGGBB. Received {color}.')
 
     num_leds = 512
     client = opc.Client('localhost:7890')
 
     black = [(0, 0, 0)] * num_leds
-    color = [color_tup] * num_leds
+    color = [get_color(color)] * num_leds
 
     client.put_pixels(black)
     client.put_pixels(black)
@@ -35,4 +36,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    if len(sys.argv) < 2:
+        raise ValueError('Please provide a color in the format #RRGGBB.')
+    
+    run(color=sys.argv[-1])

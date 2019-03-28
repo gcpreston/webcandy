@@ -1,12 +1,27 @@
 import os
-import subprocess
-import asyncio
+import multiprocessing
+import importlib
 import re
 import logging
 import json
 
-from pathlib import Path
 from definitions import ROOT_DIR
+
+
+def run_script(name: str, color: str):
+    """
+    Execute the run function on the specified script module.
+
+    :param name: the name of the script to run
+    :param color: the color parameter for solid_color
+    """
+    try:
+        script = importlib.import_module(f'scripts.{name}')
+        script.run(color)
+    except ModuleNotFoundError:
+        logging.error(f'Script {name} not found.')
+    except ValueError as e:
+        logging.error(e)
 
 
 class Controller:
@@ -14,9 +29,9 @@ class Controller:
     Controls for lighting configuration.
     """
 
-    def __init__(self, debug=False):
-        self.debug = debug
-        self._current_proc: subprocess.Popen = None
+    def __init__(self, debug: bool = False):
+        self.debug: bool = debug
+        self._current_proc: multiprocessing.Process = None
 
     @staticmethod
     def get_script_names() -> list:
@@ -40,8 +55,8 @@ class Controller:
         """
         with open(ROOT_DIR + '/server/assets/saved_colors.json') as file:
             return json.load(file)
-
-    def run_script(self, name: str, color: str = None) -> bool:
+    
+    def execute_script(self, name: str, color: str = None):
         """
         Run the Fadecandy script with the given name. Requires a Fadecandy
         server to be started.
@@ -49,32 +64,11 @@ class Controller:
         :param name: the name of the script to run
         :param color: the hex of the color to display (#RRGGBB); for use in
             solid_color.py
-        :return: True if a script was successfully executed, False otherwise
         """
+        if self._current_proc and self._current_proc.is_alive():
+            logging.debug(f'Terminating {self._current_proc}')
+            self._current_proc.terminate()
 
-        async def _go(_path: str) -> subprocess.Popen:
-            # TODO: Explicit Python path
-            args = ['python', _path]
-            if color:
-                args.append(color)
-            return subprocess.Popen(args)
-
-        path = f'{ROOT_DIR}/server/scripts/{name}.py'
-        script = Path(path)
-        if script.is_file():
-            # terminate script currently running
-            if self._current_proc:
-                logging.debug(f'Terminating {self._current_proc}')
-                self._current_proc.terminate()
-
-            if name == 'color' and not re.match(r'^#[A-Fa-f0-9]{6}$', color):
-                logging.warning('Invalid color provided. '
-                                'No script will be run. ')
-            else:
-                logging.debug(f'Running {name}.py')
-                self._current_proc = asyncio.run(_go(path))
-                return False
-
-            return True
-        else:
-            return False
+        logging.debug(f'Running {name}')
+        self._current_proc = multiprocessing.Process(target=run_script, args=(name, color,))
+        self._current_proc.start()
