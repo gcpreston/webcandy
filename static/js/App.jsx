@@ -119,7 +119,7 @@ export default class App extends React.Component {
      * @param color - The new color
      */
     updateCurrentColor = (color) => {
-        this.setState({ currentColor: color })
+        this.setState({ currentColor: color });
     };
 
     /**

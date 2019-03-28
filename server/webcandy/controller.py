@@ -2,11 +2,11 @@ import os
 import subprocess
 import asyncio
 import re
-import logging
 import json
 
 from pathlib import Path
 from definitions import ROOT_DIR
+from webcandy import app
 
 
 class Controller:
@@ -14,9 +14,7 @@ class Controller:
     Controls for lighting configuration.
     """
 
-    def __init__(self, debug=False):
-        self.debug = debug
-        self._current_proc: subprocess.Popen = None
+    _current_proc: subprocess.Popen = None
 
     @staticmethod
     def get_script_names() -> list:
@@ -64,14 +62,14 @@ class Controller:
         if script.is_file():
             # terminate script currently running
             if self._current_proc:
-                logging.debug(f'Terminating {self._current_proc}')
+                app.logger.debug(f'Terminating {self._current_proc}')
                 self._current_proc.terminate()
 
             if name == 'color' and not re.match(r'^#[A-Fa-f0-9]{6}$', color):
-                logging.warning('Invalid color provided. '
-                                'No script will be run. ')
+                app.logger.warning('Invalid color provided. '
+                                   'No script will be run. ')
             else:
-                logging.debug(f'Running {name}.py')
+                app.logger.debug(f'Running {name}.py')
                 self._current_proc = asyncio.run(_go(path))
                 return False
 
