@@ -5,3 +5,5 @@ static/node_modules
 static/dist
 server/venv
 server/migrations
+
+webcandy.db
