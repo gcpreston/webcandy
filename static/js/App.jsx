@@ -156,9 +156,23 @@ export default class App extends React.Component {
 
         const target = event.currentTarget;
 
+        let script, color;
+
+        if (this.state.solidColor) {
+            script = "solid_color"
+        } else {
+            script = target["script"].value;
+        }
+
+        if (this.state.customColor) {
+            color = target["colorField"].value;
+        } else if (target["colorSelect"]) {
+            color = this.state.colors[target["colorSelect"].value]
+        }
+
         const form = new FormData();
-        form.set("script", this.state.solidColor ? "solid_color" : target["script"].value);
-        form.set("color", target["colorField"] ? target["colorField"].value : null);
+        form.set("script", script);
+        form.set("color", color);
 
         axios.post("/submit", form)
             .then(response => console.log(response))

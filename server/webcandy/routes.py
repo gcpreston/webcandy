@@ -20,7 +20,7 @@ def submit():
     script = request.form.get('script')
     color = request.form.get('color')
     app.logger.debug(f'Running script: {script}, color: {color}')
-    return jsonify(success=control.run_script(script, color=color))
+    return jsonify(success=control.execute_script(script, color=color))
 
 
 # TODO: [BUG] favicon.ico load blocked on GET to jsonify functions
