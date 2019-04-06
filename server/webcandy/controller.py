@@ -1,8 +1,7 @@
 import os
 import multiprocessing
-import importlib
-import re
 import json
+import scripts
 
 from definitions import ROOT_DIR
 from webcandy import app
@@ -16,7 +15,7 @@ def run_script(name: str, color: str):
     :param color: the color parameter for solid_color
     """
     try:
-        script = importlib.import_module(f'scripts.{name}')
+        script = getattr(scripts, name)
         script.run(color)
     except ModuleNotFoundError:
         app.logger.error(f'Script {name} not found.')
@@ -53,7 +52,7 @@ class Controller:
         """
         with open(ROOT_DIR + '/server/assets/saved_colors.json') as file:
             return json.load(file)
-    
+
     def execute_script(self, name: str, color: str = None):
         """
         Run the Fadecandy script with the given name. Requires a Fadecandy
@@ -68,5 +67,6 @@ class Controller:
             self._current_proc.terminate()
 
         app.logger.debug(f'Running {name}')
-        self._current_proc = multiprocessing.Process(target=run_script, args=(name, color,))
+        self._current_proc = multiprocessing.Process(target=run_script,
+                                                     args=(name, color,))
         self._current_proc.start()
