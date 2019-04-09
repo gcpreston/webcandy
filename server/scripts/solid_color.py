@@ -1,20 +1,19 @@
 import sys
 import time
 import re
-import logging
 
 from . import opc
 
 
-def get_color(hex):
+def get_color(hex_str: str):
     """
     Calculate a 3-tuple representing the color in the given hex.
 
-    :param hex: the desired color in the format #RRGGBB.
+    :param hex_str: the desired color in the format #RRGGBB.
     """
-    red = int(hex[1:3], 16)
-    blue = int(hex[3:5], 16)
-    green = int(hex[5:7], 16)
+    red = int(hex_str[1:3], 16)
+    blue = int(hex_str[3:5], 16)
+    green = int(hex_str[5:7], 16)
 
     return tuple([red, blue, green])
 

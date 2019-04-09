@@ -3,24 +3,27 @@ import multiprocessing
 import json
 import scripts
 
+from flask import Flask
+from logging import Logger
 from definitions import ROOT_DIR
-from webcandy import app
 
 
-def run_script(name: str, color: str):
+def _execute(name: str, color: str, logger: Logger):
     """
     Execute the run function on the specified script module.
 
     :param name: the name of the script to run
-    :param color: the color parameter for solid_color
+    :param color: the hex of the color to display (#RRGGBB); for use in solid_color
+    :param logger: the logger to output to
     """
     try:
         script = getattr(scripts, name)
         script.run(color)
     except ModuleNotFoundError:
-        app.logger.error(f'Script {name} not found.')
+        logger.error(f'Script {name} not found.')
     except ValueError as e:
-        app.logger.error(e)
+        # color is misformatted
+        logger.error(e)
 
 
 class Controller:
@@ -28,7 +31,12 @@ class Controller:
     Controls for lighting configuration.
     """
 
+    app: Flask = None
     _current_proc: multiprocessing.Process = None
+
+    def init_app(self, app: Flask):
+        """Register this Controller with a Flask app."""
+        self.app = app
 
     @staticmethod
     def get_script_names() -> list:
@@ -53,20 +61,18 @@ class Controller:
         with open(ROOT_DIR + '/server/assets/saved_colors.json') as file:
             return json.load(file)
 
-    def execute_script(self, name: str, color: str = None):
+    def run_script(self, name: str, color: str = None):
         """
-        Run the Fadecandy script with the given name. Requires a Fadecandy
-        server to be started.
+        Run the Fadecandy script with the given name. Requires a Fadecandy server to be started.
 
         :param name: the name of the script to run
-        :param color: the hex of the color to display (#RRGGBB); for use in
-            solid_color.py
+        :param color: the hex of the color to display (#RRGGBB); for use in solid_color
         """
         if self._current_proc and self._current_proc.is_alive():
-            app.logger.debug(f'Terminating {self._current_proc}')
+            self.app.logger.debug(f'Terminating {self._current_proc}')
             self._current_proc.terminate()
 
-        app.logger.debug(f'Running {name}')
-        self._current_proc = multiprocessing.Process(target=run_script,
-                                                     args=(name, color,))
+        self.app.logger.info(f'Running script: {name}, color: {color}')
+        self._current_proc = multiprocessing.Process(target=_execute,
+                                                     args=(name, color, self.app.logger))
         self._current_proc.start()
