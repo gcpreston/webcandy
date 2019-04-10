@@ -1,6 +1,7 @@
 import time
 
-from .opcutil import spread, rotate_right
+from typing import List
+from .opcutil import get_color, spread, rotate_right
 from .interface import LightConfig
 
 
@@ -9,15 +10,16 @@ class RainbowScroll(LightConfig):
     Scroll through a rainbow of colors.
     """
 
+    def __init__(self, colors: List[str]):
+        """
+        Initialize a new Fade configuration
+        :param colors: the list of colors to use in the scroll (#RRGGBB format)
+        """
+        super().__init__()
+        self.colors = [get_color(c) for c in colors]
+
     def run(self, *args, **kwargs):
-        # TODO: Abstract colors
-        colors = [(255, 0, 0),    # red
-                  (255, 127, 0),  # orange
-                  (255, 255, 0),  # yellow
-                  (0, 255, 0),    # green
-                  (0, 0, 255),    # blue
-                  (139, 0, 255)]  # violet
-        pixels = spread(colors, self.num_leds, 10)
+        pixels = spread(self.colors, self.num_leds, 10)
 
         while True:
             self.client.put_pixels(pixels)

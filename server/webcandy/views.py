@@ -1,6 +1,7 @@
+import util
+
 from flask import render_template, jsonify, request, Blueprint
 from flask_login import login_required
-
 from .extensions import controller
 
 blueprint = Blueprint('test', __name__, static_folder='../../static/dist',
@@ -28,14 +29,14 @@ def submit():
 # TODO: Consider renaming
 @blueprint.route('/scripts', methods=['GET'])
 def scripts():
-    return jsonify(scripts=controller.get_script_names())
+    return jsonify(scripts=util.get_script_names())
 
 
 @blueprint.route('/solid_colors', methods=['GET'])
 def solid_colors():
-    return jsonify(controller.load_asset('saved_solid_color.json'))
+    return jsonify(util.load_asset('colors.json'))
 
 
 @blueprint.route('/fades', methods=['GET'])
 def fades():
-    return jsonify(controller.load_asset('saved_fade.json'))
+    return jsonify(util.load_asset('color_lists.json'))
