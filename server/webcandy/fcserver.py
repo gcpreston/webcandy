@@ -27,7 +27,7 @@ class FCServer:
         """
         Run the Fadecandy server. Terminates on program exit.
         """
-        # TODO: User multiprocessing.Process instead of subprocess.Popen
+
         async def _go(stop_fn: FunctionType):
             if sys.platform == 'win32':
                 server = 'fcserver.exe'
