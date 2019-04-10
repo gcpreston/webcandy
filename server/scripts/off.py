@@ -1,17 +1,10 @@
-import time
-
-from .interface import LightConfig
+from .solid_color import SolidColor
 
 
-class Off(LightConfig):
+class Off(SolidColor):
     """
     Turn the LEDs off.
     """
 
-    def run(self):
-        black = [(0, 0, 0)] * self.num_leds
-
-        self.client.put_pixels(black)
-        self.client.put_pixels(black)
-        time.sleep(0.5)
-        self.client.put_pixels(black)
+    def __init__(self):
+        super().__init__('#000000')  # put black pixels

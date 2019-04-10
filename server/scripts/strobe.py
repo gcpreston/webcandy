@@ -3,6 +3,7 @@ import time
 from .interface import LightConfig
 
 
+# TODO: Abstract the strobe effect; be able to apply it to arbitrary LightConfigs
 class Strobe(LightConfig):
     """
     A white, strobing light.
