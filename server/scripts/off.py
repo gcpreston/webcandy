@@ -1,19 +1,17 @@
 import time
 
-from . import opc
+from .interface import LightConfig
 
 
-def run(*args, **kwargs):
-    numLEDs = 512
-    client = opc.Client('localhost:7890')
+class Off(LightConfig):
+    """
+    Turn the LEDs off.
+    """
 
-    black = [(0, 0, 0)] * numLEDs
+    def run(self):
+        black = [(0, 0, 0)] * self.num_leds
 
-    client.put_pixels(black)
-    client.put_pixels(black)
-    time.sleep(0.5)
-    client.put_pixels(black)
-
-
-if __name__ == '__main__':
-    run()
+        self.client.put_pixels(black)
+        self.client.put_pixels(black)
+        time.sleep(0.5)
+        self.client.put_pixels(black)

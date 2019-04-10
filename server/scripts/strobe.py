@@ -1,21 +1,19 @@
 import time
 
-from . import opc
+from .interface import LightConfig
 
 
-def run(*args, **kwargs):
-    numLEDs = 512
-    client = opc.Client('localhost:7890')
+class Strobe(LightConfig):
+    """
+    A white, strobing light.
+    """
 
-    black = [(0, 0, 0)] * numLEDs
-    white = [(255, 255, 255)] * numLEDs
+    def run(self):
+        black = [(0, 0, 0)] * self.num_leds
+        white = [(255, 255, 255)] * self.num_leds
 
-    while True:
-        client.put_pixels(white)
-        time.sleep(0.05)
-        client.put_pixels(black)
-        time.sleep(0.05)
-
-
-if __name__ == '__main__':
-    run()
+        while True:
+            self.client.put_pixels(white)
+            time.sleep(0.05)
+            self.client.put_pixels(black)
+            time.sleep(0.05)

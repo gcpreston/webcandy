@@ -2,6 +2,19 @@ import time
 import math
 
 
+def get_color(hex_str: str):
+    """
+    Calculate a 3-tuple representing the color in the given hex.
+
+    :param hex_str: the desired color in the format #RRGGBB.
+    """
+    red = int(hex_str[1:3], 16)
+    blue = int(hex_str[3:5], 16)
+    green = int(hex_str[5:7], 16)
+
+    return tuple([red, blue, green])
+
+
 def even_spread(colors, num_leds):
     """Evenly spreads out the colors across the LEDs in order."""
     pixels = []

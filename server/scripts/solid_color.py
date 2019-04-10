@@ -1,41 +1,27 @@
-import sys
 import time
-import re
 
-from . import opc
+from . import opcutil
+from .interface import LightConfig
 
 
-def get_color(hex_str: str):
+class SolidColor(LightConfig):
     """
-    Calculate a 3-tuple representing the color in the given hex.
-
-    :param hex_str: the desired color in the format #RRGGBB.
+    Display a solid color.
     """
-    red = int(hex_str[1:3], 16)
-    blue = int(hex_str[3:5], 16)
-    green = int(hex_str[5:7], 16)
 
-    return tuple([red, blue, green])
+    def __init__(self, color: str):
+        """
+        Initialize a new SolidColor configuration.
+        :param color: the color to dislpay (in format "#RRGGBB")
+        """
+        super().__init__()
+        self.color = color
 
+    def run(self):
+        black = [(0, 0, 0)] * self.num_leds
+        color = [opcutil.get_color(self.color)] * self.num_leds
 
-def run(color=None, *args, **kwargs):
-    if not color or not re.match(r'^#[A-Fa-f0-9]{6}$', color):
-        raise ValueError(f'Please provide a color in the format #RRGGBB. Received {color}.')
-
-    num_leds = 512
-    client = opc.Client('localhost:7890')
-
-    black = [(0, 0, 0)] * num_leds
-    color = [get_color(color)] * num_leds
-
-    client.put_pixels(black)
-    client.put_pixels(black)
-    time.sleep(0.5)
-    client.put_pixels(color)
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        raise ValueError('Please provide a color in the format #RRGGBB.')
-    
-    run(color=sys.argv[-1])
+        self.client.put_pixels(black)
+        self.client.put_pixels(black)
+        time.sleep(0.5)
+        self.client.put_pixels(color)
