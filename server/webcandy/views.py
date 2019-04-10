@@ -25,11 +25,17 @@ def submit():
     return jsonify(success=controller.run_script(script, color=color))
 
 
+# TODO: Consider renaming
 @blueprint.route('/scripts', methods=['GET'])
 def scripts():
     return jsonify(scripts=controller.get_script_names())
 
 
-@blueprint.route('/colors', methods=['GET'])
-def colors():
-    return jsonify(colors=controller.get_saved_colors())
+@blueprint.route('/solid_colors', methods=['GET'])
+def solid_colors():
+    return jsonify(controller.load_asset('saved_solid_color.json'))
+
+
+@blueprint.route('/fades', methods=['GET'])
+def fades():
+    return jsonify(controller.load_asset('saved_fade.json'))

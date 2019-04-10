@@ -1,8 +1,8 @@
 import time
 
 from typing import List
-from . import opcutil
 from .interface import LightConfig
+from .opcutil import get_color, shift
 
 
 class Fade(LightConfig):
@@ -13,26 +13,20 @@ class Fade(LightConfig):
     def __init__(self, colors: List[str]):
         """
         Initialize a new Fade configuration
-        :param colors: the colors to fade between
+        :param colors: the list of colors to fade between (#RRGGBB format)
         """
         super().__init__()
-        self.colors = colors
+        self.colors = [get_color(c) for c in colors]
 
     def run(self):
-        colors = [(255, 0, 0),    # red
-                  (255, 127, 0),  # orange
-                  (255, 255, 0),  # yellow
-                  (0, 255, 0),    # green
-                  (0, 0, 255),    # blue
-                  (139, 0, 255)]  # violet
         i = 0
-        current = colors[i]
+        current = self.colors[i]
         pixels = [current] * self.num_leds
 
         while True:
-            i = (i + 1) % len(colors)
+            i = (i + 1) % len(self.colors)
             for _ in range(10):
                 self.client.put_pixels(pixels)
-                current = opcutil.shift(current, colors[i], 0.1)
+                current = shift(current, self.colors[i], 0.1)
                 pixels = [current] * self.num_leds
                 time.sleep(0.5)

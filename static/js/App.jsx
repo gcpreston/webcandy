@@ -28,8 +28,8 @@ export default class App extends React.Component {
             this.setState({ scripts: response.data.scripts });
         });
 
-        axios.get("/colors").then(response => {
-            let colors = response.data.colors;
+        axios.get("/solid_colors").then(response => {
+            let colors = response.data;
             this.setState({ colors: colors });
 
             // Set currentColor initial value
@@ -39,6 +39,7 @@ export default class App extends React.Component {
         });
     }
 
+    // TODO: Make popover work when window width is smaller than expected
     render() {
         return (
             <Form onSubmit={this.handleSubmit}>
