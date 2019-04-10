@@ -22,3 +22,10 @@ def test_get_color():
     for color in invalid_colors:
         with pytest.raises(ValueError, match=get_color_match):
             opcutil.get_color(color)
+
+
+def test_even_spread():
+    assert opcutil.even_spread(['c1', 'c2', 'c3'], 9) == ['c1', 'c1', 'c1', 'c2', 'c2', 'c2', 'c3',
+                                                          'c3', 'c3']
+    assert opcutil.even_spread(['c1', 'c2', 'c3'], 11) == ['c1', 'c1', 'c1', 'c2', 'c2', 'c2', 'c3',
+                                                           'c3', 'c3', 'c1', 'c1']
