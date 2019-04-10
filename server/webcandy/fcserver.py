@@ -3,22 +3,31 @@ import subprocess
 import asyncio
 import atexit
 
+from flask import Flask
 from types import FunctionType
 from definitions import ROOT_DIR
-from webcandy import app
 
 
 class FCServer:
     """
     Controller for Fadecandy server.
     """
+
+    app: Flask = None
     _server_running: bool = False
     _fcserver_proc: subprocess.Popen = None
+
+    def init_app(self, app: Flask):
+        """
+        Register this FCServer with a Flask app.
+        """
+        self.app = app
 
     def start(self) -> None:
         """
         Run the Fadecandy server. Terminates on program exit.
         """
+
         async def _go(stop_fn: FunctionType):
             if sys.platform == 'win32':
                 server = 'fcserver.exe'
@@ -33,7 +42,7 @@ class FCServer:
         if not self._server_running:
             self._fcserver_proc = asyncio.run(_go(self.stop))
             self._server_running = True
-            app.logger.info('Started fcserver')
+            self.app.logger.info('Started fcserver')
 
     def stop(self) -> None:
         """
@@ -41,4 +50,4 @@ class FCServer:
         """
         self._fcserver_proc.terminate()
         self._server_running = False
-        app.logger.info('Stopped fcserver')
+        self.app.logger.info('Stopped fcserver')

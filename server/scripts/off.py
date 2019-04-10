@@ -1,19 +1,10 @@
-import time
-
-from . import opc
+from .solid_color import SolidColor
 
 
-def run(*args, **kwargs):
-    numLEDs = 512
-    client = opc.Client('localhost:7890')
+class Off(SolidColor):
+    """
+    Turn the LEDs off.
+    """
 
-    black = [(0, 0, 0)] * numLEDs
-
-    client.put_pixels(black)
-    client.put_pixels(black)
-    time.sleep(0.5)
-    client.put_pixels(black)
-
-
-if __name__ == '__main__':
-    run()
+    def __init__(self):
+        super().__init__('#000000')  # put black pixels
