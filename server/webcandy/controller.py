@@ -1,6 +1,6 @@
 import os
-import multiprocessing
 import json
+import multiprocessing
 
 from scripts.interface import LightConfig
 from flask import Flask

@@ -1,5 +1,6 @@
 import time
 
+from typing import List
 from . import opcutil
 from .interface import LightConfig
 
@@ -8,6 +9,14 @@ class Fade(LightConfig):
     """
     Fade between specified colors.
     """
+
+    def __init__(self, colors: List[str]):
+        """
+        Initialize a new Fade configuration
+        :param colors: the colors to fade between
+        """
+        super().__init__()
+        self.colors = colors
 
     def run(self):
         colors = [(255, 0, 0),    # red

@@ -1,7 +1,7 @@
 import abc
-import re
 
 from . import opc
+from .opcutil import is_color
 
 
 class LightConfig(abc.ABC):
@@ -20,18 +20,23 @@ class LightConfig(abc.ABC):
         self.num_leds: int = num_leds
 
     @staticmethod
-    def factory(name: str, color: str = None) -> 'LightConfig':
+    def factory(name: str, **kwargs) -> 'LightConfig':
         """
         Create an instance of a specific light configuration based on the given name.
 
         :param name: the name of the desired lighting configuration
-        :param color: the color to display for solid_color
         :return: an instance of the class associated with ``name``
         :raises ValueError: if ``name`` is not associated with any lighting configurations
         """
         if name == 'fade':
             from .fade import Fade
-            return Fade()
+
+            colors = kwargs.get('colors')
+            if not colors or not all([is_color(c) for c in colors]):
+                raise ValueError(
+                    f"Please provide a list of colors in the format #RRGGBB. Received {colors}.")
+
+            return Fade(colors)
         elif name == 'strobe':
             from .strobe import Strobe
             return Strobe()
@@ -44,16 +49,18 @@ class LightConfig(abc.ABC):
         elif name == 'solid_color':
             from .solid_color import SolidColor
 
-            if not color or not re.match(r'^#[A-Fa-f0-9]{6}$', color):
+            color = kwargs.get('color')
+            if not color or not is_color(color):
+                color_repr = f"'{color}'" if color else None
                 raise ValueError(
-                    f"Please provide a color in the format #RRGGBB. Received '{color}'.")
+                    f"Please provide a color in the format #RRGGBB. Received {color_repr}.")
 
             return SolidColor(color)
         elif name == 'off':
             from .off import Off
             return Off()
-
-        raise ValueError(f"'{name}' is not associated with any lighting configurations")
+        else:
+            raise ValueError(f"'{name}' is not associated with any lighting configurations")
 
     @abc.abstractmethod
     def run(self) -> None:
