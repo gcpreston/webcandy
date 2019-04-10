@@ -32,11 +32,11 @@ def scripts():
     return jsonify(scripts=util.get_script_names())
 
 
-@blueprint.route('/solid_colors', methods=['GET'])
-def solid_colors():
+@blueprint.route('/colors', methods=['GET'])
+def colors():
     return jsonify(util.load_asset('colors.json'))
 
 
-@blueprint.route('/fades', methods=['GET'])
-def fades():
+@blueprint.route('/color_lists', methods=['GET'])
+def color_lists():
     return jsonify(util.load_asset('color_lists.json'))

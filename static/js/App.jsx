@@ -28,7 +28,7 @@ export default class App extends React.Component {
             this.setState({ scripts: response.data.scripts });
         });
 
-        axios.get("/solid_colors").then(response => {
+        axios.get("/colors").then(response => {
             let colors = response.data;
             this.setState({ colors: colors });
 
