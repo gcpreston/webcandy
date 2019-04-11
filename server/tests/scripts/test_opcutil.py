@@ -61,3 +61,24 @@ def test_spread():
 
 def test_shift():
     assert opcutil.shift((0, 0, 0), (100, 100, 100), 0.1) == (10, 10, 10)
+    assert opcutil.shift((0, 50, 100), (100, 100, 100), 0.5) == (50, 75, 100)
+    assert opcutil.shift((0, 0, 0), (100, 100, 100), 1.2) == (120, 120, 120)
+    assert opcutil.shift((0, 0, 0), (100, 100, 100), -0.5) == (-50, -50, -50)
+
+
+def test_rotate_left():
+    nums = [1, 2, 3, 4]
+    assert opcutil.rotate_left(nums, 0) == nums
+    assert opcutil.rotate_left(nums, 1) == [2, 3, 4, 1]
+    assert opcutil.rotate_left(nums, -1) == [4, 1, 2, 3]
+    assert opcutil.rotate_left(nums, 2) == opcutil.rotate_left(nums, -2)
+    assert opcutil.rotate_left(nums, 5) == opcutil.rotate_left(nums, 1)
+
+
+def test_rotate_right():
+    nums = [1, 2, 3, 4]
+    assert opcutil.rotate_right(nums, 0) == nums
+    assert opcutil.rotate_right(nums, 1) == [4, 1, 2, 3]
+    assert opcutil.rotate_right(nums, -1) == [2, 3, 4, 1]
+    assert opcutil.rotate_left(nums, 2) == opcutil.rotate_left(nums, -2)
+    assert opcutil.rotate_right(nums, 5) == opcutil.rotate_right(nums, 1)

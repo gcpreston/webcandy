@@ -1,8 +1,7 @@
 import re
-import time
 import math
 
-from typing import Tuple, List
+from typing import Tuple, List, Iterable
 
 
 def is_color(s: str) -> bool:
@@ -82,15 +81,15 @@ def spread(colors: List, num_leds: int, pixels_per_color: int):
     color_index = 0
     leds_left = num_leds
     while leds_left > 0:
-        pixels += [colors[color_index]] * pixels_per_color
+        pixels += [colors[color_index]] * min(pixels_per_color, leds_left)
         color_index = (color_index + 1) % len(colors)
         leds_left -= pixels_per_color
 
     return pixels
 
 
-def shift(current: Tuple[float, float, float], goal: Tuple[float, float, float],
-          p: float) -> Tuple[float, float, float]:
+def shift(current: Iterable[float], goal: Iterable[float],
+          p: float) -> Iterable[float]:
     """
     Shift a color towards another.
 
@@ -99,30 +98,28 @@ def shift(current: Tuple[float, float, float], goal: Tuple[float, float, float],
     :param p: a value indicating how far to shift (0 => no shift, 1 => ``goal``)
     :return: the shifted color
     """
-    return [current[i] + ((goal[i] - current[i]) * p) for i in range(3)]
+    return tuple([c + ((g - c) * p) for c, g in zip(current, goal)])
 
 
-def rotate_left(pixels, n):
-    """Rotates the pixels to the left by n."""
-    return pixels[n:] + pixels[:n]
+def rotate_left(l: List, n: int):
+    """
+    Generate a version of the given list rotated left.
+
+    :param l: the list to rotate
+    :param n: how many spaces to rotate the list
+    :return: the rotated list
+    """
+    n %= len(l)
+    return l[n:] + l[:n]
 
 
-def rotate_right(pixels, n):
-    """Rotates the pixels to the right by n."""
-    return pixels[-n:] + pixels[:-n]
+def rotate_right(l: List, n: int):
+    """
+    Generate a version of the given list rotated right
 
-
-def scroll_left(pixels, sleep_time, client):
-    """Scrolls the pixels around once to the left."""
-    for _ in pixels:
-        client.put_pixels(pixels)
-        time.sleep(sleep_time)
-        pixels = rotate_left(pixels, 1)
-
-
-def scroll_right(pixels, sleep_time, client):
-    """Scrolls the pixels around once to the right."""
-    for _ in pixels:
-        client.put_pixels(pixels)
-        time.sleep(sleep_time)
-        pixels = rotate_right(pixels, 1)
+    :param l: the list to rotate
+    :param n: how many spaces to rotate the list
+    :return: the rotated list
+    """
+    n %= len(l)
+    return l[-n:] + l[:-n]
