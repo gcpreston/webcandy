@@ -89,7 +89,8 @@ def spread(colors: List, num_leds: int, pixels_per_color: int):
     return pixels
 
 
-def shift(current: Tuple[int, int, int], goal: Tuple[int, int, int], p: float):
+def shift(current: Tuple[float, float, float], goal: Tuple[float, float, float],
+          p: float) -> Tuple[float, float, float]:
     """
     Shift a color towards another.
 

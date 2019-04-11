@@ -57,3 +57,7 @@ def test_spread():
                                                   'c1', 'c2', 'c2']
     assert opcutil.spread(['c1', 'c2', 'c3'], 7, 3) == ['c1', 'c1', 'c1', 'c2',
                                                         'c2', 'c2', 'c3']
+
+
+def test_shift():
+    assert opcutil.shift((0, 0, 0), (100, 100, 100), 0.1) == (10, 10, 10)
