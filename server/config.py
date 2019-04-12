@@ -1,6 +1,10 @@
 import os
 
+from dotenv import load_dotenv
 from definitions import ROOT_DIR
+
+# TODO: Dynamic environment loading
+load_dotenv('.env')
 
 
 class Config:
