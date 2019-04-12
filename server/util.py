@@ -10,8 +10,8 @@ def get_script_names() -> List[str]:
     Get the names of available Fadecandy scripts.
     :return: a list of names of existing scripts
     """
-    ignore = {'__pycache__', '__init__.py', 'opc.py', 'opcutil.py', 'interface.py',
-              'solid_color.py', 'off.py'}
+    ignore = {'__pycache__', '__init__.py', 'opc.py', 'opcutil.py',
+              'interface.py', 'solid_color.py', 'off.py'}
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
                            os.listdir(ROOT_DIR + '/server/scripts'))))

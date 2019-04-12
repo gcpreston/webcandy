@@ -1,5 +1,6 @@
 .idea/
 *.pyc
+*/.pytest_cache
 
 static/node_modules
 static/dist

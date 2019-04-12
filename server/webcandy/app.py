@@ -15,7 +15,8 @@ def create_app():
     app.config.from_object(Config)
     register_extensions(app)
     register_blueprints(app)
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s: %(message)s')
     return app
 
 

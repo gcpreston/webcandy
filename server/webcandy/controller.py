@@ -11,9 +11,11 @@ def _execute(name: str, color: str = None, colors: List[str] = None):
     Execute the run function on the specified script module.
 
     :param name: the name of the script to run
-    :param color: the hex of the color to display (#RRGGBB); for use with solid_color
+    :param color: the hex of the color to display (#RRGGBB); for use with
+        solid_color
     :param colors: a list of color hexes to display (#RRGGBB); for use with fade
-    :raises ValueError: if the specified configuration was not given properly formatted data
+    :raises ValueError: if the specified configuration was not given properly
+        formatted data
     """
     LightConfig.factory(name, color=color, colors=colors).run()
 
@@ -34,10 +36,12 @@ class Controller:
 
     def run_script(self, name: str, color: str = None) -> None:
         """
-        Run the Fadecandy script with the given name. Requires a Fadecandy server to be started.
+        Run the Fadecandy script with the given name. Requires a Fadecandy
+        server to be started.
 
         :param name: the name of the script to run
-        :param color: the hex of the color to display (#RRGGBB); for use in solid_color
+        :param color: the hex of the color to display (#RRGGBB); for use in
+            solid_color
         """
         if self._current_proc and self._current_proc.is_alive():
             self.app.logger.debug(f'Terminating {self._current_proc}')

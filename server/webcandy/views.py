@@ -22,7 +22,9 @@ def protected():
 @blueprint.route('/submit', methods=['POST'])
 def submit():
     script = request.form.get('script')
-    color = request.form.get('color') if request.form.get('color') != 'undefined' else None
+    color = request.form.get('color')
+    if color == 'undefined':
+        color = None
     return jsonify(success=controller.run_script(script, color=color))
 
 
