@@ -1,11 +1,9 @@
-import time
-
 from typing import List
 from .opcutil import get_color, spread, rotate_right
-from .interface import LightConfig
+from .interface import DynamicLightConfig
 
 
-class Scroll(LightConfig):
+class Scroll(DynamicLightConfig):
     """
     Scroll through a multi-colored line.
     """
@@ -17,11 +15,8 @@ class Scroll(LightConfig):
         """
         super().__init__()
         self.colors = [get_color(c) for c in colors]
+        self.pixels = spread(self.colors, self.num_leds, 10)
 
-    def run(self, *args, **kwargs):
-        pixels = spread(self.colors, self.num_leds, 10)
-
-        while True:
-            self.client.put_pixels(pixels)
-            time.sleep(0.1)
-            pixels = rotate_right(pixels, 1)
+    def __next__(self):
+        self.pixels = rotate_right(self.pixels, 1)
+        return self.pixels

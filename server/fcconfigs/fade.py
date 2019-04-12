@@ -18,7 +18,7 @@ class Fade(DynamicLightConfig):
         super().__init__()
         self.colors = [get_color(c) for c in colors]
         self._current_color = self.colors[0]
-        self._current_pixels = [self._current_color] * self.num_leds
+        self.pixels = [self._current_color] * self.num_leds
 
     def __next__(self):
         if self._fade_index == 9:
@@ -31,6 +31,6 @@ class Fade(DynamicLightConfig):
         # shift pixels 10% towards the next color
         self._current_color = shift(self._current_color,
                                     self.colors[self._color_index], 0.1)
-        self._current_pixels = [self._current_color] * self.num_leds
+        self.pixels = [self._current_color] * self.num_leds
 
-        return self._current_pixels
+        return self.pixels

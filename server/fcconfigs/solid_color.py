@@ -16,5 +16,5 @@ class SolidColor(StaticLightConfig):
         super().__init__()
         self.color: Tuple[int, int, int] = get_color(color)
 
-    def pixels(self):
+    def pattern(self):
         return [self.color] * self.num_leds

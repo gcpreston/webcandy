@@ -120,13 +120,13 @@ class StaticLightConfig(LightConfig, abc.ABC):
     """
 
     def __next__(self):
-        return self.pixels()
+        return self.pattern()
 
     def run(self) -> None:
-        self.client.put_pixels(self.pixels())
+        self.client.put_pixels(self.pattern())
 
     @abc.abstractmethod
-    def pixels(self) -> List[Color]:
+    def pattern(self) -> List[Color]:
         """
         Define the pattern this lighting configuration should display.
         :return: a list of RGB values to display
@@ -142,4 +142,4 @@ class DynamicLightConfig(LightConfig, abc.ABC):
     def run(self) -> None:
         while True:
             self.client.put_pixels(next(self))
-            time.sleep(0.5)  # TODO: Add ability to control animation speed
+            time.sleep(0.1)  # TODO: Add ability to control animation speed
