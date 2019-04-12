@@ -36,7 +36,7 @@ class FCServer:
             else:
                 server = 'fcserver-rpi'
             _fcserver_proc = subprocess.Popen(ROOT_DIR + '/bin/' + server)
-            atexit.register(stop_fn)  # TODO: Does this even do anything?
+            atexit.register(stop_fn)
             return _fcserver_proc
 
         if not self._server_running:

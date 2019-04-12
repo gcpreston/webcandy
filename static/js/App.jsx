@@ -14,7 +14,7 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            scripts: [],
+            configs: [],
             colors: {},
             solidColor: false,
             customColor: false,
@@ -24,8 +24,8 @@ export default class App extends React.Component {
 
     // TODO: Better way to do this?
     componentWillMount() {
-        axios.get("/scripts").then(response => {
-            this.setState({ scripts: response.data.scripts });
+        axios.get("/configs").then(response => {
+            this.setState({ configs: response.data });
         });
 
         axios.get("/colors").then(response => {
@@ -43,11 +43,11 @@ export default class App extends React.Component {
     render() {
         return (
             <Form onSubmit={this.handleSubmit}>
-                <Form.Group controlId="script">
+                <Form.Group controlId="config">
                     <Form.Label>Script</Form.Label>
                     <Form.Control as="select"
                                   disabled={this.state.solidColor}>
-                        {this.state.scripts.map((name, idx) => {
+                        {this.state.configs.map((name, idx) => {
                             return <option key={idx}>{name}</option>;
                         })}
                     </Form.Control>
@@ -124,7 +124,7 @@ export default class App extends React.Component {
     };
 
     /**
-     * Change whether the user can select a script or a solid color.
+     * Change whether the user can select a configuration or a solid color.
      * @param event - The change event from the checkbox
      */
     handleSolidColorCheck = (event) => {
@@ -157,12 +157,12 @@ export default class App extends React.Component {
 
         const target = event.currentTarget;
 
-        let script, color;
+        let config, color;
 
         if (this.state.solidColor) {
-            script = "solid_color"
+            config = "solid_color"
         } else {
-            script = target["script"].value;
+            config = target["config"].value;
         }
 
         if (this.state.customColor) {
@@ -172,7 +172,7 @@ export default class App extends React.Component {
         }
 
         const form = new FormData();
-        form.set("script", script);
+        form.set("config", config);
         form.set("color", color);
 
         axios.post("/submit", form)
@@ -188,7 +188,7 @@ export default class App extends React.Component {
         event.preventDefault();
 
         const form = new FormData();
-        form.set("script", "off");
+        form.set("config", "off");
 
         axios.post("/submit", form)
             .then(response => console.log(response))

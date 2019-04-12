@@ -21,17 +21,16 @@ def protected():
 
 @blueprint.route('/submit', methods=['POST'])
 def submit():
-    script = request.form.get('script')
+    script = request.form.get('config')
     color = request.form.get('color')
     if color == 'undefined':
         color = None
     return jsonify(success=controller.run_script(script, color=color))
 
 
-# TODO: Consider renaming
-@blueprint.route('/scripts', methods=['GET'])
+@blueprint.route('/configs', methods=['GET'])
 def scripts():
-    return jsonify(scripts=util.get_script_names())
+    return jsonify(util.get_config_names())
 
 
 @blueprint.route('/colors', methods=['GET'])

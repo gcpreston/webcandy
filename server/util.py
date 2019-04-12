@@ -5,16 +5,16 @@ from typing import List, Dict
 from definitions import ROOT_DIR
 
 
-def get_script_names() -> List[str]:
+def get_config_names() -> List[str]:
     """
-    Get the names of available Fadecandy scripts.
-    :return: a list of names of existing scripts
+    Get the names of available Fadecandy lighting configurations.
+    :return: a list of names of existing configurations
     """
     ignore = {'__pycache__', '__init__.py', 'opc.py', 'opcutil.py',
               'interface.py', 'solid_color.py', 'off.py'}
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
-                           os.listdir(ROOT_DIR + '/server/scripts'))))
+                           os.listdir(ROOT_DIR + '/server/fcconfigs'))))
 
 
 # TODO: Add ability to reference colors by name in other JSON files

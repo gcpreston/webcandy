@@ -1,7 +1,7 @@
 import multiprocessing
 import util
 
-from scripts.interface import LightConfig
+from fcconfigs.interface import LightConfig
 from flask import Flask
 from typing import List
 
