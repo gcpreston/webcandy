@@ -1,14 +1,14 @@
-import time
-
 from typing import List
-from .interface import LightConfig
+from .interface import DynamicLightConfig
 from .opcutil import get_color, shift
 
 
-class Fade(LightConfig):
+class Fade(DynamicLightConfig):
     """
     Fade between specified colors.
     """
+    _color_index = 0  # index of color being faded towards in self.colors
+    _fade_index = 0  # how far we are between two colors [0-9]
 
     def __init__(self, colors: List[str]):
         """
@@ -17,16 +17,20 @@ class Fade(LightConfig):
         """
         super().__init__()
         self.colors = [get_color(c) for c in colors]
+        self._current_color = self.colors[0]
+        self._current_pixels = [self._current_color] * self.num_leds
 
-    def run(self):
-        i = 0
-        current = self.colors[i]
-        pixels = [current] * self.num_leds
+    def __next__(self):
+        if self._fade_index == 9:
+            # go to next color
+            self._color_index = (self._color_index + 1) % len(self.colors)
 
-        while True:
-            i = (i + 1) % len(self.colors)
-            for _ in range(10):
-                self.client.put_pixels(pixels)
-                current = shift(current, self.colors[i], 0.1)
-                pixels = [current] * self.num_leds
-                time.sleep(0.5)
+        # increment _fade_index, or wrap back to 0
+        self._fade_index = (self._fade_index + 1) % 10
+
+        # shift pixels 10% towards the next color
+        self._current_color = shift(self._current_color,
+                                    self.colors[self._color_index], 0.1)
+        self._current_pixels = [self._current_color] * self.num_leds
+
+        return self._current_pixels
