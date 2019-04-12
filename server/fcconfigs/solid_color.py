@@ -1,10 +1,9 @@
-import time
-
+from typing import Tuple
 from .opcutil import get_color
-from .interface import LightConfig
+from .interface import StaticLightConfig
 
 
-class SolidColor(LightConfig):
+class SolidColor(StaticLightConfig):
     """
     Display a solid color.
     """
@@ -15,13 +14,7 @@ class SolidColor(LightConfig):
         :param color: the color to dislpay (in format "#RRGGBB")
         """
         super().__init__()
-        self.color = color
+        self.color: Tuple[int, int, int] = get_color(color)
 
-    def run(self):
-        black = [(0, 0, 0)] * self.num_leds
-        color = [get_color(self.color)] * self.num_leds
-
-        self.client.put_pixels(black)
-        self.client.put_pixels(black)
-        time.sleep(0.5)
-        self.client.put_pixels(color)
+    def pixels(self):
+        return [self.color] * self.num_leds
