@@ -12,8 +12,8 @@ class Fade(LightConfig):
 
     def __init__(self, colors: List[str]):
         """
-        Initialize a new Fade configuration
-        :param colors: the list of colors to fade between (#RRGGBB format)
+        Initialize a new Fade configuration.
+        :param colors: the colors to use ("#RRGGBB" format)
         """
         super().__init__()
         self.colors = [get_color(c) for c in colors]

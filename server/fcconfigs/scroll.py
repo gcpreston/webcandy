@@ -5,15 +5,15 @@ from .opcutil import get_color, spread, rotate_right
 from .interface import LightConfig
 
 
-class RainbowScroll(LightConfig):
+class Scroll(LightConfig):
     """
-    Scroll through a rainbow of colors.
+    Scroll through a multi-colored line.
     """
 
     def __init__(self, colors: List[str]):
         """
-        Initialize a new Fade configuration
-        :param colors: the list of colors to use in the scroll (#RRGGBB format)
+        Initialize a new Scroll configuration.
+        :param colors: the colors to use ("#RRGGBB" format)
         """
         super().__init__()
         self.colors = [get_color(c) for c in colors]

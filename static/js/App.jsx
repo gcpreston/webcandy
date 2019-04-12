@@ -22,7 +22,9 @@ export default class App extends React.Component {
         };
     }
 
-    // TODO: Better way to do this?
+    /**
+     * Get values from Webcandy API and set state before app renders.
+     */
     componentWillMount() {
         axios.get("/configs").then(response => {
             this.setState({ configs: response.data });

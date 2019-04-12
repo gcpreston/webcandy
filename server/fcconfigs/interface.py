@@ -3,6 +3,9 @@ import abc
 from . import opc
 from .opcutil import is_color
 
+# IDEA
+# Lighting configurations are iterators.
+
 
 class LightConfig(abc.ABC):
     """
@@ -22,11 +25,12 @@ class LightConfig(abc.ABC):
     @staticmethod
     def factory(name: str, **kwargs) -> 'LightConfig':
         """
-        Create an instance of a specific light configuration based on the given name.
+        Create an instance of a specific light configuration based on the given
+        name.
 
         :param name: the name of the desired lighting configuration
         :return: an instance of the class associated with ``name``
-        :raises ValueError: if ``name`` is not associated with any lighting configurations
+        :raises ValueError: if ``name`` is not associated with any configs
         """
 
         def get_color():
@@ -39,19 +43,22 @@ class LightConfig(abc.ABC):
             if not color or not is_color(color):
                 color_repr = f"'{color}'" if color else None
                 raise ValueError(
-                    f"Please provide a color in the format #RRGGBB. Received {color_repr}.")
+                    "Please provide a color in the format #RRGGBB. "
+                    f"Received {color_repr}.")
             return color
 
         def get_colors():
             """
             Extract the colors field from kwargs.
             :return: the list of color strings (#RRGGBB)
-            :raises ValueError: if a list of correctly formatted colors is not found
+            :raises ValueError: if a list of correctly formatted colors is not
+                found
             """
             colors = kwargs.get('colors')
             if not colors or not all([is_color(c) for c in colors]):
                 raise ValueError(
-                    f"Please provide a list of colors in the format #RRGGBB. Received {colors}.")
+                    "Please provide a list of colors in the format #RRGGBB. "
+                    f"Received {colors}.")
             return colors
 
         if name == 'fade':
@@ -60,12 +67,12 @@ class LightConfig(abc.ABC):
         elif name == 'strobe':
             from .strobe import Strobe
             return Strobe()
-        elif name == 'rainbow_scroll':
-            from .rainbow_scroll import RainbowScroll
-            return RainbowScroll(get_colors())
-        elif name == 'rainbow_strobe':
-            from .rainbow_strobe import RainbowStrobe
-            return RainbowStrobe()
+        elif name == 'scroll':
+            from .scroll import Scroll
+            return Scroll(get_colors())
+        elif name == 'scroll_strobe':
+            from .scroll_strobe import ScrollStrobe
+            return ScrollStrobe(get_colors())
         elif name == 'solid_color':
             from .solid_color import SolidColor
             return SolidColor(get_color())
@@ -73,7 +80,8 @@ class LightConfig(abc.ABC):
             from .off import Off
             return Off()
         else:
-            raise ValueError(f"'{name}' is not associated with any lighting configurations")
+            raise ValueError(
+                f"'{name}' is not associated with any lighting configurations")
 
     @abc.abstractmethod
     def run(self) -> None:
