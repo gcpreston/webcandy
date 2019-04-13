@@ -57,7 +57,7 @@ class LightConfig(abc.ABC):
 
         def get_color():
             """
-            Extract the color field from kwargs.
+            Extract the color field from ``kwargs``.
             :return: the color string (#RRGGBB)
             :raises ValueError: if a color of the correct format is not found
             """
@@ -71,7 +71,7 @@ class LightConfig(abc.ABC):
 
         def get_colors():
             """
-            Extract the colors field from kwargs.
+            Extract the colors field from ``kwargs``.
             :return: the list of color strings (#RRGGBB)
             :raises ValueError: if a list of correctly formatted colors is not
                 found
@@ -83,7 +83,13 @@ class LightConfig(abc.ABC):
                     f"Received {colors}.")
             return colors
 
-        def set_speed(light_config: LightConfig):
+        def set_speed(light_config: LightConfig) -> LightConfig:
+            """
+            Set the speed of the given ``LightConfig`` to the value specified
+            in ``kwargs``, if one is found.
+            :param light_config: the ``LightConfig`` to set the speed of
+            :return: ``light_config`` updated
+            """
             speed = kwargs.get('speed')
             if speed:
                 light_config.speed = speed
