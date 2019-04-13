@@ -1,20 +1,15 @@
-import time
-
-from .interface import LightConfig
+from .interface import DynamicLightConfig
 
 
 # TODO: Abstract the strobe effect
-class Strobe(LightConfig):
+class Strobe(DynamicLightConfig):
     """
     A white, strobing light.
     """
+    _on = True
 
-    def run(self):
-        black = [(0, 0, 0)] * self.num_leds
-        white = [(255, 255, 255)] * self.num_leds
-
-        while True:
-            self.client.put_pixels(white)
-            time.sleep(0.05)
-            self.client.put_pixels(black)
-            time.sleep(0.05)
+    def __next__(self):
+        if self._on:
+            return [(0, 0, 0)] * self.num_leds
+        else:
+            return [(255, 255, 255)] * self.num_leds

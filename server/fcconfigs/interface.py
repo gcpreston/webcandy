@@ -83,18 +83,24 @@ class LightConfig(abc.ABC):
                     f"Received {colors}.")
             return colors
 
+        def set_speed(light_config: LightConfig):
+            speed = kwargs.get('speed')
+            if speed:
+                light_config.speed = speed
+            return light_config
+
         if name == 'fade':
             from .fade import Fade
-            return Fade(get_colors())
+            return set_speed(Fade(get_colors()))
         elif name == 'strobe':
             from .strobe import Strobe
-            return Strobe()
+            return set_speed(Strobe())
         elif name == 'scroll':
             from .scroll import Scroll
-            return Scroll(get_colors())
+            return set_speed(Scroll(get_colors()))
         elif name == 'scroll_strobe':
             from .scroll_strobe import ScrollStrobe
-            return ScrollStrobe(get_colors())
+            return set_speed(ScrollStrobe(get_colors()))
         elif name == 'solid_color':
             from .solid_color import SolidColor
             return SolidColor(get_color())
@@ -139,7 +145,20 @@ class DynamicLightConfig(LightConfig, abc.ABC):
     A lighting configuration that displays a moving pattern.
     """
 
+    def __init__(self, port: int = 7890, num_leds: int = 512, speed: int = 10):
+        """
+        Initialize a new LightConfig.
+
+        :param port: the port the Fadecandy server is running on
+        :param num_leds: the number of LEDs
+        :param speed: the speed at which the lights change (updates per second)
+        """
+        super().__init__(port, num_leds)
+        self.speed = speed
+
     def run(self) -> None:
         while True:
-            self.client.put_pixels(next(self))
-            time.sleep(0.1)  # TODO: Add ability to control animation speed
+            pixels = next(self)
+            print(pixels)
+            self.client.put_pixels(pixels)
+            time.sleep(1 / self.speed)

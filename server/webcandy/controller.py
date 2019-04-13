@@ -6,7 +6,8 @@ from flask import Flask
 from typing import List
 
 
-def _execute(name: str, color: str = None, colors: List[str] = None):
+def _execute(name: str, color: str = None, colors: List[str] = None,
+             speed: int = None) -> None:
     """
     Execute the run function on the specified script module.
 
@@ -14,10 +15,11 @@ def _execute(name: str, color: str = None, colors: List[str] = None):
     :param color: the hex of the color to display (#RRGGBB); for use with
         solid_color
     :param colors: a list of color hexes to display (#RRGGBB); for use with fade
+    :param speed: the speed of at which the lights change (updates per second)
     :raises ValueError: if the specified configuration was not given properly
         formatted data
     """
-    LightConfig.factory(name, color=color, colors=colors).run()
+    LightConfig.factory(name, color=color, colors=colors, speed=speed).run()
 
 
 class Controller:
