@@ -7,6 +7,7 @@ from .opcutil import is_color
 
 Color = NewType('Color', Tuple[float, float, float])
 
+
 # IDEA
 # Lighting configurations are iterators that generate the next list of pixels
 # to put onto an LED strip. The run method steps through the iterator and does
@@ -45,23 +46,27 @@ class LightConfig(abc.ABC):
         pass
 
     @staticmethod
-    def factory(name: str, **kwargs) -> 'LightConfig':
+    def factory(name: str, color: str = None, colors: List[str] = None,
+                speed: int = None) -> 'LightConfig':
         """
         Create an instance of a specific light configuration based on the given
-        name.
+        name. Different configurations differ in required keyword arguments.
 
         :param name: the name of the desired lighting configuration
+        :param color: (for solid_color) the color to display
+        :param colors: (for fade and scroll) a list of colors to use
+        :param speed: (for any moving config) the speed to move at
         :return: an instance of the class associated with ``name``
-        :raises ValueError: if ``name`` is not associated with any configs
+        :raises ValueError: if ``name`` is not associated with any configs or
+            the required arguments for the specified config are not provided
         """
 
         def get_color():
             """
-            Extract the color field from ``kwargs``.
+            Validate and retrieve ``color``.
             :return: the color string (#RRGGBB)
             :raises ValueError: if a color of the correct format is not found
             """
-            color = kwargs.get('color')
             if not color or not is_color(color):
                 color_repr = f"'{color}'" if color else None
                 raise ValueError(
@@ -71,12 +76,11 @@ class LightConfig(abc.ABC):
 
         def get_colors():
             """
-            Extract the colors field from ``kwargs``.
+            Validate and retrieve ``colors``.
             :return: the list of color strings (#RRGGBB)
             :raises ValueError: if a list of correctly formatted colors is not
                 found
             """
-            colors = kwargs.get('colors')
             if not colors or not all([is_color(c) for c in colors]):
                 raise ValueError(
                     "Please provide a list of colors in the format #RRGGBB. "
@@ -85,12 +89,11 @@ class LightConfig(abc.ABC):
 
         def set_speed(light_config: LightConfig) -> LightConfig:
             """
-            Set the speed of the given ``LightConfig`` to the value specified
-            in ``kwargs``, if one is found.
+            Set the speed of the given ``LightConfig`` to ``speed``, if a value
+            is provided.
             :param light_config: the ``LightConfig`` to set the speed of
             :return: ``light_config`` updated
             """
-            speed = kwargs.get('speed')
             if speed:
                 light_config.speed = speed
             return light_config
@@ -122,7 +125,6 @@ class LightConfig(abc.ABC):
         """
         Run this lighting configuration.
         """
-        # TODO: Fade in?
         pass
 
 
@@ -141,7 +143,9 @@ class StaticLightConfig(LightConfig, abc.ABC):
         # turn off LEDs
         self.client.put_pixels(black)
         self.client.put_pixels(black)
+
         # fade in to pattern
+        time.sleep(0.3)
         self.client.put_pixels(pattern)
 
     @abc.abstractmethod

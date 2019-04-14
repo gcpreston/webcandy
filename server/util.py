@@ -14,7 +14,7 @@ def get_config_names() -> List[str]:
               'interface.py', 'solid_color.py', 'off.py'}
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
-                           os.listdir(ROOT_DIR + '/server/fcconfigs'))))
+                           os.listdir(ROOT_DIR + '/server/pycandy'))))
 
 
 # TODO: Add ability to reference colors by name in other JSON files
