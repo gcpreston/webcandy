@@ -135,7 +135,14 @@ class StaticLightConfig(LightConfig, abc.ABC):
         return self.pattern()
 
     def run(self) -> None:
-        self.client.put_pixels(self.pattern())
+        black = [(0, 0, 0)] * self.num_leds
+        pattern = self.pattern()
+
+        # turn off LEDs
+        self.client.put_pixels(black)
+        self.client.put_pixels(black)
+        # fade in to pattern
+        self.client.put_pixels(pattern)
 
     @abc.abstractmethod
     def pattern(self) -> List[Color]:
@@ -164,7 +171,5 @@ class DynamicLightConfig(LightConfig, abc.ABC):
 
     def run(self) -> None:
         while True:
-            pixels = next(self)
-            print(pixels)
-            self.client.put_pixels(pixels)
+            self.client.put_pixels(next(self))
             time.sleep(1 / self.speed)
