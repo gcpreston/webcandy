@@ -99,24 +99,22 @@ class LightConfig(abc.ABC):
             return light_config
 
         from . import configs
-        try:
-            module = getattr(configs, name)
-        except AttributeError:
-            raise ValueError(
-                f"'{name}' is not associated with any lighting configurations")
 
         if name == 'fade':
-            return set_speed(module.Fade(get_colors()))
+            return set_speed(configs.Fade(get_colors()))
         elif name == 'strobe':
-            return set_speed(module.Strobe())
+            return set_speed(configs.Strobe())
         elif name == 'scroll':
-            return set_speed(module.Scroll(get_colors()))
+            return set_speed(configs.Scroll(get_colors()))
         elif name == 'scroll_strobe':
-            return set_speed(module.ScrollStrobe(get_colors()))
+            return set_speed(configs.ScrollStrobe(get_colors()))
         elif name == 'solid_color':
-            return module.SolidColor(get_color())
+            return configs.SolidColor(get_color())
         elif name == 'off':
-            return module.Off()
+            return configs.Off()
+        else:
+            raise ValueError(
+                f"'{name}' is not associated with any lighting configurations")
 
     @abc.abstractmethod
     def run(self) -> None:
