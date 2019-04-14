@@ -1,23 +1,20 @@
 import multiprocessing
 import util
 
-from fcconfigs.interface import LightConfig
+from opclib.interface import LightConfig
 from flask import Flask
-from typing import List
 
 
-def _execute(name: str, color: str = None, colors: List[str] = None):
+def _execute(name: str, **kwargs) -> None:
     """
-    Execute the run function on the specified script module.
+    Run the specified lighting configuration.
 
-    :param name: the name of the script to run
-    :param color: the hex of the color to display (#RRGGBB); for use with
-        solid_color
-    :param colors: a list of color hexes to display (#RRGGBB); for use with fade
+    :param name: the name of the configuration to run
+    :param kwargs: keyword arguments to pass to ``LightConfig`` factory
     :raises ValueError: if the specified configuration was not given properly
         formatted data
     """
-    LightConfig.factory(name, color=color, colors=colors).run()
+    LightConfig.factory(name, **kwargs).run()
 
 
 class Controller:
@@ -50,8 +47,10 @@ class Controller:
         # TODO: Allow colors to be configurable
         # initialize default colors
         colors = util.load_asset('color_lists.json')['default']
+        kwargs = {'color': color, 'colors': colors}
 
         self.app.logger.info(f'Running script: {name}, color: {color}')
         self._current_proc = multiprocessing.Process(target=_execute,
-                                                     args=(name, color, colors))
+                                                     args=(name,),
+                                                     kwargs=kwargs)
         self._current_proc.start()
