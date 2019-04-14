@@ -20,12 +20,12 @@ class LightConfig(abc.ABC):
     Abstract base class for an LED lighting configuration.
     """
 
-    def __init__(self, port: int = 7890, num_leds: int = 512):
+    def __init__(self, num_leds: int = 512, port: int = 7890):
         """
         Initialize a new LightConfig.
 
-        :param port: the port the Fadecandy server is running on
         :param num_leds: the number of LEDs
+        :param port: the port the Fadecandy server is running on
         """
         self.client: opc.Client = opc.Client(f'localhost:{port}')
         self.num_leds: int = num_leds
@@ -106,8 +106,6 @@ class LightConfig(abc.ABC):
             return set_speed(configs.Strobe())
         elif name == 'scroll':
             return set_speed(configs.Scroll(get_colors()))
-        elif name == 'scroll_strobe':
-            return set_speed(configs.ScrollStrobe(get_colors()))
         elif name == 'solid_color':
             return configs.SolidColor(get_color())
         elif name == 'off':
@@ -158,21 +156,22 @@ class DynamicLightConfig(LightConfig, abc.ABC):
     A lighting configuration that displays a moving pattern.
     """
 
-    def __init__(self, port: int = 7890, num_leds: int = 512,
-                 speed: int = None):
+    def __init__(self, speed: int = None, num_leds: int = 512,
+                 port: int = 7890):
         """
         Initialize a new LightConfig.
 
-        :param port: the port the Fadecandy server is running on
-        :param num_leds: the number of LEDs
         :param speed: the speed at which the lights change (updates per second)
+        :param num_leds: the number of LEDs
+        :param port: the port the Fadecandy server is running on
         """
-        super().__init__(port, num_leds)
+        super().__init__(num_leds, port)
         if speed:
             self.speed = speed
 
     def run(self) -> None:
         while True:
             pixels = next(self)
+            print(pixels)
             self.client.put_pixels(pixels)
             time.sleep(1 / self.speed)
