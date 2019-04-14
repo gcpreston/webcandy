@@ -1,7 +1,7 @@
 import multiprocessing
 import util
 
-from pycandy.interface import LightConfig
+from opclib.interface import LightConfig
 from flask import Flask
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from pycandy import opcutil
+from opclib import opcutil
 
 valid_colors = ['#000000', '#123456', '#987abc', '#abcdef', '#ffffff']
 invalid_colors = ['#fffffg', 'fail', 'abcdef', '#abcdef0', '#abcde', '#abc']
