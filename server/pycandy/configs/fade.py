@@ -1,6 +1,6 @@
 from typing import List
-from .interface import DynamicLightConfig
-from .opcutil import get_color, shift
+from ..interface import DynamicLightConfig
+from ..opcutil import get_color, shift
 
 
 class Fade(DynamicLightConfig):
@@ -9,6 +9,7 @@ class Fade(DynamicLightConfig):
     """
     _color_index = 0  # index of color being faded towards in self.colors
     _fade_index = 0  # how far we are between two colors [0-9]
+    speed = 10
 
     def __init__(self, colors: List[str]):
         """

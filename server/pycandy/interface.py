@@ -98,27 +98,25 @@ class LightConfig(abc.ABC):
                 light_config.speed = speed
             return light_config
 
-        if name == 'fade':
-            from .fade import Fade
-            return set_speed(Fade(get_colors()))
-        elif name == 'strobe':
-            from .strobe import Strobe
-            return set_speed(Strobe())
-        elif name == 'scroll':
-            from .scroll import Scroll
-            return set_speed(Scroll(get_colors()))
-        elif name == 'scroll_strobe':
-            from .scroll_strobe import ScrollStrobe
-            return set_speed(ScrollStrobe(get_colors()))
-        elif name == 'solid_color':
-            from .solid_color import SolidColor
-            return SolidColor(get_color())
-        elif name == 'off':
-            from .off import Off
-            return Off()
-        else:
+        from . import configs
+        try:
+            module = getattr(configs, name)
+        except AttributeError:
             raise ValueError(
                 f"'{name}' is not associated with any lighting configurations")
+
+        if name == 'fade':
+            return set_speed(module.Fade(get_colors()))
+        elif name == 'strobe':
+            return set_speed(module.Strobe())
+        elif name == 'scroll':
+            return set_speed(module.Scroll(get_colors()))
+        elif name == 'scroll_strobe':
+            return set_speed(module.ScrollStrobe(get_colors()))
+        elif name == 'solid_color':
+            return module.SolidColor(get_color())
+        elif name == 'off':
+            return module.Off()
 
     @abc.abstractmethod
     def run(self) -> None:
@@ -162,7 +160,8 @@ class DynamicLightConfig(LightConfig, abc.ABC):
     A lighting configuration that displays a moving pattern.
     """
 
-    def __init__(self, port: int = 7890, num_leds: int = 512, speed: int = 10):
+    def __init__(self, port: int = 7890, num_leds: int = 512,
+                 speed: int = None):
         """
         Initialize a new LightConfig.
 
@@ -171,9 +170,11 @@ class DynamicLightConfig(LightConfig, abc.ABC):
         :param speed: the speed at which the lights change (updates per second)
         """
         super().__init__(port, num_leds)
-        self.speed = speed
+        if speed:
+            self.speed = speed
 
     def run(self) -> None:
         while True:
-            self.client.put_pixels(next(self))
+            pixels = next(self)
+            self.client.put_pixels(pixels)
             time.sleep(1 / self.speed)

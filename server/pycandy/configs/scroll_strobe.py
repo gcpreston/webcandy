@@ -1,8 +1,8 @@
 import time
 
 from typing import List
-from .opcutil import get_color, spread, rotate_right
-from .interface import LightConfig
+from ..interface import LightConfig
+from ..opcutil import get_color, spread, rotate_right
 
 
 class ScrollStrobe(LightConfig):

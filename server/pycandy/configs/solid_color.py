@@ -1,6 +1,6 @@
 from typing import Tuple
-from .opcutil import get_color
-from .interface import StaticLightConfig
+from ..interface import StaticLightConfig
+from ..opcutil import get_color
 
 
 class SolidColor(StaticLightConfig):

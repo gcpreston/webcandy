@@ -1,12 +1,13 @@
 from typing import List
-from .opcutil import get_color, spread, rotate_right
-from .interface import DynamicLightConfig
+from ..interface import DynamicLightConfig
+from ..opcutil import get_color, spread, rotate_right
 
 
 class Scroll(DynamicLightConfig):
     """
     Scroll through a multi-colored line.
     """
+    speed = 10
 
     def __init__(self, colors: List[str]):
         """
