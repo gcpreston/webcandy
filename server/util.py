@@ -10,8 +10,7 @@ def get_config_names() -> List[str]:
     Get the names of available Fadecandy lighting configurations.
     :return: a list of names of existing configurations
     """
-    ignore = {'__pycache__', '__init__.py', 'opc.py', 'opcutil.py',
-              'interface.py', 'solid_color.py', 'off.py'}
+    ignore = {'__pycache__', '__init__.py', 'off.py'}
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
                            os.listdir(ROOT_DIR + '/server/opclib/configs'))))
