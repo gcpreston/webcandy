@@ -55,7 +55,7 @@ class LightConfig(abc.ABC):
 
         :param name: the name of the desired lighting configuration
         :param color: (for solid_color) the color to display
-        :param colors: (for fade and scroll) a list of colors to use
+        :param color_list: (for fade and scroll) a list of colors to use
         :param speed: (for any moving config) the speed to move at
         :return: an instance of the class associated with ``name``
         :raises ValueError: if ``name`` is not associated with any patterns or
