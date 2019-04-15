@@ -63,7 +63,6 @@ export default class App extends React.Component {
     // TODO: Make popover work when window width is smaller than expected
     render() {
         // TODO: Speed entry
-        // TODO: Strobe check box
 
         const colorEntry = (
             <React.Fragment>
