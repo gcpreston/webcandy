@@ -33,3 +33,6 @@ To run Webcandy, do the following:
 1. Run `npm run watch` from the `static` directory. This watches for any changes made to the front-end and will let you see them by refreshing the page.
 2. Run `python webcandy.py` from the `server` directory to start the Flask server.
 3. Navigate to the link in the Python console output to view the website!
+
+## Login
+The default login is username "admin" and password "password".
