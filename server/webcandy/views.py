@@ -1,3 +1,4 @@
+import ast
 import util
 
 from flask import render_template, jsonify, request, Blueprint
@@ -21,15 +22,16 @@ def protected():
 
 @blueprint.route('/submit', methods=['POST'])
 def submit():
-    script = request.form.get('config')
-    color = request.form.get('color')
-    if color == 'undefined':
-        color = None
-    return jsonify(success=controller.run_script(script, color=color))
+    pattern = request.form.get('pattern')
+    config = ast.literal_eval(request.form.get('config'))
+    return jsonify(success=controller.run_script(pattern, **config))
+
+# TODO: Loading of favicon.ico blocked for jsonify pages
 
 
-@blueprint.route('/configs', methods=['GET'])
-def scripts():
+@blueprint.route('/patterns', methods=['GET'])
+def patterns():
+    print(util.get_config_names())
     return jsonify(util.get_config_names())
 
 

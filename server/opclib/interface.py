@@ -15,6 +15,7 @@ Color = NewType('Color', Tuple[float, float, float])
 
 
 # TODO: Add ability to control brightness
+# TODO: Rename to LightPattern?
 class LightConfig(abc.ABC):
     """
     Abstract base class for an LED lighting configuration.
@@ -46,18 +47,20 @@ class LightConfig(abc.ABC):
         pass
 
     @staticmethod
-    def factory(name: str, color: str = None, colors: List[str] = None,
+    def factory(name: str, strobe=False, color: str = None,
+                color_list: List[str] = None,
                 speed: int = None) -> 'LightConfig':
         """
         Create an instance of a specific light configuration based on the given
         name. Different configurations differ in required keyword arguments.
 
         :param name: the name of the desired lighting configuration
+        :param strobe: whether to add a strobe effect
         :param color: (for solid_color) the color to display
-        :param colors: (for fade and scroll) a list of colors to use
+        :param color_list: (for fade and scroll) a list of colors to use
         :param speed: (for any moving config) the speed to move at
         :return: an instance of the class associated with ``name``
-        :raises ValueError: if ``name`` is not associated with any configs or
+        :raises ValueError: if ``name`` is not associated with any patterns or
             the required arguments for the specified config are not provided
         """
 
@@ -74,18 +77,18 @@ class LightConfig(abc.ABC):
                     f"Received {color_repr}.")
             return color
 
-        def get_colors():
+        def get_color_list():
             """
-            Validate and retrieve ``colors``.
+            Validate and retrieve ``color_list``.
             :return: the list of color strings (#RRGGBB)
             :raises ValueError: if a list of correctly formatted colors is not
                 found
             """
-            if not colors or not all([is_color(c) for c in colors]):
+            if not color_list or not all([is_color(c) for c in color_list]):
                 raise ValueError(
                     "Please provide a list of colors in the format #RRGGBB. "
-                    f"Received {colors}.")
-            return colors
+                    f"Received {color_list}.")
+            return color_list
 
         def set_speed(light_config: LightConfig) -> LightConfig:
             """
@@ -101,18 +104,21 @@ class LightConfig(abc.ABC):
         from . import configs
 
         if name == 'fade':
-            return set_speed(configs.Fade(get_colors()))
-        elif name == 'strobe':
-            return set_speed(configs.Strobe())
+            light = set_speed(configs.Fade(get_color_list()))
         elif name == 'scroll':
-            return set_speed(configs.Scroll(get_colors()))
+            light = set_speed(configs.Scroll(get_color_list()))
         elif name == 'solid_color':
-            return configs.SolidColor(get_color())
+            light = configs.SolidColor(get_color())
         elif name == 'off':
-            return configs.Off()
+            light = configs.Off()
         else:
             raise ValueError(
                 f"'{name}' is not associated with any lighting configurations")
+
+        if strobe:
+            return configs.Strobe(light)
+        else:
+            return light
 
     @abc.abstractmethod
     def run(self) -> None:
@@ -172,6 +178,5 @@ class DynamicLightConfig(LightConfig, abc.ABC):
     def run(self) -> None:
         while True:
             pixels = next(self)
-            print(pixels)
             self.client.put_pixels(pixels)
             time.sleep(1 / self.speed)

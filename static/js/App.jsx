@@ -14,11 +14,14 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            configs: [],
+            patterns: [],
+            currentPattern: "",
             colors: {},
-            solidColor: false,
             customColor: false,
             currentColor: "",
+            colorLists: {},
+            currentColorList: "",
+            strobe: false,
         };
     }
 
@@ -26,81 +29,127 @@ export default class App extends React.Component {
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        axios.get("/configs").then(response => {
-            this.setState({ configs: response.data });
+        axios.get("/patterns").then(response => {
+            const patterns = response.data;
+            this.setState({ patterns: patterns });
+
+            // set currentPattern initial value
+            if (patterns) {
+                this.setState({ currentPattern: Object.values(patterns)[0] })
+            }
         });
 
         axios.get("/colors").then(response => {
-            let colors = response.data;
+            const colors = response.data;
             this.setState({ colors: colors });
 
-            // Set currentColor initial value
+            // set currentColor initial value
             if (colors) {
                 this.setState({ currentColor: Object.values(colors)[0] })
             }
         });
+
+        axios.get("/color_lists").then(response => {
+            const colorLists = response.data;
+            this.setState({ colorLists: colorLists });
+
+            // set currentColorList initial value
+            if (colorLists) {
+                this.setState({ currentColorList: Object.values(colorLists)[0] })
+            }
+        })
     }
 
     // TODO: Make popover work when window width is smaller than expected
     render() {
+        // TODO: Speed entry
+
+        const colorEntry = (
+            <React.Fragment>
+                <Form.Label>Color entry</Form.Label>
+                <Form.Row>
+                    <Form.Group as={Col} controlId="colorSelect">
+                        <Form.Control as="select"
+                                      disabled={this.state.customColor}
+                                      onChange={this.handleColorSelect}>
+                            {Object.keys(this.state.colors).map((name, idx) => {
+                                return <option
+                                    key={idx}>{name}</option>;
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Group as={Col} controlId="colorField">
+                        <Overlay target={this.refs.colorField}
+                                 show={this.state.customColor}
+                                 placement="right">
+                            <Popover>
+                                <ChromePicker
+                                    color={this.state.currentColor}
+                                    onChange={e => this.setState({ currentColor: e.hex })}/>
+                            </Popover>
+                        </Overlay>
+                        <Form.Control ref="colorField"
+                                      type="text"
+                                      placeholder="#RRGGBB"
+                                      value={this.state.currentColor}
+                                      onChange={e => this.setState({ currentColor: e.target.value })}
+                                      disabled={!this.state.customColor}/>
+                    </Form.Group>
+                </Form.Row>
+
+                <Form.Group controlId="customColorCheck">
+                    <Form.Check value={this.state.customColor}
+                                onChange={this.handleCustomColorCheck}
+                                label="Custom color"/>
+                </Form.Group>
+            </React.Fragment>
+        );
+
+        let colorListEntry = (
+            <Form.Row>
+                <Form.Group as={Col} controlId="colorListSelect">
+                    <Form.Label>Color list entry</Form.Label>
+                    <Form.Control as="select"
+                                  onChange={this.handleColorListSelect}>
+                        {Object.keys(this.state.colorLists).map((name, idx) => {
+                            return <option
+                                key={idx}>{name}</option>;
+                        })}
+                    </Form.Control>
+                </Form.Group>
+            </Form.Row>
+        );
+
+        let config;
+        switch (this.state.currentPattern) {
+            case "fade":
+            case "scroll":
+                config = colorListEntry;
+                break;
+            case "solid_color":
+                config = colorEntry;
+                break;
+        }
+
         return (
             <Form onSubmit={this.handleSubmit}>
                 <Form.Group controlId="config">
-                    <Form.Label>Script</Form.Label>
+                    <Form.Label>Pattern</Form.Label>
                     <Form.Control as="select"
-                                  disabled={this.state.solidColor}>
-                        {this.state.configs.map((name, idx) => {
+                                  onChange={e => this.setState({ currentPattern: e.target.value })}>
+                        {this.state.patterns.map((name, idx) => {
                             return <option key={idx}>{name}</option>;
                         })}
                     </Form.Control>
                 </Form.Group>
 
-                <Form.Group controlId="solidColorCheck">
-                    <Form.Check value={this.state.solidColor}
-                                onChange={this.handleSolidColorCheck}
-                                label="Solid color"/>
+                <Form.Group controlId="strobeCheck">
+                    <Form.Check value={this.state.strobe}
+                                onChange={e => this.setState({ strobe: e.target.checked })}
+                                label="Strobe"/>
                 </Form.Group>
 
-                {this.state.solidColor ?
-                    <React.Fragment>
-
-                        <Form.Label>Color entry</Form.Label>
-                        <Form.Row>
-                            <Form.Group as={Col} controlId="colorSelect">
-                                <Form.Control as="select"
-                                              disabled={this.state.customColor}
-                                              onChange={this.handleColorSelect}>
-                                    {Object.keys(this.state.colors).map((name, idx) => {
-                                        return <option
-                                            key={idx}>{name}</option>;
-                                    })}
-                                </Form.Control>
-                            </Form.Group>
-                            <Form.Group as={Col} controlId="colorField">
-                                <Overlay target={this.refs.colorField}
-                                         show={this.state.customColor}
-                                         placement="right">
-                                    <Popover>
-                                        <ChromePicker
-                                            color={this.state.currentColor}
-                                            onChange={e => this.updateCurrentColor(e.hex)}/>
-                                    </Popover>
-                                </Overlay>
-                                <Form.Control ref="colorField"
-                                              type="text"
-                                              placeholder="#RRGGBB"
-                                              value={this.state.currentColor}
-                                              onChange={e => this.updateCurrentColor(e.target.value)}
-                                              disabled={!this.state.customColor}/>
-                            </Form.Group>
-                        </Form.Row>
-
-                        <Form.Group controlId="customColorCheck">
-                            <Form.Check value={this.state.customColor}
-                                        onChange={this.handleCustomColorCheck}
-                                        label="Custom color"/>
-                        </Form.Group>
-                    </React.Fragment> : null}
+                {config}
 
                 <Form.Group controlId="submitButton">
                     <Button variant="primary" type="submit">
@@ -118,27 +167,19 @@ export default class App extends React.Component {
     }
 
     /**
-     * Update the currently entered color.
-     * @param color - The new color
-     */
-    updateCurrentColor = (color) => {
-        this.setState({ currentColor: color });
-    };
-
-    /**
-     * Change whether the user can select a configuration or a solid color.
-     * @param event - The change event from the checkbox
-     */
-    handleSolidColorCheck = (event) => {
-        this.setState({ solidColor: event.target.checked })
-    };
-
-    /**
      * Update the currently entered color based on a select change event.
      * @param event - The change event from the select
      */
     handleColorSelect = (event) => {
         this.setState({ currentColor: this.state.colors[event.target.value] });
+    };
+
+    /**
+     * Update the currently entered color list based on a select change event.
+     * @param event - The change event from the select
+     */
+    handleColorListSelect = (event) => {
+        this.setState({ currentColorList: this.state.colorLists[event.target.value] })
     };
 
     /**
@@ -159,23 +200,27 @@ export default class App extends React.Component {
 
         const target = event.currentTarget;
 
-        let config, color;
+        let pattern = target["config"].value;
+        let config = {};
 
-        if (this.state.solidColor) {
-            config = "solid_color"
-        } else {
-            config = target["config"].value;
+        // set strobe field
+        config["strobe"] = this.state.strobe ? "True" : "False";
+
+        // set color field
+        if (this.state.customColor) {
+            config["color"] = target["colorField"].value;
+        } else if (target["colorSelect"]) {
+            config["color"] = this.state.colors[target["colorSelect"].value];
         }
 
-        if (this.state.customColor) {
-            color = target["colorField"].value;
-        } else if (target["colorSelect"]) {
-            color = this.state.colors[target["colorSelect"].value]
+        // set color_list field
+        if (target["colorListSelect"]) {
+            config["color_list"] = this.state.colorLists[target["colorListSelect"].value];
         }
 
         const form = new FormData();
-        form.set("config", config);
-        form.set("color", color);
+        form.set("pattern", pattern);
+        form.set("config", JSON.stringify(config));
 
         axios.post("/submit", form)
             .then(response => console.log(response))
@@ -190,7 +235,8 @@ export default class App extends React.Component {
         event.preventDefault();
 
         const form = new FormData();
-        form.set("config", "off");
+        form.set("pattern", "off");
+        form.set("config", JSON.stringify({}));  // emtpy config
 
         axios.post("/submit", form)
             .then(response => console.log(response))
