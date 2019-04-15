@@ -31,7 +31,6 @@ def submit():
 
 @blueprint.route('/patterns', methods=['GET'])
 def patterns():
-    print(util.get_config_names())
     return jsonify(util.get_config_names())
 
 
