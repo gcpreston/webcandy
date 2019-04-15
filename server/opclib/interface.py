@@ -47,13 +47,15 @@ class LightConfig(abc.ABC):
         pass
 
     @staticmethod
-    def factory(name: str, color: str = None, color_list: List[str] = None,
+    def factory(name: str, strobe=False, color: str = None,
+                color_list: List[str] = None,
                 speed: int = None) -> 'LightConfig':
         """
         Create an instance of a specific light configuration based on the given
         name. Different configurations differ in required keyword arguments.
 
         :param name: the name of the desired lighting configuration
+        :param strobe: whether to add a strobe effect
         :param color: (for solid_color) the color to display
         :param color_list: (for fade and scroll) a list of colors to use
         :param speed: (for any moving config) the speed to move at
@@ -102,18 +104,21 @@ class LightConfig(abc.ABC):
         from . import configs
 
         if name == 'fade':
-            return set_speed(configs.Fade(get_color_list()))
-        elif name == 'strobe':
-            return set_speed(configs.Strobe())
+            light = set_speed(configs.Fade(get_color_list()))
         elif name == 'scroll':
-            return set_speed(configs.Scroll(get_color_list()))
+            light = set_speed(configs.Scroll(get_color_list()))
         elif name == 'solid_color':
-            return configs.SolidColor(get_color())
+            light = configs.SolidColor(get_color())
         elif name == 'off':
-            return configs.Off()
+            light = configs.Off()
         else:
             raise ValueError(
                 f"'{name}' is not associated with any lighting configurations")
+
+        if strobe:
+            return configs.Strobe(light)
+        else:
+            return light
 
     @abc.abstractmethod
     def run(self) -> None:

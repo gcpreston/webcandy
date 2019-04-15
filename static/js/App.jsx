@@ -21,6 +21,7 @@ export default class App extends React.Component {
             currentColor: "",
             colorLists: {},
             currentColorList: "",
+            strobe: false,
         };
     }
 
@@ -85,14 +86,14 @@ export default class App extends React.Component {
                             <Popover>
                                 <ChromePicker
                                     color={this.state.currentColor}
-                                    onChange={e => this.updateCurrentColor(e.hex)}/>
+                                    onChange={e => this.setState({ currentColor: e.hex })}/>
                             </Popover>
                         </Overlay>
                         <Form.Control ref="colorField"
                                       type="text"
                                       placeholder="#RRGGBB"
                                       value={this.state.currentColor}
-                                      onChange={e => this.updateCurrentColor(e.target.value)}
+                                      onChange={e => this.setState({ currentColor: e.target.value })}
                                       disabled={!this.state.customColor}/>
                     </Form.Group>
                 </Form.Row>
@@ -108,7 +109,7 @@ export default class App extends React.Component {
         let colorListEntry = (
             <Form.Row>
                 <Form.Group as={Col} controlId="colorListSelect">
-                    <Form.Label>Color List Entry</Form.Label>
+                    <Form.Label>Color list entry</Form.Label>
                     <Form.Control as="select"
                                   onChange={this.handleColorListSelect}>
                         {Object.keys(this.state.colorLists).map((name, idx) => {
@@ -143,6 +144,12 @@ export default class App extends React.Component {
                     </Form.Control>
                 </Form.Group>
 
+                <Form.Group controlId="strobeCheck">
+                    <Form.Check value={this.state.strobe}
+                                onChange={e => this.setState({ strobe: e.target.checked })}
+                                label="Strobe"/>
+                </Form.Group>
+
                 {config}
 
                 <Form.Group controlId="submitButton">
@@ -159,14 +166,6 @@ export default class App extends React.Component {
             </Form>
         );
     }
-
-    /**
-     * Update the currently entered color.
-     * @param color - The new color
-     */
-    updateCurrentColor = (color) => {
-        this.setState({ currentColor: color });
-    };
 
     /**
      * Update the currently entered color based on a select change event.
@@ -204,6 +203,9 @@ export default class App extends React.Component {
 
         let pattern = target["config"].value;
         let config = {};
+
+        // set strobe field
+        config["strobe"] = this.state.strobe ? "True" : "False";
 
         // set color field
         if (this.state.customColor) {

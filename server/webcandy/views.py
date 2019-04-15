@@ -26,9 +26,12 @@ def submit():
     config = ast.literal_eval(request.form.get('config'))
     return jsonify(success=controller.run_script(pattern, **config))
 
+# TODO: Loading of favicon.ico blocked for jsonify pages
+
 
 @blueprint.route('/patterns', methods=['GET'])
-def scripts():
+def patterns():
+    print(util.get_config_names())
     return jsonify(util.get_config_names())
 
 
