@@ -200,30 +200,32 @@ export default class App extends React.Component {
 
         const target = event.currentTarget;
 
-        let pattern = target["config"].value;
-        let config = {};
+        // data fields
+        let pattern, strobe, color, colorList;
 
-        // set strobe field (must convert string to bool server-side)
-        config["strobe"] = this.state.strobe ? "True" : "False";
+        pattern = target["config"].value;
+        strobe = this.state.strobe;
 
         // set color field
         if (this.state.customColor) {
-            config["color"] = target["colorField"].value;
-            config["color"] = target["colorField"].value;
+            color = target["colorField"].value;
         } else if (target["colorSelect"]) {
-            config["color"] = this.state.colors[target["colorSelect"].value];
+            color = this.state.colors[target["colorSelect"].value];
         }
 
         // set color_list field
         if (target["colorListSelect"]) {
-            config["color_list"] = this.state.colorLists[target["colorListSelect"].value];
+            colorList = this.state.colorLists[target["colorListSelect"].value];
         }
 
-        const form = new FormData();
-        form.set("pattern", pattern);
-        form.set("config", JSON.stringify(config));
+        const data = {
+            "pattern": pattern,
+            "strobe": strobe,
+            "color": color,
+            "color_list": colorList
+        };
 
-        axios.post("/submit", form)
+        axios.post("/submit", data)
             .then(response => console.log(response))
             .catch(error => console.log(error));
     };

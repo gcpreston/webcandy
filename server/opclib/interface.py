@@ -47,7 +47,7 @@ class LightConfig(abc.ABC):
         pass
 
     @staticmethod
-    def factory(name: str, strobe=False, color: str = None,
+    def factory(name: str, strobe: bool = False, color: str = None,
                 color_list: List[str] = None,
                 speed: int = None) -> 'LightConfig':
         """

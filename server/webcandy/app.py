@@ -14,7 +14,7 @@ def create_app():
                 template_folder='../../static')
     app.config.from_object(Config)
     register_extensions(app)
-    register_blueprints(app)
+    register_views(app)
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s')
     return app
@@ -31,8 +31,9 @@ def register_extensions(app):
     controller.init_app(app)
 
 
-def register_blueprints(app):
+def register_views(app):
     """
-    Register Flask blueprints.
+    Register Flask blueprints and error handlers.
     """
     app.register_blueprint(views.blueprint)
+    app.register_error_handler(404, views.not_found)

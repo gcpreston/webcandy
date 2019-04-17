@@ -1,7 +1,6 @@
-import ast
 import util
 
-from flask import render_template, jsonify, request, Blueprint
+from flask import render_template, jsonify, request, Blueprint, make_response
 from flask_login import login_required
 from .extensions import controller
 
@@ -22,12 +21,23 @@ def protected():
 
 @blueprint.route('/submit', methods=['POST'])
 def submit():
-    pattern = request.form.get('pattern')
-    config = ast.literal_eval(request.form.get('config'))
+    """
+    Handle the submission of a lighting configuration to run.
 
-    config['strobe'] = True if config['strobe'] == 'True' else False
+    POST form fields fields:
+    - "pattern": the pattern to run
+    - "strobe": whether to add a strobe effect
+    - "color": the color to use, if applicable
+    - "color_list": the color list to use, if applicable
 
-    return jsonify(success=controller.run_script(pattern, **config))
+    :return: JSON indicating if running was successful
+    """
+    data = request.get_json()
+    pattern = data['pattern']
+    del data['pattern']
+
+    return jsonify(success=controller.run_script(pattern, **data))
+
 
 # TODO: Loading of favicon.ico blocked for jsonify pages
 
@@ -45,3 +55,7 @@ def colors():
 @blueprint.route('/color_lists', methods=['GET'])
 def color_lists():
     return jsonify(util.load_asset('color_lists.json'))
+
+
+def not_found():
+    return make_response(jsonify({'error': 'Not found'}), 404)
