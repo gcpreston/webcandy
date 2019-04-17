@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from definitions import ROOT_DIR
 
-# TODO: Remove unused requirements
 # TODO: Dynamic environment loading
 load_dotenv('.env')
 
