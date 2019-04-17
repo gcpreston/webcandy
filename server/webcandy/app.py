@@ -35,5 +35,6 @@ def register_views(app):
     """
     Register Flask blueprints and error handlers.
     """
-    app.register_blueprint(views.blueprint)
+    app.register_blueprint(views.pages)
+    app.register_blueprint(views.api, url_prefix='/api')
     app.register_error_handler(404, views.not_found)

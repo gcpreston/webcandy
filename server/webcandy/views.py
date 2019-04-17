@@ -4,22 +4,23 @@ from flask import render_template, jsonify, request, Blueprint, make_response
 from flask_login import login_required
 from .extensions import controller
 
-blueprint = Blueprint('test', __name__, static_folder='../../static/dist',
-                      template_folder='../../static')
+pages = Blueprint('pages', __name__, static_folder='../../static/dist',
+                  template_folder='../../static')
+api = Blueprint('api', __name__)
 
 
-@blueprint.route('/', methods=['GET'])
+@pages.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
 
-@blueprint.route('/protected', methods=['GET'])
+@pages.route('/protected', methods=['GET'])
 @login_required
 def protected():
     return "Hello protected world!"
 
 
-@blueprint.route('/submit', methods=['POST'])
+@api.route('/submit', methods=['POST'])
 def submit():
     """
     Handle the submission of a lighting configuration to run.
@@ -42,20 +43,20 @@ def submit():
 # TODO: Loading of favicon.ico blocked for jsonify pages
 
 
-@blueprint.route('/patterns', methods=['GET'])
+@api.route('/patterns', methods=['GET'])
 def patterns():
     return jsonify(util.get_config_names())
 
 
-@blueprint.route('/colors', methods=['GET'])
+@api.route('/colors', methods=['GET'])
 def colors():
     return jsonify(util.load_asset('colors.json'))
 
 
-@blueprint.route('/color_lists', methods=['GET'])
+@api.route('/color_lists', methods=['GET'])
 def color_lists():
     return jsonify(util.load_asset('color_lists.json'))
 
 
-def not_found():
-    return make_response(jsonify({'error': 'Not found'}), 404)
+def not_found(error):
+    return make_response(jsonify({'error': error.name}), 404)

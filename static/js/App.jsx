@@ -29,7 +29,7 @@ export default class App extends React.Component {
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        axios.get("/patterns").then(response => {
+        axios.get("/api/patterns").then(response => {
             const patterns = response.data;
             this.setState({ patterns: patterns });
 
@@ -39,7 +39,7 @@ export default class App extends React.Component {
             }
         });
 
-        axios.get("/colors").then(response => {
+        axios.get("/api/colors").then(response => {
             const colors = response.data;
             this.setState({ colors: colors });
 
@@ -49,7 +49,7 @@ export default class App extends React.Component {
             }
         });
 
-        axios.get("/color_lists").then(response => {
+        axios.get("/api/color_lists").then(response => {
             const colorLists = response.data;
             this.setState({ colorLists: colorLists });
 
@@ -241,7 +241,7 @@ export default class App extends React.Component {
         form.set("pattern", "off");
         form.set("config", JSON.stringify({}));  // emtpy config
 
-        axios.post("/submit", form)
+        axios.post("/api/submit", form)
             .then(response => console.log(response))
             .catch(error => console.log(error));
     }
