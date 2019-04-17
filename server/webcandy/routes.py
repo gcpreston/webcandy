@@ -4,17 +4,17 @@ from flask import render_template, jsonify, request, Blueprint, make_response
 from flask_login import login_required
 from .extensions import controller
 
-pages = Blueprint('pages', __name__, static_folder='../../static/dist',
+views = Blueprint('pages', __name__, static_folder='../../static/dist',
                   template_folder='../../static')
 api = Blueprint('api', __name__)
 
 
-@pages.route('/', methods=['GET'])
+@views.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
 
-@pages.route('/protected', methods=['GET'])
+@views.route('/protected', methods=['GET'])
 @login_required
 def protected():
     return "Hello protected world!"

@@ -2,7 +2,7 @@ import logging
 
 from flask import Flask
 from config import Config
-from . import views
+from . import routes
 from .extensions import db, migrate, login_manager, fcserver, controller
 
 
@@ -35,6 +35,6 @@ def register_views(app):
     """
     Register Flask blueprints and error handlers.
     """
-    app.register_blueprint(views.pages)
-    app.register_blueprint(views.api, url_prefix='/api')
-    app.register_error_handler(404, views.not_found)
+    app.register_blueprint(routes.views)
+    app.register_blueprint(routes.api, url_prefix='/api')
+    app.register_error_handler(404, routes.not_found)
