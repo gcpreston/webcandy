@@ -101,22 +101,22 @@ class LightConfig(abc.ABC):
                 light_config.speed = speed
             return light_config
 
-        from . import configs
+        from . import patterns
 
         if name == 'fade':
-            light = set_speed(configs.Fade(get_color_list()))
+            light = set_speed(patterns.Fade(get_color_list()))
         elif name == 'scroll':
-            light = set_speed(configs.Scroll(get_color_list()))
+            light = set_speed(patterns.Scroll(get_color_list()))
         elif name == 'solid_color':
-            light = configs.SolidColor(get_color())
+            light = patterns.SolidColor(get_color())
         elif name == 'off':
-            light = configs.Off()
+            light = patterns.Off()
         else:
             raise ValueError(
                 f"'{name}' is not associated with any lighting configurations")
 
         if strobe:
-            return configs.Strobe(light)
+            return patterns.Strobe(light)
         else:
             return light
 
