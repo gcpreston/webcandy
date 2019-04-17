@@ -24,6 +24,9 @@ def protected():
 def submit():
     pattern = request.form.get('pattern')
     config = ast.literal_eval(request.form.get('config'))
+
+    config['strobe'] = True if config['strobe'] == 'True' else False
+
     return jsonify(success=controller.run_script(pattern, **config))
 
 # TODO: Loading of favicon.ico blocked for jsonify pages

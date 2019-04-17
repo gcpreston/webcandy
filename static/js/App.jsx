@@ -203,11 +203,12 @@ export default class App extends React.Component {
         let pattern = target["config"].value;
         let config = {};
 
-        // set strobe field
+        // set strobe field (must convert string to bool server-side)
         config["strobe"] = this.state.strobe ? "True" : "False";
 
         // set color field
         if (this.state.customColor) {
+            config["color"] = target["colorField"].value;
             config["color"] = target["colorField"].value;
         } else if (target["colorSelect"]) {
             config["color"] = this.state.colors[target["colorSelect"].value];
