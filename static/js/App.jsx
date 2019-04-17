@@ -225,7 +225,7 @@ export default class App extends React.Component {
             "color_list": colorList
         };
 
-        axios.post("/submit", data)
+        axios.post("/api/submit", data)
             .then(response => console.log(response))
             .catch(error => console.log(error));
     };
