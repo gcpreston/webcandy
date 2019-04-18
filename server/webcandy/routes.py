@@ -22,7 +22,6 @@ login_manager.login_view = 'views.login'
 @views.route('/<path:path>')
 @login_required
 def index(path):
-    print(path)
     return render_template('index.html')
 
 
@@ -104,10 +103,15 @@ def api_login():
     return jsonify(success=login_user(user, remember=form['remember_me']))
 
 
-@views.route('/logout', methods=['GET', 'POST'])  # TODO: POST logout only
+@views.route('/logout', methods=['GET'])
 def logout():
     logout_user()
     return redirect(url_for('views.index'))
+
+
+@api.route('/logout', methods=['POST'])
+def api_logout():
+    return jsonify(success=logout_user())
 
 
 def not_found(error):
