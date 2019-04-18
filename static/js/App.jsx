@@ -237,11 +237,11 @@ export default class App extends React.Component {
     handleOff = (event) => {
         event.preventDefault();
 
-        const form = new FormData();
-        form.set("pattern", "off");
-        form.set("config", JSON.stringify({}));  // emtpy config
+        const data = {
+            "pattern": "off"
+        };
 
-        axios.post("/api/submit", form)
+        axios.post("/api/submit", data)
             .then(response => console.log(response))
             .catch(error => console.log(error));
     }
