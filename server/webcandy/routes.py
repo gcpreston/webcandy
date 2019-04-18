@@ -23,6 +23,7 @@ login_manager.login_view = 'views.login'
 @views.route('/<path:path>')
 @login_required
 def index(path):
+    del path  # just to get rid of IDE warnings
     return render_template('index.html')
 
 
@@ -30,6 +31,7 @@ def index(path):
 @api.route('/<path:path>')
 def api_catch_all(path):
     # TODO: Better way to do API catch all?
+    del path
     return not_found(NotFound())
 
 
@@ -87,6 +89,20 @@ def login():
             next_page = url_for('views.index')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
+
+
+@api.route('/login', methods=['POST'])
+def api_login():
+    req_json = request.get_json()
+    user = User.query.filter_by(username=req_json['username']).first()
+
+    if user is None or not user.check_password(req_json['password']):
+        return make_response(jsonify({
+            'error': 'Invalid credentials',
+            'error_description': 'Invalid username and password combination.'
+        }), 401)
+
+    return jsonify(success=login_user(user, remember=req_json['remember_me']))
 
 
 @api.route('/logout', methods=['POST'])
