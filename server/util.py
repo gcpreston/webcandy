@@ -26,3 +26,13 @@ def load_asset(fn: str) -> Dict:
     """
     with open(f'{ROOT_DIR}/server/assets/{fn}') as file:
         return json.load(file)
+
+
+def format_error(error) -> Dict[str, str]:
+    """
+    Uniform error format for API responses.
+
+    :param error: the error to format
+    :return: a dictionary describing the error
+    """
+    return {'error': error.name, 'error_description': error.description}

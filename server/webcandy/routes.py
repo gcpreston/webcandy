@@ -6,6 +6,7 @@ from flask import (
 )
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.urls import url_parse
+from werkzeug.exceptions import NotFound
 from .extensions import controller, login_manager
 from .forms import LoginForm
 from .models import User
@@ -17,10 +18,19 @@ api = Blueprint('api', __name__)
 login_manager.login_view = 'views.login'
 
 
-@views.route('/', methods=['GET'])
+@views.route('/', defaults={'path': ''})
+@views.route('/<path:path>')
 @login_required
-def index():
+def index(path):
+    print(path)
     return render_template('index.html')
+
+
+@api.route('/', defaults={'path': ''})
+@api.route('/<path:path>')
+def api_catch_all(path):
+    # TODO: Better way to do API catch all?
+    return not_found(NotFound())
 
 
 @api.route('/submit', methods=['POST'])
@@ -79,11 +89,26 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@views.route('/logout', methods=['GET'])
+@api.route('/login', methods=['POST'])
+def api_login():
+    # TODO: Clean up
+    form = request.get_json()
+    user = User.query.filter_by(username=form['username']).first()
+
+    if user is None or not user.check_password(form['password']):
+        return make_response(jsonify({
+            'error': 'Invalid credentials',
+            'error_description': 'Invalid username and password combination.'
+        }))
+
+    return jsonify(success=login_user(user, remember=form['remember_me']))
+
+
+@views.route('/logout', methods=['GET', 'POST'])  # TODO: POST logout only
 def logout():
     logout_user()
     return redirect(url_for('views.index'))
 
 
 def not_found(error):
-    return make_response(jsonify({'error': error.name}), 404)
+    return make_response(jsonify(util.format_error(error)), 404)

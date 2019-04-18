@@ -8,6 +8,7 @@ load_dotenv('.env')
 
 
 class Config:
+    # TODO: Hide (and change) secret key
     SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL') or 'sqlite:///' + os.path.join(ROOT_DIR, 'webcandy.db')
