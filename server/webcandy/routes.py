@@ -1,23 +1,36 @@
 import util
 
-from flask import render_template, jsonify, request, Blueprint, make_response
-from flask_login import login_required
-from .extensions import controller
+from flask import (
+    Blueprint, render_template, jsonify, request, make_response, redirect,
+    url_for, flash
+)
+from flask_login import login_required, current_user, login_user, logout_user
+from werkzeug.urls import url_parse
+from werkzeug.exceptions import NotFound
 
-views = Blueprint('pages', __name__, static_folder='../../static/dist',
+from .extensions import controller, login_manager
+from .forms import LoginForm
+from .models import User
+
+views = Blueprint('views', __name__, static_folder='../../static/dist',
                   template_folder='../../static')
 api = Blueprint('api', __name__)
 
+login_manager.login_view = 'views.login'
 
-@views.route('/', methods=['GET'])
-def index():
+
+@views.route('/', defaults={'path': ''})
+@views.route('/<path:path>')
+@login_required
+def index(path):
     return render_template('index.html')
 
 
-@views.route('/protected', methods=['GET'])
-@login_required
-def protected():
-    return "Hello protected world!"
+@api.route('/', defaults={'path': ''})
+@api.route('/<path:path>')
+def api_catch_all(path):
+    # TODO: Better way to do API catch all?
+    return not_found(NotFound())
 
 
 @api.route('/submit', methods=['POST'])
@@ -33,11 +46,11 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    data = request.get_json()
-    pattern = data['pattern']
-    del data['pattern']
+    json = request.get_json()
+    pattern = json['pattern']
+    del json['pattern']
 
-    return jsonify(success=controller.run_script(pattern, **data))
+    return jsonify(success=controller.run_script(pattern, **json))
 
 
 # TODO: Loading of favicon.ico blocked for jsonify pages
@@ -58,5 +71,28 @@ def color_lists():
     return jsonify(util.load_asset('color_lists.json'))
 
 
+@views.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('views.index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('views.login'))
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('views.index')
+        return redirect(next_page)
+    return render_template('login.html', title='Sign In', form=form)
+
+
+@api.route('/logout', methods=['POST'])
+def logout():
+    return jsonify(success=logout_user())
+
+
 def not_found(error):
-    return make_response(jsonify({'error': error.name}), 404)
+    return make_response(jsonify(util.format_error(error)), 404)

@@ -4,9 +4,9 @@ body {
 
 #title {
     text-align: center;
+    margin-bottom: 20%;
 }
 
 #content {
     position: relative;
-    margin-top: 20%;
 }
