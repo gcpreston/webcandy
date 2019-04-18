@@ -7,6 +7,7 @@ from flask import (
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.urls import url_parse
 from werkzeug.exceptions import NotFound
+
 from .extensions import controller, login_manager
 from .forms import LoginForm
 from .models import User
@@ -45,11 +46,11 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    data = request.get_json()
-    pattern = data['pattern']
-    del data['pattern']
+    json = request.get_json()
+    pattern = json['pattern']
+    del json['pattern']
 
-    return jsonify(success=controller.run_script(pattern, **data))
+    return jsonify(success=controller.run_script(pattern, **json))
 
 
 # TODO: Loading of favicon.ico blocked for jsonify pages
@@ -88,29 +89,8 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@api.route('/login', methods=['POST'])
-def api_login():
-    # TODO: Clean up
-    form = request.get_json()
-    user = User.query.filter_by(username=form['username']).first()
-
-    if user is None or not user.check_password(form['password']):
-        return make_response(jsonify({
-            'error': 'Invalid credentials',
-            'error_description': 'Invalid username and password combination.'
-        }))
-
-    return jsonify(success=login_user(user, remember=form['remember_me']))
-
-
-@views.route('/logout', methods=['GET'])
-def logout():
-    logout_user()
-    return redirect(url_for('views.index'))
-
-
 @api.route('/logout', methods=['POST'])
-def api_logout():
+def logout():
     return jsonify(success=logout_user())
 
 
