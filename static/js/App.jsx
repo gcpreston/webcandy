@@ -225,9 +225,7 @@ export default class App extends React.Component {
             "color_list": colorList
         };
 
-        axios.post("/api/submit", data)
-            .then(response => console.log(response))
-            .catch(error => console.log(error));
+        this.submit(data);
     };
 
     /**
@@ -241,6 +239,15 @@ export default class App extends React.Component {
             "pattern": "off"
         };
 
+        this.submit(data);
+    };
+
+    /**
+     * Submit data to the Webcandy API to run a lighting configuration. Valid
+     * fields for data are described in LightConfig.factory (interface.py).
+     * @param data - The lighting pattern and settings to run
+     */
+    submit(data) {
         axios.post("/api/submit", data)
             .then(response => console.log(response))
             .catch(error => console.log(error));
