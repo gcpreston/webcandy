@@ -46,11 +46,11 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    json = request.get_json()
-    pattern = json['pattern']
-    del json['pattern']
+    req_json = request.get_json()
+    pattern = req_json['pattern']
+    del req_json['pattern']
 
-    return jsonify(success=controller.run_script(pattern, **json))
+    return jsonify(success=controller.run_script(pattern, **req_json))
 
 
 # TODO: Loading of favicon.ico blocked for jsonify pages
