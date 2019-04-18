@@ -244,7 +244,8 @@ export default class App extends React.Component {
 
     /**
      * Submit data to the Webcandy API to run a lighting configuration. Valid
-     * fields for data are described in LightConfig.factory (interface.py).
+     * fields for data are described in the submit route documentation
+     * (submit method in routes.py).
      * @param data - The lighting pattern and settings to run
      */
     submit(data) {

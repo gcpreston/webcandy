@@ -7,6 +7,5 @@ from .controller import Controller
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
-login_manager.login_view = 'wc.login'
 fcserver = FCServer()
 controller = Controller()
