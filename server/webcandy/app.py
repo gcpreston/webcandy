@@ -3,7 +3,7 @@ import logging
 from flask import Flask
 from config import Config
 from . import routes
-from .extensions import db, migrate, login_manager, fcserver, controller
+from .extensions import db, migrate, fcserver, controller
 
 
 def create_app():
@@ -26,7 +26,6 @@ def register_extensions(app):
     """
     db.init_app(app)
     migrate.init_app(app, db)
-    login_manager.init_app(app)
     fcserver.init_app(app)
     controller.init_app(app)
 
@@ -38,3 +37,4 @@ def register_views(app):
     app.register_blueprint(routes.views)
     app.register_blueprint(routes.api, url_prefix='/api')
     app.register_error_handler(404, routes.not_found)
+    app.register_error_handler(401, routes.unauthorized)

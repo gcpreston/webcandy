@@ -1,15 +1,22 @@
 import React from 'react';
 import axios from 'axios/index';
 import ChromePicker from 'react-color';
-import {
-    Button,
-    Form,
-    Col,
-    Overlay,
-    Popover,
-} from 'react-bootstrap';
+import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
 
-import '../../css/LightConfigForm.css';
+import '../../../css/LightConfigForm.css';
+
+/**
+ * Get config with authorization token to make Webcandy API calls.
+ * @returns {{headers: {Authorization: string}}}
+ */
+function getConfig() {
+    const token = sessionStorage.getItem("token");
+    return {
+        headers: {
+            Authorization: "Bearer " + token,
+        }
+    }
+}
 
 export default class LightConfigForm extends React.Component {
     constructor(props) {
@@ -31,7 +38,11 @@ export default class LightConfigForm extends React.Component {
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        axios.get("/api/patterns").then(response => {
+        // token should be valid as this page should not be loading if there
+        // is an invalid token (redirected to login in index)
+        const config = getConfig();
+
+        axios.get("/api/patterns", config).then(response => {
             const patterns = response.data;
             this.setState({ patterns: patterns });
 
@@ -39,9 +50,9 @@ export default class LightConfigForm extends React.Component {
             if (patterns) {
                 this.setState({ currentPattern: Object.values(patterns)[0] })
             }
-        });
+        }).catch(error => console.log(error));
 
-        axios.get("/api/colors").then(response => {
+        axios.get("/api/colors", config).then(response => {
             const colors = response.data;
             this.setState({ colors: colors });
 
@@ -49,9 +60,9 @@ export default class LightConfigForm extends React.Component {
             if (colors) {
                 this.setState({ currentColor: Object.values(colors)[0] })
             }
-        });
+        }).catch(error => console.log(error));
 
-        axios.get("/api/color_lists").then(response => {
+        axios.get("/api/color_lists", config).then(response => {
             const colorLists = response.data;
             this.setState({ colorLists: colorLists });
 
@@ -59,7 +70,7 @@ export default class LightConfigForm extends React.Component {
             if (colorLists) {
                 this.setState({ currentColorList: Object.values(colorLists)[0] })
             }
-        })
+        }).catch(error => console.log(error));
     }
 
     // TODO: Make popover work when window width is smaller than expected
@@ -251,7 +262,7 @@ export default class LightConfigForm extends React.Component {
      * @param data - The lighting pattern and settings to run
      */
     submit(data) {
-        axios.post("/api/submit", data)
+        axios.post("/api/submit", data, getConfig())
             .then(response => console.log(response))
             .catch(error => console.log(error));
     }
