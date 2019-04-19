@@ -42,11 +42,9 @@ export default class LoginForm extends React.Component {
     handleSubmit = (event) => {
         event.preventDefault();
 
-        const target = event.currentTarget;
-
         const data = {
-            "username": target["username"].value,
-            "password": target["password"].value
+            "username": this.state.username,
+            "password": this.state.password
         };
 
         axios.post("/api/token", data).then(response => {
