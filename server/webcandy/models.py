@@ -1,10 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import (
-    TimedJSONWebSignatureSerializer as Serializer,
-    BadSignature,
-    SignatureExpired
-)
-from typing import Optional
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from config import Config
 from .extensions import db
 
@@ -31,24 +26,6 @@ class User(db.Model):
         """
         s = Serializer(Config.SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.id})
-
-    @staticmethod
-    def verify_auth_token(token: str) -> Optional['User']:
-        """
-        Verify an authentication token.
-        :param token: the token to verify
-        :return: the ``User`` associated with the token; ``None`` if token is
-            invalid or expired
-        """
-        s = Serializer(Config.SECRET_KEY)
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None  # valid token, but expired
-        except BadSignature:
-            return None  # invalid token
-        user = User.query.get(data['id'])
-        return user
 
     def __repr__(self):
         return f'<User {self.username}>'

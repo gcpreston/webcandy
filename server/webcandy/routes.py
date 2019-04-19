@@ -4,8 +4,14 @@ from flask import (
     g, Blueprint, render_template, jsonify, request, make_response,
 )
 from werkzeug.exceptions import NotFound
+from itsdangerous import (
+    TimedJSONWebSignatureSerializer as Serializer,
+    SignatureExpired,
+    BadSignature
+)
+from config import Config
 from .models import User
-from .extensions import auth, controller
+from .extensions import basic_auth, token_auth, controller
 
 views = Blueprint('views', __name__, static_folder='../../static/dist',
                   template_folder='../../static')
@@ -17,17 +23,39 @@ api = Blueprint('api', __name__)
 # -------------------------------
 
 
-@auth.verify_password
-def verify_password(username_or_token: str, password: str) -> bool:
-    # TODO: Requires token to be passed as username. Implement bearer token.
-    # first try to authenticate by token
-    user = User.verify_auth_token(username_or_token)
-    if not user:
-        # try to authenticate with username/password
-        user = User.query.filter_by(username=username_or_token).first()
-        if not user or not user.check_password(password):
-            return False
+@basic_auth.verify_password
+def verify_password(username: str, password: str) -> bool:
+    """
+    Verify a username and password combination. Used to determine if a token
+    should be generated. All other routes require an authentication token.
+
+    :param username: the username to check
+    :param password: the password to check
+    :return: ``True`` if a valid combination was provided; ``False`` otherwise
+    """
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.check_password(password):
+        return False
     g.user = user
+    return True
+
+
+@token_auth.verify_token
+def verify_auth_token(token: str) -> bool:
+    """
+    Verify an authentication token.
+
+    :param token: the token to verify
+    :return: ``True`` if a valid token was provided; ``False`` otherwise
+    """
+    s = Serializer(Config.SECRET_KEY)
+    try:
+        data = s.loads(token)
+    except SignatureExpired:
+        return False  # valid token, but expired
+    except BadSignature:
+        return False  # invalid token
+    g.user = User.query.get(data['id'])
     return True
 
 
@@ -38,7 +66,7 @@ def verify_password(username_or_token: str, password: str) -> bool:
 
 @views.route('/', defaults={'path': ''})
 @views.route('/<path:path>')
-@auth.login_required
+@token_auth.login_required
 def index(path: str):
     # catch-all to route any non-API calls to React, which then does its own
     # routing to display the correct page
@@ -62,7 +90,7 @@ def api_catch_all(path: str):
 
 
 @api.route('/token', methods=['GET'])
-@auth.login_required
+@basic_auth.login_required  # authenticate via username/password to get token
 def get_auth_token():
     token = g.user.generate_auth_token()
     return jsonify({'token': token.decode('ascii')})
@@ -93,16 +121,25 @@ def submit():
 
 @api.route('/patterns', methods=['GET'])
 def patterns():
+    """
+    Get a list of valid lighting pattern names.
+    """
     return jsonify(util.get_config_names())
 
 
 @api.route('/colors', methods=['GET'])
 def colors():
+    """
+    Get a mapping from name to hex value of saved colors.
+    """
     return jsonify(util.load_asset('colors.json'))
 
 
 @api.route('/color_lists', methods=['GET'])
 def color_lists():
+    """
+    Get a mapping from name to list of hex value of saved color lists.
+    """
     return jsonify(util.load_asset('color_lists.json'))
 
 
