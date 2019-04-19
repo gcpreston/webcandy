@@ -1,7 +1,7 @@
 import React from 'react';
-import axios from 'axios';
+import axios from 'axios/index';
 import { Button } from 'react-bootstrap';
-import LightConfigForm from './components/LightConfigForm';
+import LightConfigForm from './forms/LightConfigForm';
 
 export default class App extends React.Component {
     render() {
@@ -16,6 +16,7 @@ export default class App extends React.Component {
         )
     }
 
+    // TODO: Fix logout
     handleLogout = () => {
         axios.post('/api/logout')
             .then(() => window.location = '/login')

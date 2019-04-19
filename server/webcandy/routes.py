@@ -1,7 +1,8 @@
 import util
 
 from flask import (
-    g, Blueprint, render_template, jsonify, request, make_response,
+    g, Blueprint, render_template, jsonify, request, make_response, redirect,
+    url_for
 )
 from werkzeug.exceptions import NotFound
 from itsdangerous import (
@@ -11,7 +12,7 @@ from itsdangerous import (
 )
 from config import Config
 from .models import User
-from .extensions import basic_auth, token_auth, controller
+from .extensions import auth, controller
 
 views = Blueprint('views', __name__, static_folder='../../static/dist',
                   template_folder='../../static')
@@ -23,24 +24,7 @@ api = Blueprint('api', __name__)
 # -------------------------------
 
 
-@basic_auth.verify_password
-def verify_password(username: str, password: str) -> bool:
-    """
-    Verify a username and password combination. Used to determine if a token
-    should be generated. All other routes require an authentication token.
-
-    :param username: the username to check
-    :param password: the password to check
-    :return: ``True`` if a valid combination was provided; ``False`` otherwise
-    """
-    user = User.query.filter_by(username=username).first()
-    if not user or not user.check_password(password):
-        return False
-    g.user = user
-    return True
-
-
-@token_auth.verify_token
+@auth.verify_token
 def verify_auth_token(token: str) -> bool:
     """
     Verify an authentication token.
@@ -62,15 +46,22 @@ def verify_auth_token(token: str) -> bool:
 # -------------------------------
 # React routes
 # -------------------------------
+# TODO: Allow loading of favicon.ico
 
 
-@views.route('/', defaults={'path': ''})
+@views.route('/', defaults={'path': ''}, methods=['GET'])
 @views.route('/<path:path>')
-@token_auth.login_required
-def index(path: str):
-    # catch-all to route any non-API calls to React, which then does its own
-    # routing to display the correct page
+@auth.login_required
+def react_catch_all(path: str):
+    # catch-all to route any non-API calls to React (other than login), which
+    # then does its own routing to display the correct page
     del path  # just to get rid of IDE warnings
+    return render_template('index.html')
+
+
+@views.route('/login', methods=['GET'])
+def login():
+    # allow login page to display without authentication
     return render_template('index.html')
 
 
@@ -89,9 +80,18 @@ def api_catch_all(path: str):
     return not_found(NotFound())
 
 
-@api.route('/token', methods=['GET'])
-@basic_auth.login_required  # authenticate via username/password to get token
+@api.route('/token', methods=['POST'])
 def get_auth_token():
+    req_json = request.get_json()
+
+    user = User.query.filter_by(username=req_json["username"]).first()
+    if not user or not user.check_password(req_json["password"]):
+        return jsonify({
+            'error': '401: Unauthorized',
+            'error_description': 'Invalid username and password combination'
+        })
+
+    g.user = user
     token = g.user.generate_auth_token()
     return jsonify({'token': token.decode('ascii')})
 
@@ -114,9 +114,6 @@ def submit():
     del req_json['pattern']
 
     return jsonify(success=controller.run_script(pattern, **req_json))
-
-
-# TODO: Loading of favicon.ico (sometimes) blocked for jsonify pages
 
 
 @api.route('/patterns', methods=['GET'])
@@ -146,6 +143,10 @@ def color_lists():
 # -------------------------------
 # Error handlers
 # -------------------------------
+
+
+def unauthorized(_):
+    return redirect(url_for('views.login'))
 
 
 def not_found(error):

@@ -37,3 +37,4 @@ def register_views(app):
     app.register_blueprint(routes.views)
     app.register_blueprint(routes.api, url_prefix='/api')
     app.register_error_handler(404, routes.not_found)
+    app.register_error_handler(401, routes.unauthorized)

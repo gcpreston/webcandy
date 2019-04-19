@@ -9,7 +9,7 @@ import {
     Popover,
 } from 'react-bootstrap';
 
-import '../../css/LightConfigForm.css';
+import '../../../css/LightConfigForm.css';
 
 export default class LightConfigForm extends React.Component {
     constructor(props) {
