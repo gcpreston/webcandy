@@ -1,9 +1,9 @@
 import React from 'react';
-import axios from 'axios/index';
 import { Button } from 'react-bootstrap';
 import LightConfigForm from './forms/LightConfigForm';
 
 export default class App extends React.Component {
+
     render() {
         return (
             <React.Fragment>
@@ -16,10 +16,8 @@ export default class App extends React.Component {
         )
     }
 
-    // TODO: Fix logout
     handleLogout = () => {
-        axios.post('/api/logout')
-            .then(() => window.location = '/login')
-            .catch(error => console.log(error))
+        sessionStorage.removeItem("token");
+        window.location = "/login";
     }
 }

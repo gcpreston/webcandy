@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Button, Form } from 'react-bootstrap';
 
 export default class LoginForm extends React.Component {
-
     constructor(props) {
         super(props);
 
@@ -50,12 +49,10 @@ export default class LoginForm extends React.Component {
             "password": target["password"].value
         };
 
-        console.log(data);
-
-        axios.post('/api/token', data).then(response => {
+        axios.post("/api/token", data).then(response => {
             const token = response.data["token"];
-            console.log('token: ' + token);
-            //sessionStorage.setItem("token", token);
+            sessionStorage.setItem("token", token);
+            window.location = "/";
         }).catch(error => console.log(error));
     }
 }

@@ -31,35 +31,44 @@ export default class LightConfigForm extends React.Component {
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        axios.get("/api/patterns").then(response => {
+        // token should be valid as this page should not be loading if there
+        // is an invalid token (redirected to login in index)
+        const token = sessionStorage.getItem("token");
+        const config = {
+            headers: {
+                Authorization: "Bearer " + token,
+            }
+        };
+
+        axios.get("/api/patterns", config).then(response => {
             const patterns = response.data;
-            this.setState({ patterns: patterns });
+            this.setState({patterns: patterns});
 
             // set currentPattern initial value
             if (patterns) {
-                this.setState({ currentPattern: Object.values(patterns)[0] })
+                this.setState({currentPattern: Object.values(patterns)[0]})
             }
-        });
+        }).catch(error => console.log(error));
 
-        axios.get("/api/colors").then(response => {
+        axios.get("/api/colors", config).then(response => {
             const colors = response.data;
-            this.setState({ colors: colors });
+            this.setState({colors: colors});
 
             // set currentColor initial value
             if (colors) {
-                this.setState({ currentColor: Object.values(colors)[0] })
+                this.setState({currentColor: Object.values(colors)[0]})
             }
-        });
+        }).catch(error => console.log(error));
 
-        axios.get("/api/color_lists").then(response => {
+        axios.get("/api/color_lists", config).then(response => {
             const colorLists = response.data;
-            this.setState({ colorLists: colorLists });
+            this.setState({colorLists: colorLists});
 
             // set currentColorList initial value
             if (colorLists) {
-                this.setState({ currentColorList: Object.values(colorLists)[0] })
+                this.setState({currentColorList: Object.values(colorLists)[0]})
             }
-        })
+        }).catch(error => console.log(error));
     }
 
     // TODO: Make popover work when window width is smaller than expected
@@ -87,14 +96,14 @@ export default class LightConfigForm extends React.Component {
                             <Popover>
                                 <ChromePicker
                                     color={this.state.currentColor}
-                                    onChange={e => this.setState({ currentColor: e.hex })}/>
+                                    onChange={e => this.setState({currentColor: e.hex})}/>
                             </Popover>
                         </Overlay>
                         <Form.Control ref="colorField"
                                       type="text"
                                       placeholder="#RRGGBB"
                                       value={this.state.currentColor}
-                                      onChange={e => this.setState({ currentColor: e.target.value })}
+                                      onChange={e => this.setState({currentColor: e.target.value})}
                                       disabled={!this.state.customColor}/>
                     </Form.Group>
                 </Form.Row>
@@ -138,7 +147,7 @@ export default class LightConfigForm extends React.Component {
                 <Form.Group controlId="config">
                     <Form.Label>Pattern</Form.Label>
                     <Form.Control as="select"
-                                  onChange={e => this.setState({ currentPattern: e.target.value })}>
+                                  onChange={e => this.setState({currentPattern: e.target.value})}>
                         {this.state.patterns.map((name, idx) => {
                             return <option key={idx}>{name}</option>;
                         })}
@@ -147,7 +156,7 @@ export default class LightConfigForm extends React.Component {
 
                 <Form.Group controlId="strobeCheck">
                     <Form.Check value={this.state.strobe}
-                                onChange={e => this.setState({ strobe: e.target.checked })}
+                                onChange={e => this.setState({strobe: e.target.checked})}
                                 label="Strobe"/>
                 </Form.Group>
 
@@ -173,7 +182,7 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the select
      */
     handleColorSelect = (event) => {
-        this.setState({ currentColor: this.state.colors[event.target.value] });
+        this.setState({currentColor: this.state.colors[event.target.value]});
     };
 
     /**
@@ -181,7 +190,7 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the select
      */
     handleColorListSelect = (event) => {
-        this.setState({ currentColorList: this.state.colorLists[event.target.value] })
+        this.setState({currentColorList: this.state.colorLists[event.target.value]})
     };
 
     /**
@@ -190,7 +199,7 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the checkbox
      */
     handleCustomColorCheck = (event) => {
-        this.setState({ customColor: event.target.checked })
+        this.setState({customColor: event.target.checked})
     };
 
     /**

@@ -51,17 +51,10 @@ def verify_auth_token(token: str) -> bool:
 
 @views.route('/', defaults={'path': ''}, methods=['GET'])
 @views.route('/<path:path>')
-@auth.login_required
 def react_catch_all(path: str):
-    # catch-all to route any non-API calls to React (other than login), which
-    # then does its own routing to display the correct page
+    # catch-all to route any non-API calls to React, which then does its own
+    # routing to display the correct page
     del path  # just to get rid of IDE warnings
-    return render_template('index.html')
-
-
-@views.route('/login', methods=['GET'])
-def login():
-    # allow login page to display without authentication
     return render_template('index.html')
 
 
@@ -97,6 +90,7 @@ def get_auth_token():
 
 
 @api.route('/submit', methods=['POST'])
+@auth.login_required
 def submit():
     """
     Handle the submission of a lighting configuration to run.
@@ -117,6 +111,7 @@ def submit():
 
 
 @api.route('/patterns', methods=['GET'])
+@auth.login_required
 def patterns():
     """
     Get a list of valid lighting pattern names.
@@ -125,6 +120,7 @@ def patterns():
 
 
 @api.route('/colors', methods=['GET'])
+@auth.login_required
 def colors():
     """
     Get a mapping from name to hex value of saved colors.
@@ -133,6 +129,7 @@ def colors():
 
 
 @api.route('/color_lists', methods=['GET'])
+@auth.login_required
 def color_lists():
     """
     Get a mapping from name to list of hex value of saved color lists.
