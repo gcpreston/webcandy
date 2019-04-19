@@ -3,7 +3,7 @@ import logging
 from flask import Flask
 from config import Config
 from . import routes
-from .extensions import db, migrate, login_manager, fcserver, controller
+from .extensions import db, migrate, fcserver, controller
 
 
 def create_app():
@@ -26,7 +26,6 @@ def register_extensions(app):
     """
     db.init_app(app)
     migrate.init_app(app, db)
-    login_manager.init_app(app)
     fcserver.init_app(app)
     controller.init_app(app)
 
