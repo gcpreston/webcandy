@@ -35,4 +35,4 @@ To run Webcandy, do the following:
 3. Navigate to the link in the Python console output to view the website!
 
 ## Login
-The default login is username "admin" and password "password".
+The default login is username "testuser" and password "Webcandy1".
