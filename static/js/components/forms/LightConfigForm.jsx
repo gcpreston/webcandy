@@ -38,8 +38,7 @@ export default class LightConfigForm extends React.Component {
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        // token should be valid as this page should not be loading if there
-        // is an invalid token (redirected to login in index)
+        // make API calls
         const config = getConfig();
 
         axios.get("/api/patterns", config).then(response => {
@@ -50,7 +49,13 @@ export default class LightConfigForm extends React.Component {
             if (patterns) {
                 this.setState({ currentPattern: Object.values(patterns)[0] })
             }
-        }).catch(error => console.log(error));
+        }).catch(error => {
+            if (error.response.status === 401) {
+                window.location = '/login'; // api key has expired
+            } else {
+                console.log(error);
+            }
+        });
 
         axios.get("/api/colors", config).then(response => {
             const colors = response.data;
@@ -60,7 +65,13 @@ export default class LightConfigForm extends React.Component {
             if (colors) {
                 this.setState({ currentColor: Object.values(colors)[0] })
             }
-        }).catch(error => console.log(error));
+        }).catch(error => {
+            if (error.response.status === 401) {
+                window.location = '/login'; // api key has expired
+            } else {
+                console.log(error);
+            }
+        });
 
         axios.get("/api/color_lists", config).then(response => {
             const colorLists = response.data;
@@ -70,7 +81,13 @@ export default class LightConfigForm extends React.Component {
             if (colorLists) {
                 this.setState({ currentColorList: Object.values(colorLists)[0] })
             }
-        }).catch(error => console.log(error));
+        }).catch(error => {
+            if (error.response.status === 401) {
+                window.location = '/login'; // api key has expired
+            } else {
+                console.log(error);
+            }
+        });
     }
 
     // TODO: Make popover work when window width is smaller than expected
@@ -211,7 +228,7 @@ export default class LightConfigForm extends React.Component {
     handleSubmit = (event) => {
         event.preventDefault();
 
-        const target = event.currentTarget;
+        const target = event.currentTarget;  // TODO: Use only state if possible
 
         // data fields
         let pattern, strobe, color, colorList;
@@ -264,6 +281,12 @@ export default class LightConfigForm extends React.Component {
     submit(data) {
         axios.post("/api/submit", data, getConfig())
             .then(response => console.log(response))
-            .catch(error => console.log(error));
+            .catch(error => {
+                if (error.response.status === 401) {
+                    window.location = '/login'; // unauthorized
+                } else {
+                    console.log(error);
+                }
+            });
     }
 }
