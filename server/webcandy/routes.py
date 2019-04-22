@@ -163,7 +163,7 @@ def colors():
     return jsonify(util.load_user_data()['colors'])
 
 
-@api.route('/color_lists', methods=['GET'])
+@api.route('/color-lists', methods=['GET'])
 @auth.login_required
 def color_lists():
     """

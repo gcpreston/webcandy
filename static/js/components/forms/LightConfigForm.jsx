@@ -73,7 +73,7 @@ export default class LightConfigForm extends React.Component {
             }
         });
 
-        axios.get("/api/color_lists", config).then(response => {
+        axios.get("/api/color-lists", config).then(response => {
             const colorLists = response.data;
             this.setState({ colorLists: colorLists });
 
