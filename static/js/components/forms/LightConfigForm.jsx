@@ -3,8 +3,6 @@ import axios from 'axios/index';
 import ChromePicker from 'react-color';
 import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
 
-import '../../../css/LightConfigForm.css';
-
 /**
  * Get config with authorization token to make Webcandy API calls.
  * @returns {{headers: {Authorization: string}}}

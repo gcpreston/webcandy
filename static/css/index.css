@@ -15,3 +15,8 @@ body {
     background-color: #2b2b2b;
     color: aliceblue;
 }
+
+.errors {
+    text-align: center;
+    color: #c75450;
+}

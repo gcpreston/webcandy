@@ -3,7 +3,7 @@ import json
 import util
 
 from flask import (
-    g, Blueprint, render_template, jsonify, request,  url_for
+    g, Blueprint, render_template, jsonify, request, url_for
 )
 from werkzeug.exceptions import NotFound
 from itsdangerous import (
@@ -115,10 +115,8 @@ def get_auth_token():
 
     user = User.query.filter_by(username=req_json["username"]).first()
     if not user or not user.check_password(req_json["password"]):
-        return jsonify({
-            'error': '401: Unauthorized',
-            'error_description': 'Invalid username and password combination'
-        })
+        description = 'Invalid username and password combination'
+        return jsonify(util.format_error(401, description)), 401
 
     g.user = user
     token = g.user.generate_auth_token()

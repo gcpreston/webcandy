@@ -9,6 +9,7 @@ import {
 import App from './components/App';
 import Login from './components/Login';
 import NotFound from './components/NotFound';
+import '../css/index.css';
 
 function loggedIn() {
     // TODO: Make API call to check if token is still valid

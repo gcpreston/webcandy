@@ -1,5 +1,5 @@
 # Webcandy
-Web API and interface for Fadecandy control.
+API and web interface for Fadecandy control.
 
 ## Requirements
 - Python 3.6+

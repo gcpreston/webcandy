@@ -9,33 +9,41 @@ export default class LoginForm extends React.Component {
         this.state = {
             username: "",
             password: "",
+            errors: [],
         };
     }
 
     // TODO: Remember me
     render() {
         return (
-            <Form onSubmit={this.handleSubmit}>
-                <Form.Group controlId="username">
-                    <Form.Label>Username</Form.Label>
-                    <Form.Control type="text"
-                                  value={this.state.username}
-                                  onChange={e => this.setState({username: e.target.value})}/>
-                </Form.Group>
+            <React.Fragment>
+                {this.state.errors ?
+                    <ul className="errors">
+                        {this.state.errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
+                    </ul> : null}
 
-                <Form.Group controlId="password">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control type="password"
-                                  value={this.state.password}
-                                  onChange={e => this.setState({password: e.target.value})}/>
-                </Form.Group>
+                <Form onSubmit={this.handleSubmit}>
+                    <Form.Group controlId="username">
+                        <Form.Label>Username</Form.Label>
+                        <Form.Control type="text"
+                                      value={this.state.username}
+                                      onChange={e => this.setState({ username: e.target.value })}/>
+                    </Form.Group>
 
-                <Form.Group controlId="submitButton">
-                    <Button variant="primary" type="submit">
-                        Submit
-                    </Button>
-                </Form.Group>
-            </Form>
+                    <Form.Group controlId="password">
+                        <Form.Label>Password</Form.Label>
+                        <Form.Control type="password"
+                                      value={this.state.password}
+                                      onChange={e => this.setState({ password: e.target.value })}/>
+                    </Form.Group>
+
+                    <Form.Group controlId="submitButton">
+                        <Button variant="primary" type="submit">
+                            Submit
+                        </Button>
+                    </Form.Group>
+                </Form>
+            </React.Fragment>
         );
     }
 
@@ -48,9 +56,14 @@ export default class LoginForm extends React.Component {
         };
 
         axios.post("/api/token", data).then(response => {
+            console.log(response);
             const token = response.data["token"];
             sessionStorage.setItem("token", token);
             window.location = "/";
-        }).catch(error => console.log(error));
+        }).catch(error => {
+            if (error.response.status === 401) {
+                this.setState({ errors: [error.response.data["error_description"]] })
+            }
+        });
     }
 }
