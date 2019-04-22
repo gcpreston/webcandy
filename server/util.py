@@ -17,14 +17,14 @@ def get_config_names() -> List[str]:
 
 
 # TODO: Add ability to reference colors by name in other JSON files
-def load_asset(fn: str) -> Dict:
+def load_data(fn: str) -> Dict:
     """
-    Retrieve the contents of a specified JSON file in the assets folder
+    Retrieve the contents of a specified JSON file in the data folder.
 
     :param fn: the name of the file to load
     :return: the JSON contents as a dictionary
     """
-    with open(f'{ROOT_DIR}/server/assets/{fn}') as file:
+    with open(f'{ROOT_DIR}/server/data/{fn}') as file:
         return json.load(file)
 
 

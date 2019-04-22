@@ -125,7 +125,7 @@ def colors():
     """
     Get a mapping from name to hex value of saved colors.
     """
-    return jsonify(util.load_asset('colors.json'))
+    return jsonify(util.load_data('colors.json'))
 
 
 @api.route('/color_lists', methods=['GET'])
@@ -134,7 +134,7 @@ def color_lists():
     """
     Get a mapping from name to list of hex value of saved color lists.
     """
-    return jsonify(util.load_asset('color_lists.json'))
+    return jsonify(util.load_data('color_lists.json'))
 
 
 # -------------------------------
