@@ -5,7 +5,7 @@ export default class Login extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <h1 id="title">Log in</h1>
+                <h1 className="title">Log in</h1>
                 <LoginForm/>
             </React.Fragment>
         )

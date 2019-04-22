@@ -7,7 +7,7 @@ export default class App extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <h1 id="title">Webcandy</h1>
+                <h1 className="title">Webcandy</h1>
                 <LightConfigForm/>
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
