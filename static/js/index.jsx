@@ -6,7 +6,6 @@ import {
     Switch,
     Redirect
 } from 'react-router-dom';
-import axios from 'axios';
 import App from './components/App';
 import Login from './components/Login';
 import NotFound from './components/NotFound';

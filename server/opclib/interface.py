@@ -73,7 +73,7 @@ class LightConfig(abc.ABC):
             if not color or not is_color(color):
                 color_repr = f"'{color}'" if color else None
                 raise ValueError(
-                    "Please provide a color in the format #RRGGBB. "
+                    "Expected a color in the format '#RRGGBB', "
                     f"Received {color_repr}.")
             return color
 
@@ -86,7 +86,7 @@ class LightConfig(abc.ABC):
             """
             if not color_list or not all([is_color(c) for c in color_list]):
                 raise ValueError(
-                    "Please provide a list of colors in the format #RRGGBB. "
+                    "Expected a list of colors in the format '#RRGGBB', "
                     f"Received {color_list}.")
             return color_list
 
