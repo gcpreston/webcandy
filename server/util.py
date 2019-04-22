@@ -27,11 +27,18 @@ def load_user_data() -> Dict:
         return json.load(file)
 
 
-def format_error(error) -> Dict[str, str]:
+def format_error(status: int, description: str) -> Dict[str, str]:
     """
     Uniform error format for API responses.
 
-    :param error: the error to format
+    :param status: the error status code
+    :param description: the error description
     :return: a dictionary describing the error
     """
-    return {'error': error.name, 'error_description': error.description}
+    errors = {
+        400: 'Bad Request',
+        401: 'Unauthorized',
+        404: 'Not Found',
+    }
+    return {'error': errors.get(status) or '(undefined)',
+            'error_description': description}

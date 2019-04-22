@@ -3,7 +3,7 @@ import json
 import util
 
 from flask import (
-    g, Blueprint, render_template, jsonify, request, make_response,  url_for
+    g, Blueprint, render_template, jsonify, request,  url_for
 )
 from werkzeug.exceptions import NotFound
 from itsdangerous import (
@@ -85,13 +85,11 @@ def new_user():
     if username is None or password is None:
         error_description = 'Missing username or password'
         logging.error(error_description)
-        return jsonify({'error': 'Bad Request',
-                        'error_description': error_description}), 400
+        return jsonify(util.format_error(400, error_description)), 400
     if User.query.filter_by(username=username).first() is not None:
         error_description = f"User '{username}' already exists"
         logging.error(error_description)
-        return jsonify({'error': 'Bad Request',
-                        'error_description': error_description}), 400
+        return jsonify(util.format_error(400, error_description)), 400
 
     user = User(username=username, email=email)
     user.set_password(password)
@@ -181,4 +179,4 @@ def color_lists():
 # TODO: Make better 404 response
 
 def not_found(error):
-    return make_response(jsonify(util.format_error(error)), 404)
+    return jsonify(util.format_error(404, error.description)), 404
