@@ -11,12 +11,13 @@ class Fade(DynamicLightConfig):
     _fade_index = 0  # how far we are between two colors [0-9]
     speed = 10
 
-    def __init__(self, colors: List[str]):
+    def __init__(self, colors: List[str], speed: int = None,
+                 num_leds: int = 512, port: int = 7890):
         """
         Initialize a new Fade configuration.
         :param colors: the colors to use ("#RRGGBB" format)
         """
-        super().__init__()
+        super().__init__(speed, num_leds, port)
         self.colors = [get_color(c) for c in colors]
         self._current_color = self.colors[0]
         self.pixels = [self._current_color] * self.num_leds
