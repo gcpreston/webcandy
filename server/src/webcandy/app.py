@@ -2,6 +2,7 @@ import logging
 
 from flask import Flask
 from config import Config
+from definitions import ROOT_DIR
 from . import routes
 from .extensions import db, migrate, fcserver, controller
 
@@ -10,8 +11,8 @@ def create_app():
     """
     Build the Flask app.
     """
-    app = Flask(__name__, static_folder='../../static/dist',
-                template_folder='../../static')
+    app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
+                template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
     register_extensions(app)
     register_views(app)
