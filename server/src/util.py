@@ -1,9 +1,8 @@
 import os
 import json
 
-from flask import g
 from typing import List, Dict
-from definitions import ROOT_DIR
+from definitions import ROOT_DIR, DATA_DIR
 
 
 def get_config_names() -> List[str]:
@@ -19,12 +18,17 @@ def get_config_names() -> List[str]:
 
 
 # TODO: Add ability to reference colors by name in other JSON files
-def load_user_data() -> Dict:
+def load_user_data(username: str) -> Dict:
     """
-    Retrieve data about the current user
+    Retrieve data about a specified user.
+
+    :param username: the user to get the data of
     :return: the JSON contents as a dictionary
     """
-    with open(f'{ROOT_DIR}/server/data/{g.user.username}.json') as file:
+    fp = f'{DATA_DIR}/{username}.json'
+    if not os.path.isfile(fp):
+        raise ValueError(f'User "{username}" does not exist')
+    with open(fp) as file:
         return json.load(file)
 
 

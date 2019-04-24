@@ -7,6 +7,11 @@ class TestUtil(unittest.TestCase):
     Tests for ``util`` module.
     """
 
+    def test_load_user_data(self):
+        # User "testfakeuser" does not exist
+        self.assertRaises(ValueError, util.load_user_data, 'testfakeuser')
+        self.assertTrue(util.load_user_data('testuser'))
+
     def test_format_error(self):
         self.assertEqual(util.format_error(5050, 'Some description'),
                          {'error': '(undefined)',
