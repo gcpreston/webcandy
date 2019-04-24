@@ -17,8 +17,8 @@ from definitions import ROOT_DIR
 from .models import User
 from .extensions import auth, db, controller
 
-views = Blueprint('views', __name__, static_folder='../../static/dist',
-                  template_folder='../../static')
+views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
+                  template_folder=f'{ROOT_DIR}/static')
 api = Blueprint('api', __name__)
 
 
