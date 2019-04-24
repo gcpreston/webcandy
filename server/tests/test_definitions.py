@@ -5,6 +5,9 @@ from definitions import ROOT_DIR
 
 
 class TestDefinitions(unittest.TestCase):
+    """
+    Tests for ``definitions`` module.
+    """
 
     def test_root_dir(self):
         # ROOT_DIR points to correct location

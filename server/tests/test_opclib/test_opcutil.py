@@ -4,7 +4,7 @@ from opclib import opcutil
 
 class TestOPCLib(unittest.TestCase):
     """
-    Tests for test_opclib module.
+    Tests for ``opclib`` module.
     """
 
     valid_colors = ['#000000', '#123456', '#987abc', '#abcdef', '#ffffff']
