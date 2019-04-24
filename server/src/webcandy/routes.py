@@ -61,6 +61,12 @@ def index(path: str):
     return render_template('index.html')
 
 
+@views.route('/static/dist/bundle.js', methods=['GET'])
+def bundle():
+    with open(f'{ROOT_DIR}/static/dist/bundle.js') as file:
+        return file.read()
+
+
 # -------------------------------
 # API routes
 # -------------------------------

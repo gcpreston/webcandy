@@ -14,7 +14,8 @@ def get_config_names() -> List[str]:
     ignore = {'__pycache__', '__init__.py', 'off.py', 'strobe.py'}
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
-                           os.listdir(ROOT_DIR + '/server/opclib/patterns'))))
+                           os.listdir(
+                               f'{ROOT_DIR}/server/src/opclib/patterns'))))
 
 
 # TODO: Add ability to reference colors by name in other JSON files
