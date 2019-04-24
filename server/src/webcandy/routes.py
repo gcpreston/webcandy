@@ -158,7 +158,7 @@ def colors():
     """
     Get a mapping from name to hex value of saved colors for the logged in user.
     """
-    return jsonify(util.load_user_data()['colors'])
+    return jsonify(util.load_user_data(g.user.username)['colors'])
 
 
 @api.route('/color-lists', methods=['GET'])
@@ -168,7 +168,7 @@ def color_lists():
     Get a mapping from name to list of hex value of saved color lists for the
     logged in user.
     """
-    return jsonify(util.load_user_data()['color_lists'])
+    return jsonify(util.load_user_data(g.user.username)['color_lists'])
 
 
 # -------------------------------
