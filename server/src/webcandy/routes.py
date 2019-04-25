@@ -15,7 +15,7 @@ from itsdangerous import (
 from config import Config
 from definitions import ROOT_DIR
 from .models import User
-from .extensions import auth, db, controller
+from .extensions import auth, db, controller, manager
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
@@ -171,6 +171,11 @@ def color_lists():
     logged in user.
     """
     return jsonify(util.load_user_data(g.user.username)['color_lists'])
+
+
+@api.route('/send', methods=['POST'])
+def send():
+    return jsonify(success=manager.send(request.get_data()))
 
 
 # -------------------------------
