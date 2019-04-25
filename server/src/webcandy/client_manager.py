@@ -1,14 +1,7 @@
 import socket
-import multiprocessing
-import logging
+import threading
 
-
-def _accept_connections(sock: socket.socket):
-    while True:
-        conn, addr = sock.accept()
-        with conn:
-            print(f'Connected {addr}')
-            conn.sendall(b'Hello client!')
+from flask import Flask
 
 
 class WebcandyClientManager:
@@ -16,24 +9,50 @@ class WebcandyClientManager:
     Class to manage client socket connections.
     """
 
-    def __init__(self, host: str = '127.0.0.1', port: int = 6543):
+    conn = None
+
+    def __init__(self, app: Flask = None, host: str = '127.0.0.1',
+                 port: int = 6543):
+        self.app = app
+        self.host = host
+        self.port = port
+
+    def init_app(self, app):
+        self.app = app
+
+    def start(self):
         # test if manager is already running
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as test_sock:
-            result = test_sock.connect_ex((host, port))
+            result = test_sock.connect_ex((self.host, self.port))
 
         if result == 10061:  # nothing running
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.bind((host, port))
-                sock.listen()
-                # p = multiprocessing.Process(target=_accept_connections,
-                #                             args=(sock,))
-                # p.start()
-                self.conn, self.addr = sock.accept()
+            thread = threading.Thread(target=_connect, args=(self,))
+            thread.start()
+            thread.join()
 
     def send(self, data: bytes) -> bool:
+        """
+        Send data to a client.
+        :param data: the data to send
+        :return: ``True`` if the operation was successful; ``False`` otherwise
+        """
         try:
             self.conn.sendall(data)
+        except AttributeError:
+            self.app.logger.error('No client connection established')
+            return False
         except OSError as e:
-            logging.error(e)
+            self.app.logger.error(e)
             return False
         return True
+
+
+def _connect(manager: WebcandyClientManager):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((manager.host, manager.port))
+        sock.listen()
+
+        # while True:
+        conn, addr = sock.accept()
+        manager.app.logger.debug(f'Connected {addr}')
+        manager.conn = conn

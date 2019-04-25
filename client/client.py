@@ -15,7 +15,7 @@ class WebcandyClient:
         while True:
             data = self.s.recv(1024)
             if not data:
-                break
+                continue
             print(data)
 
 
