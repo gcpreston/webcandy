@@ -48,11 +48,11 @@ class WebcandyClientManager:
 
 
 def _connect(manager: WebcandyClientManager):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind((manager.host, manager.port))
-        sock.listen()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((manager.host, manager.port))
+        s.listen()
 
         # while True:
-        conn, addr = sock.accept()
+        conn, addr = s.accept()
         manager.app.logger.debug(f'Connected {addr}')
         manager.conn = conn
