@@ -4,7 +4,7 @@ from flask import Flask
 from config import Config
 from definitions import ROOT_DIR
 from . import routes
-from .extensions import db, migrate, fcserver, controller, manager
+from .extensions import db, migrate, fcserver, manager
 
 
 def create_app():
@@ -27,7 +27,6 @@ def register_extensions(app):
     db.init_app(app)
     migrate.init_app(app, db)
     fcserver.init_app(app)
-    controller.init_app(app)
     manager.init_app(app)
 
 

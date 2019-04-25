@@ -50,7 +50,7 @@ class WebcandyClientManager:
 def _connect(manager: WebcandyClientManager):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((manager.host, manager.port))
-        s.listen()
+        s.listen(3)  # TODO: Is this a good value?
 
         # while True:
         conn, addr = s.accept()
