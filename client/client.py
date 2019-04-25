@@ -1,4 +1,5 @@
 import socket
+import json
 
 
 class WebcandyClient:
@@ -14,9 +15,12 @@ class WebcandyClient:
 
         while True:
             data = self.s.recv(1024)
-            if not data:
-                continue
-            print(data)
+            if data:
+                try:
+                    parsed = json.loads(data)
+                    print(f'Received json: {parsed}')
+                except json.decoder.JSONDecodeError:
+                    print(f'Received text: {data}')
 
 
 if __name__ == '__main__':
