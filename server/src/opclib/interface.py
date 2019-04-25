@@ -47,14 +47,14 @@ class LightConfig(abc.ABC):
         pass
 
     @staticmethod
-    def factory(name: str, strobe: bool = False, color: str = None,
+    def factory(pattern: str = None, strobe: bool = False, color: str = None,
                 color_list: List[str] = None,
                 speed: int = None) -> 'LightConfig':
         """
         Create an instance of a specific light configuration based on the given
         name. Different configurations differ in required keyword arguments.
 
-        :param name: the name of the desired lighting configuration
+        :param pattern: the name of the desired lighting configuration
         :param strobe: whether to add a strobe effect
         :param color: (for solid_color) the color to display
         :param color_list: (for fade and scroll) a list of colors to use
@@ -103,17 +103,17 @@ class LightConfig(abc.ABC):
 
         from . import patterns
 
-        if name == 'fade':
+        if pattern == 'fade':
             light = set_speed(patterns.Fade(get_color_list()))
-        elif name == 'scroll':
+        elif pattern == 'scroll':
             light = set_speed(patterns.Scroll(get_color_list()))
-        elif name == 'solid_color':
+        elif pattern == 'solid_color':
             light = patterns.SolidColor(get_color())
-        elif name == 'off':
+        elif pattern == 'off':
             light = patterns.Off()
         else:
             raise ValueError(
-                f"'{name}' is not associated with any lighting configurations")
+                f"'{pattern}' is not associated with any lighting configurations")
 
         if strobe:
             return patterns.Strobe(light)

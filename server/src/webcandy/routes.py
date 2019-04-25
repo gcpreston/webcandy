@@ -15,7 +15,7 @@ from itsdangerous import (
 from config import Config
 from definitions import ROOT_DIR
 from .models import User
-from .extensions import auth, db, controller, manager
+from .extensions import auth, db, manager
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
@@ -138,12 +138,8 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    # TODO: Send data to client
-    req_json = request.get_json()
-    pattern = req_json['pattern']
-    del req_json['pattern']
-
-    return jsonify(success=controller.run_script(pattern, **req_json))
+    # return jsonify(success=controller.run_script(pattern, **req_json))
+    return jsonify(success=manager.send(request.get_data()))
 
 
 @api.route('/patterns', methods=['GET'])
