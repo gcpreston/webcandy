@@ -82,6 +82,7 @@ def new_user():
     email = request.json.get('email')  # optional
     password = request.json.get('password')
 
+    # TODO: Use either logging or app.logger consistently
     if username is None or password is None:
         error_description = 'Missing username or password'
         logging.error(error_description)
@@ -137,6 +138,7 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
+    # TODO: Send data to client
     req_json = request.get_json()
     pattern = req_json['pattern']
     del req_json['pattern']
