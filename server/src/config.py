@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from definitions import ROOT_DIR
 
 # TODO: Dynamic environment loading
-load_dotenv('.env')
+load_dotenv(f'{ROOT_DIR}/server/.env')
 
 
 class Config:

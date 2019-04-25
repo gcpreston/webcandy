@@ -16,6 +16,9 @@ function getConfig() {
     }
 }
 
+/**
+ * Form for building lighting configuration request.
+ */
 export default class LightConfigForm extends React.Component {
     constructor(props) {
         super(props);
