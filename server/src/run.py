@@ -11,8 +11,8 @@ if __name__ == '__main__':
 
     # TODO: Make this functionality contained in fcserver
     # start fcserver if not already running
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        result = sock.connect_ex(('127.0.0.1', 7890))
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        result = s.connect_ex(('127.0.0.1', 7890))
 
     if result == 10061:  # nothing running
         fcserver.start()
