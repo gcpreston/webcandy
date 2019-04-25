@@ -3,7 +3,7 @@ import socket
 from webcandy.app import create_app
 from webcandy.extensions import fcserver
 
-debug = True
+debug = False
 
 
 if __name__ == '__main__':

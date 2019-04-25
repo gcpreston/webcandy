@@ -1,5 +1,6 @@
 import socket
 import multiprocessing
+import logging
 
 
 def _accept_connections(sock: socket.socket):
@@ -24,6 +25,15 @@ class WebcandyClientManager:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.bind((host, port))
                 sock.listen()
-                p = multiprocessing.Process(target=_accept_connections,
-                                            args=(sock,))
-                p.start()
+                # p = multiprocessing.Process(target=_accept_connections,
+                #                             args=(sock,))
+                # p.start()
+                self.conn, self.addr = sock.accept()
+
+    def send(self, data: bytes) -> bool:
+        try:
+            self.conn.sendall(data)
+        except OSError as e:
+            logging.error(e)
+            return False
+        return True
