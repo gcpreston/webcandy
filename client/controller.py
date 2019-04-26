@@ -1,4 +1,5 @@
 import multiprocessing
+import logging
 
 from opclib.interface import LightConfig
 
@@ -21,7 +22,7 @@ class Controller:
 
     _current_proc: multiprocessing.Process = None
 
-    def run_script(self, **kwargs) -> None:
+    def run_config(self, **kwargs) -> None:
         """
         Run the Fadecandy script with the given name. Requires a Fadecandy
         server to be started.
@@ -29,10 +30,10 @@ class Controller:
         :param kwargs: arguments to pass to the specified light config
         """
         if self._current_proc and self._current_proc.is_alive():
-            print(f'Terminating {self._current_proc}')
+            logging.debug(f'Terminating {self._current_proc}')
             self._current_proc.terminate()
 
-        print(f'Running config: {kwargs}')
+        logging.info(f'Attempting to run configuration: {kwargs}')
         self._current_proc = multiprocessing.Process(target=_execute,
                                                      kwargs=kwargs)
         self._current_proc.start()
