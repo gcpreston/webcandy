@@ -130,7 +130,7 @@ def submit():
     """
     Handle the submission of a lighting configuration to run.
 
-    POST form fields fields:
+    POST JSON fields:
     - "pattern": the pattern to run
     - "strobe": whether to add a strobe effect
     - "color": the color to use, if applicable
@@ -138,7 +138,6 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    # return jsonify(success=controller.run_script(pattern, **req_json))
     return jsonify(success=manager.send(request.get_data()))
 
 
@@ -167,11 +166,6 @@ def color_lists():
     logged in user.
     """
     return jsonify(util.load_user_data(g.user.username)['color_lists'])
-
-
-@api.route('/send', methods=['POST'])
-def send():
-    return jsonify(success=manager.send(request.get_data()))
 
 
 # -------------------------------

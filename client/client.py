@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import argparse
 
 from controller import Controller
@@ -22,7 +23,7 @@ class WebcandyClient:
 
         async def _start():
             reader, writer = await asyncio.open_connection(self.host, self.port)
-            print(f'Connected to server {self.host}:{self.port}')
+            logging.info(f'Connected to server {self.host}:{self.port}')
 
             while True:
                 try:
@@ -30,21 +31,24 @@ class WebcandyClient:
                     if data:
                         try:
                             parsed = json.loads(data.decode())
-                            print(f'Received JSON: {parsed}')
-                            self.control.run_script(**parsed)
+                            logging.debug(f'Received JSON: {parsed}')
+                            self.control.run_config(**parsed)
                         except json.decoder.JSONDecodeError:
-                            print(f'Received text: {data}')
+                            logging.info(f'Received text: {data}')
                 except KeyboardInterrupt:
                     break
 
             writer.close()
-            print('Connecton closed')
+            logging.info('Connecton closed')
             await writer.wait_closed()
 
         asyncio.run(_start())
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO,
+                        format='[%(asctime)s] %(levelname)s: %(message)s')
+
     parser = argparse.ArgumentParser(
         description='Webcandy client to connect to a running Webcandy server.')
     parser.add_argument('--host', metavar='ADDRESS',
