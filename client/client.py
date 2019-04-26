@@ -1,5 +1,6 @@
 import asyncio
 import json
+import argparse
 
 from controller import Controller
 
@@ -9,8 +10,7 @@ class WebcandyClient:
     Webcandy client to receive light configuration submission data from server.
     """
 
-    def __init__(self, control: Controller, host: str = '127.0.0.1',
-                 port: int = 6543):
+    def __init__(self, control: Controller, host: str, port: int):
         self.control = control
         self.host = host
         self.port = port
@@ -44,5 +44,18 @@ class WebcandyClient:
 
 
 if __name__ == '__main__':
-    client = WebcandyClient(Controller())
+    parser = argparse.ArgumentParser(
+        description='Webcandy client to connect to a running Webcandy server.')
+    parser.add_argument('--host', metavar='ADDRESS',
+                        help='the address of the server to connect to'
+                             '(default: 127.0.0.1)')
+    parser.add_argument('--port', metavar='PORT', type=int,
+                        help='the port the server is running on'
+                             '(default: 6543)')
+    cmd_args = parser.parse_args()
+
+    host = cmd_args.host or '127.0.0.1'
+    port = cmd_args.port or 6543
+
+    client = WebcandyClient(Controller(), host, port)
     client.start()
