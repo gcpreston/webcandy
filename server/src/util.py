@@ -1,7 +1,7 @@
 import os
 import json
 
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from definitions import ROOT_DIR, DATA_DIR
 
 
@@ -47,3 +47,12 @@ def format_error(status: int, description: str) -> Dict[str, str]:
     }
     return {'error': errors.get(status) or '(undefined)',
             'error_description': description}
+
+
+def format_addr(addr: Tuple[str, int]) -> str:
+    """
+    Format an address from a (host, port) tuple
+    :param addr: the address tuple to format
+    :return: a string representing address as "host:port"
+    """
+    return ":".join(map(str, addr))
