@@ -2,7 +2,7 @@ import os
 import json
 
 from typing import List, Dict, Tuple
-from definitions import ROOT_DIR, DATA_DIR
+from definitions import DATA_DIR, OPCLIB_DIR
 
 
 def get_config_names() -> List[str]:
@@ -13,8 +13,7 @@ def get_config_names() -> List[str]:
     ignore = {'__pycache__', '__init__.py', 'off.py', 'strobe.py'}
     return list(map(lambda e: e[:-3],
                     filter(lambda e: e not in ignore,
-                           os.listdir(
-                               f'{ROOT_DIR}/server/src/opclib/patterns'))))
+                           os.listdir(OPCLIB_DIR))))
 
 
 # TODO: Add ability to reference colors by name in other JSON files

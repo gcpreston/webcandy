@@ -17,10 +17,11 @@ def create_app():
     app.logger.setLevel(logging.DEBUG)
     register_extensions(app)
     register_views(app)
+    start_servers()
     return app
 
 
-def register_extensions(app):
+def register_extensions(app: Flask) -> None:
     """
     Register Flask extensions.
     """
@@ -30,10 +31,18 @@ def register_extensions(app):
     manager.init_app(app)
 
 
-def register_views(app):
+def register_views(app: Flask) -> None:
     """
     Register Flask blueprints and error handlers.
     """
     app.register_blueprint(routes.views)
     app.register_blueprint(routes.api, url_prefix='/api')
     app.register_error_handler(404, routes.not_found)
+
+
+def start_servers() -> None:
+    """
+    Start Fadecandy and client manager servers.
+    """
+    fcserver.start()
+    manager.start()
