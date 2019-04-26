@@ -107,6 +107,8 @@ class LightConfig(abc.ABC):
             light = set_speed(patterns.Scroll(get_color_list()))
         elif pattern == 'solid_color':
             light = patterns.SolidColor(get_color())
+        elif pattern == 'stripe':
+            light = patterns.Stripe(get_color_list())
         elif pattern == 'off':
             light = patterns.Off()
         else:
