@@ -26,7 +26,7 @@ class WebcandyClient:
 
             while True:
                 try:
-                    data = await reader.read(100)
+                    data = await reader.read(1024)
                     if data:
                         try:
                             parsed = json.loads(data.decode())

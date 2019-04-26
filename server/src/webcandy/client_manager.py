@@ -1,6 +1,7 @@
 import socket
 import threading
 import asyncio
+import atexit
 import util
 
 from flask import Flask
@@ -13,6 +14,7 @@ class WebcandyClientManager:
 
     reader: asyncio.StreamReader = None
     writer: asyncio.StreamWriter = None
+    _server_running: bool = False
 
     def __init__(self, app: Flask = None, host: str = '127.0.0.1',
                  port: int = 6543):
@@ -28,8 +30,9 @@ class WebcandyClientManager:
         Start this ``WebcandyClientManager``.
         """
 
-        async def _init_server():
+        async def _start_server():
             server = await asyncio.start_server(_handle_connection, self.host, self.port)
+            self._server_running = True
             addr = server.sockets[0].getsockname()
             self.app.logger.info(f'Serving on {util.format_addr(addr)}')
 
@@ -43,17 +46,26 @@ class WebcandyClientManager:
             self.reader = reader
             self.writer = writer
 
-        def _run_server():
-            # test if manager is already running
+        if not self._server_running:
+            # test if other instance is already running
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as test_sock:
                 result = test_sock.connect_ex((self.host, self.port))
 
             if result == 10061:  # nothing running
-                asyncio.run(_init_server())
+                # start server loop in separate thread
+                server_thread = threading.Thread(
+                    target=lambda: asyncio.run(_start_server()))
+                server_thread.start()
 
-        # start server loop in separate thread
-        server_thread = threading.Thread(target=_run_server)
-        server_thread.start()
+                atexit.register(self.stop)
+
+    def stop(self) -> None:
+        """
+        Stop this ``WebcandyClientManager``.
+        """
+        self.app.logger.info('Stopped client manager server')
+        self.writer.close()
+        self._server_running = False
 
     def send(self, data: bytes) -> bool:
         """

@@ -1,5 +1,6 @@
 import sys
 import subprocess
+import socket
 import asyncio
 import atexit
 
@@ -28,7 +29,7 @@ class FCServer:
         Run the Fadecandy server. Terminates on program exit.
         """
 
-        async def _go(stop_fn: FunctionType):
+        async def _go():
             if sys.platform == 'win32':
                 server = 'fcserver.exe'
             elif sys.platform == 'darwin':
@@ -36,13 +37,19 @@ class FCServer:
             else:
                 server = 'fcserver-rpi'
             _fcserver_proc = subprocess.Popen(ROOT_DIR + '/bin/' + server)
-            atexit.register(stop_fn)
             return _fcserver_proc
 
         if not self._server_running:
-            self._fcserver_proc = asyncio.run(_go(self.stop))
-            self._server_running = True
-            self.app.logger.info('Started fcserver')
+            # check if other instance of fcserver is running on port
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                result = s.connect_ex(('127.0.0.1', 7890))
+
+            if result == 10061:  # nothing running
+                self._fcserver_proc = asyncio.run(_go())
+                self._server_running = True
+                self.app.logger.info('Started fcserver')
+
+                atexit.register(self.stop)  # stop fcserver on exit
 
     def stop(self) -> None:
         """
