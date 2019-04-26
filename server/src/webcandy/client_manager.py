@@ -26,9 +26,19 @@ class WebcandyClientManager:
             result = test_sock.connect_ex((self.host, self.port))
 
         if result == 10061:  # nothing running
-            thread = threading.Thread(target=_connect, args=(self,))
+            thread = threading.Thread(target=self._connect)
             thread.start()
             thread.join()
+
+    def _connect(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((self.host, self.port))
+            s.listen(3)
+
+            self.app.logger.info('Waiting for client connection...')
+            conn, addr = s.accept()
+            self.app.logger.info(f'Connected client {":".join(map(str, addr))}')
+            self.conn = conn
 
     def send(self, data: bytes) -> bool:
         """
@@ -45,14 +55,3 @@ class WebcandyClientManager:
             self.app.logger.error(e)
             return False
         return True
-
-
-def _connect(manager: WebcandyClientManager):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((manager.host, manager.port))
-        s.listen(3)  # TODO: Is this a good value?
-
-        # while True:
-        conn, addr = s.accept()
-        manager.app.logger.debug(f'Connected {addr}')
-        manager.conn = conn
