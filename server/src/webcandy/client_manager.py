@@ -31,7 +31,8 @@ class WebcandyClientManager:
         """
 
         async def _start_server():
-            server = await asyncio.start_server(_handle_connection, self.host, self.port)
+            server = await asyncio.start_server(_handle_connection,
+                                                self.host, self.port)
             self._server_running = True
             addr = server.sockets[0].getsockname()
             self.app.logger.info(f'Serving on {util.format_addr(addr)}')
@@ -43,6 +44,7 @@ class WebcandyClientManager:
             addr = writer.get_extra_info('peername')
             self.app.logger.info(f'Connected client {util.format_addr(addr)}')
             # set reader and writer to most recent connection
+            # TODO: Handle multiple connections
             self.reader = reader
             self.writer = writer
 
