@@ -55,7 +55,7 @@ class WebcandyClientManager:
         server_thread = threading.Thread(target=_run_server)
         server_thread.start()
 
-    def send(self, data) -> bool:
+    def send(self, data: bytes) -> bool:
         """
         Send data to a client.
         :param data: the data to send
