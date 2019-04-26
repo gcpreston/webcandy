@@ -27,12 +27,13 @@ class WebcandyClient:
             while True:
                 try:
                     data = await reader.read(100)
-                    try:
-                        parsed = json.loads(data.decode())
-                        print(f'Received JSON: {parsed}')
-                        self.control.run_script(**parsed)
-                    except json.decoder.JSONDecodeError:
-                        print(f'Received text: {data}')
+                    if data:
+                        try:
+                            parsed = json.loads(data.decode())
+                            print(f'Received JSON: {parsed}')
+                            self.control.run_script(**parsed)
+                        except json.decoder.JSONDecodeError:
+                            print(f'Received text: {data}')
                 except KeyboardInterrupt:
                     break
 
@@ -54,8 +55,8 @@ if __name__ == '__main__':
                              '(default: 6543)')
     cmd_args = parser.parse_args()
 
-    host = cmd_args.host or '127.0.0.1'
-    port = cmd_args.port or 6543
+    cmd_host = cmd_args.host or '127.0.0.1'
+    cmd_port = cmd_args.port or 6543
 
-    client = WebcandyClient(Controller(), host, port)
+    client = WebcandyClient(Controller(), cmd_host, cmd_port)
     client.start()
