@@ -145,7 +145,7 @@ class StaticLightConfig(LightConfig, abc.ABC):
         self.client.put_pixels(black)
 
         # fade in to pattern
-        time.sleep(0.3)
+        time.sleep(0.5)
         self.client.put_pixels(pattern)
 
     @abc.abstractmethod
