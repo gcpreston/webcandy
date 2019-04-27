@@ -9,7 +9,7 @@ from flask import Flask
 
 class WebcandyClientManager:
     """
-    Class to manage client socket connections.
+    Class to manage client connections.
     """
 
     reader: asyncio.StreamReader = None

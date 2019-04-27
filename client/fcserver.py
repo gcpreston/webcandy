@@ -3,9 +3,8 @@ import subprocess
 import socket
 import asyncio
 import atexit
+import logging
 
-from flask import Flask
-from types import FunctionType
 from definitions import ROOT_DIR
 
 
@@ -14,15 +13,8 @@ class FCServer:
     Controller for Fadecandy server.
     """
 
-    app: Flask = None
     _server_running: bool = False
     _fcserver_proc: subprocess.Popen = None
-
-    def init_app(self, app: Flask):
-        """
-        Register this FCServer with a Flask app.
-        """
-        self.app = app
 
     def start(self) -> None:
         """
@@ -47,7 +39,7 @@ class FCServer:
             if result == 10061:  # nothing running
                 self._fcserver_proc = asyncio.run(_go())
                 self._server_running = True
-                self.app.logger.info('Started fcserver')
+                logging.info('Started fcserver')
 
                 atexit.register(self.stop)  # stop fcserver on exit
 
@@ -57,4 +49,4 @@ class FCServer:
         """
         self._fcserver_proc.terminate()
         self._server_running = False
-        self.app.logger.info('Stopped fcserver')
+        logging.info('Stopped fcserver')

@@ -4,12 +4,12 @@ from flask import Flask
 from config import Config
 from definitions import ROOT_DIR
 from . import routes
-from .extensions import db, migrate, fcserver, manager
+from .extensions import db, migrate, manager
 
 
 def create_app():
     """
-    Build the Flask app.
+    Build the Flask app and start the client manager.
     """
     app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
                 template_folder=f'{ROOT_DIR}/static')
@@ -17,7 +17,7 @@ def create_app():
     app.logger.setLevel(logging.DEBUG)
     register_extensions(app)
     register_views(app)
-    start_servers()
+    manager.start()
     return app
 
 
@@ -27,7 +27,6 @@ def register_extensions(app: Flask) -> None:
     """
     db.init_app(app)
     migrate.init_app(app, db)
-    fcserver.init_app(app)
     manager.init_app(app)
 
 
@@ -38,11 +37,3 @@ def register_views(app: Flask) -> None:
     app.register_blueprint(routes.views)
     app.register_blueprint(routes.api, url_prefix='/api')
     app.register_error_handler(404, routes.not_found)
-
-
-def start_servers() -> None:
-    """
-    Start Fadecandy and client manager servers.
-    """
-    fcserver.start()
-    manager.start()

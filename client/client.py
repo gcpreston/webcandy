@@ -4,6 +4,7 @@ import logging
 import argparse
 
 from controller import Controller
+from fcserver import FCServer
 
 
 class WebcandyClient:
@@ -32,7 +33,7 @@ class WebcandyClient:
                         try:
                             parsed = json.loads(data.decode())
                             logging.debug(f'Received JSON: {parsed}')
-                            self.control.run_config(**parsed)
+                            self.control.run(**parsed)
                         except json.decoder.JSONDecodeError:
                             logging.info(f'Received text: {data}')
                 except KeyboardInterrupt:
@@ -62,5 +63,10 @@ if __name__ == '__main__':
     cmd_host = cmd_args.host or '127.0.0.1'
     cmd_port = cmd_args.port or 6543
 
+    # create Fadecandy server and Webcandy client
+    server = FCServer()
     client = WebcandyClient(Controller(), cmd_host, cmd_port)
+
+    # start processes
+    server.start()
     client.start()
