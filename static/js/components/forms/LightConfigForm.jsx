@@ -155,7 +155,7 @@ export default class LightConfigForm extends React.Component {
         switch (this.state.currentPattern) {
             case "fade":
             case "scroll":
-            case "stripe":
+            case "stripes":
                 config = colorListEntry;
                 break;
             case "solid_color":

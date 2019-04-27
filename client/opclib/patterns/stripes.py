@@ -4,7 +4,7 @@ from .. import opcutil
 from ..interface import StaticLightConfig
 
 
-class Stripe(StaticLightConfig):
+class Stripes(StaticLightConfig):
     """
     Display multiple static colors.
     """
