@@ -4,7 +4,7 @@ import logging
 import argparse
 
 from controller import Controller
-from fcserver import FCServer
+from fcserver import FadecandyServer
 
 
 class WebcandyClient:
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     cmd_port = cmd_args.port or 6543
 
     # create Fadecandy server and Webcandy client
-    server = FCServer()
+    server = FadecandyServer()
     client = WebcandyClient(Controller(), cmd_host, cmd_port)
 
     # start processes

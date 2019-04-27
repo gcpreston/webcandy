@@ -8,7 +8,7 @@ import logging
 from definitions import ROOT_DIR
 
 
-class FCServer:
+class FadecandyServer:
     """
     Controller for Fadecandy server.
     """
@@ -42,6 +42,8 @@ class FCServer:
                 self._server_running = True
 
                 atexit.register(self.stop)  # stop fcserver on exit
+            else:
+                logging.debug('Another instance of fcserver is already running')
 
     def stop(self) -> None:
         """

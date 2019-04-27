@@ -62,6 +62,7 @@ class LightConfig(abc.ABC):
         :raises ValueError: if ``name`` is not associated with any patterns or
             the required arguments for the specified config are not provided
         """
+        # TODO: Allow user to specify host and port in factory
 
         def get_color():
             """
