@@ -15,7 +15,6 @@ Color = NewType('Color', Tuple[float, float, float])
 
 
 # TODO: Add ability to control brightness
-# TODO: Rename to LightPattern?
 class LightConfig(abc.ABC):
     """
     Abstract base class for an LED lighting configuration.
@@ -47,14 +46,14 @@ class LightConfig(abc.ABC):
         pass
 
     @staticmethod
-    def factory(name: str, strobe: bool = False, color: str = None,
+    def factory(pattern: str = None, strobe: bool = False, color: str = None,
                 color_list: List[str] = None,
                 speed: int = None) -> 'LightConfig':
         """
         Create an instance of a specific light configuration based on the given
         name. Different configurations differ in required keyword arguments.
 
-        :param name: the name of the desired lighting configuration
+        :param pattern: the name of the desired lighting configuration
         :param strobe: whether to add a strobe effect
         :param color: (for solid_color) the color to display
         :param color_list: (for fade and scroll) a list of colors to use
@@ -71,10 +70,9 @@ class LightConfig(abc.ABC):
             :raises ValueError: if a color of the correct format is not found
             """
             if not color or not is_color(color):
-                color_repr = f"'{color}'" if color else None
                 raise ValueError(
                     "Expected a color in the format '#RRGGBB', "
-                    f"Received {color_repr}.")
+                    f"Received {color!r}.")
             return color
 
         def get_color_list():
@@ -87,7 +85,7 @@ class LightConfig(abc.ABC):
             if not color_list or not all([is_color(c) for c in color_list]):
                 raise ValueError(
                     "Expected a list of colors in the format '#RRGGBB', "
-                    f"Received {color_list}.")
+                    f"Received {color_list!r}.")
             return color_list
 
         def set_speed(light_config: LightConfig) -> LightConfig:
@@ -103,17 +101,19 @@ class LightConfig(abc.ABC):
 
         from . import patterns
 
-        if name == 'fade':
+        if pattern == 'fade':
             light = set_speed(patterns.Fade(get_color_list()))
-        elif name == 'scroll':
+        elif pattern == 'scroll':
             light = set_speed(patterns.Scroll(get_color_list()))
-        elif name == 'solid_color':
+        elif pattern == 'solid_color':
             light = patterns.SolidColor(get_color())
-        elif name == 'off':
+        elif pattern == 'stripes':
+            light = patterns.Stripes(get_color_list())
+        elif pattern == 'off':
             light = patterns.Off()
         else:
-            raise ValueError(
-                f"'{name}' is not associated with any lighting configurations")
+            raise ValueError(f'{pattern!r} is not associated with any lighting'
+                             f'configurations')
 
         if strobe:
             return patterns.Strobe(light)

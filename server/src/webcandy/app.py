@@ -4,34 +4,33 @@ from flask import Flask
 from config import Config
 from definitions import ROOT_DIR
 from . import routes
-from .extensions import db, migrate, fcserver, controller
+from .extensions import db, migrate, manager
 
 
 def create_app():
     """
-    Build the Flask app.
+    Build the Flask app and start the client manager.
     """
     app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
+    app.logger.setLevel(logging.DEBUG)
     register_extensions(app)
     register_views(app)
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s: %(message)s')
+    manager.start()
     return app
 
 
-def register_extensions(app):
+def register_extensions(app: Flask) -> None:
     """
     Register Flask extensions.
     """
     db.init_app(app)
     migrate.init_app(app, db)
-    fcserver.init_app(app)
-    controller.init_app(app)
+    manager.init_app(app)
 
 
-def register_views(app):
+def register_views(app: Flask) -> None:
     """
     Register Flask blueprints and error handlers.
     """

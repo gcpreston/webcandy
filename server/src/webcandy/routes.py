@@ -15,7 +15,7 @@ from itsdangerous import (
 from config import Config
 from definitions import ROOT_DIR
 from .models import User
-from .extensions import auth, db, controller
+from .extensions import auth, db, manager
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
@@ -82,6 +82,7 @@ def new_user():
     email = request.json.get('email')  # optional
     password = request.json.get('password')
 
+    # TODO: Use either logging or app.logger consistently
     if username is None or password is None:
         error_description = 'Missing username or password'
         logging.error(error_description)
@@ -129,7 +130,7 @@ def submit():
     """
     Handle the submission of a lighting configuration to run.
 
-    POST form fields fields:
+    POST JSON fields:
     - "pattern": the pattern to run
     - "strobe": whether to add a strobe effect
     - "color": the color to use, if applicable
@@ -137,11 +138,7 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    req_json = request.get_json()
-    pattern = req_json['pattern']
-    del req_json['pattern']
-
-    return jsonify(success=controller.run_script(pattern, **req_json))
+    return jsonify(success=manager.send(request.get_data()))
 
 
 @api.route('/patterns', methods=['GET'])
