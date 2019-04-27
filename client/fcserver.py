@@ -28,6 +28,7 @@ class FCServer:
                 server = 'fcserver-osx'
             else:
                 server = 'fcserver-rpi'
+            logging.info(f'Started {server}')
             _fcserver_proc = subprocess.Popen(ROOT_DIR + '/bin/' + server)
             return _fcserver_proc
 
@@ -39,7 +40,6 @@ class FCServer:
             if result == 10061:  # nothing running
                 self._fcserver_proc = asyncio.run(_go())
                 self._server_running = True
-                logging.info('Started fcserver')
 
                 atexit.register(self.stop)  # stop fcserver on exit
 
