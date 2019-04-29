@@ -13,7 +13,7 @@ from itsdangerous import (
 )
 
 from config import Config
-from definitions import ROOT_DIR
+from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db, manager
 
@@ -173,24 +173,51 @@ def get_me():
     return jsonify(util.load_user_data(g.user.id))
 
 
-@api.route('/get_patterns', methods=['GET'])
+@api.route('/patterns', methods=['GET'])
 def patterns():
     """
     Get a list of valid lighting pattern names.
     """
-    return jsonify(util.get_config_names())
+    return jsonify(util.get_patterns())
 
 
-@api.route('/get_colors', methods=['GET'])
+@api.route('/colors', methods=['GET', 'PUT'])
 @auth.login_required
 def colors():
     """
-    Get a mapping from name to hex value of saved colors for the logged in user.
+    Operations on the ``colors`` attribute of the logged in user.
+
+    GET: Get a mapping from name to hex value of saved colors
+    PUT: Add a new saved color
     """
-    return jsonify(util.load_user_data(g.user.id)['colors'])
+    if request.method == 'GET':
+        return jsonify(g.user.get_colors())
+    else:
+        # PUT request
+        retval = {
+            'added': dict(),
+            'modified': dict(),
+        }
+
+        with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
+            user_data = json.load(data_file)
+
+        for name, color in request.get_json().items():
+            if util.is_color(color):
+                if name in user_data['colors']:
+                    retval['modified'][name] = color
+                else:
+                    retval['added'][name] = color
+                user_data['colors'][name] = color
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
+            json.dump(user_data, data_file, indent=4)
+
+        return jsonify(retval)
 
 
-@api.route('/get_color_lists', methods=['GET'])
+@api.route('/color_lists', methods=['GET'])
 @auth.login_required
 def color_lists():
     """

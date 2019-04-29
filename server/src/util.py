@@ -1,11 +1,23 @@
 import os
+import re
 import json
 
 from typing import List, Dict, Tuple
 from definitions import DATA_DIR, OPCLIB_DIR
 
 
-def get_config_names() -> List[str]:
+# TODO: Remove duplicate definitions in util and opclib.opcutil
+def is_color(s: str) -> bool:
+    """
+    Determine if ``s`` is a color hex in the format #RRGGBB.
+
+    :param s: the string to check
+    :return: ``True`` if ``s`` fits the pattern; ``False`` otherwise
+    """
+    return bool(re.match(r'^#[A-Fa-f0-9]{6}$', s))
+
+
+def get_patterns() -> List[str]:
     """
     Get the names of available Fadecandy lighting configurations.
     :return: a list of names of existing configurations

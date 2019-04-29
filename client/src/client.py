@@ -26,6 +26,8 @@ class WebcandyClient:
             reader, writer = await asyncio.open_connection(self.host, self.port)
             logging.info(f'Connected to server {self.host}:{self.port}')
 
+            # TODO: Send server available patterns
+
             while True:
                 try:
                     data = await reader.read(1024)
