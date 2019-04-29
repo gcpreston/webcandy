@@ -13,7 +13,7 @@ from itsdangerous import (
 )
 
 from config import Config
-from definitions import ROOT_DIR
+from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db, manager
 
@@ -43,6 +43,7 @@ def verify_auth_token(token: str) -> bool:
     except BadSignature:
         return False  # invalid token
     g.user = User.query.get(data['id'])
+    # TODO: Set client to be the one associated with this user
     return True
 
 
@@ -146,16 +147,43 @@ def patterns():
     """
     Get a list of valid lighting pattern names.
     """
-    return jsonify(util.get_config_names())
+    return jsonify(util.get_patterns())
 
 
-@api.route('/colors', methods=['GET'])
+@api.route('/colors', methods=['GET', 'PUT'])
 @auth.login_required
 def colors():
     """
-    Get a mapping from name to hex value of saved colors for the logged in user.
+    Operations on the ``colors`` attribute of the logged in user.
+
+    GET: Get a mapping from name to hex value of saved colors
+    PUT: Add a new saved color
     """
-    return jsonify(util.load_user_data(g.user.username)['colors'])
+    if request.method == 'GET':
+        return jsonify(g.user.get_colors())
+    else:
+        # PUT request
+        retval = {
+            'added': dict(),
+            'modified': dict(),
+        }
+
+        with open(f'{DATA_DIR}/{g.user.username}.json') as data_file:
+            user_data = json.load(data_file)
+
+        for name, color in request.get_json().items():
+            if util.is_color(color):
+                if name in user_data['colors']:
+                    retval['modified'][name] = color
+                else:
+                    retval['added'][name] = color
+                user_data['colors'][name] = color
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.username}.json', 'w') as data_file:
+            json.dump(user_data, data_file, indent=4)
+
+        return jsonify(retval)
 
 
 @api.route('/color-lists', methods=['GET'])
@@ -165,7 +193,7 @@ def color_lists():
     Get a mapping from name to list of hex value of saved color lists for the
     logged in user.
     """
-    return jsonify(util.load_user_data(g.user.username)['color_lists'])
+    return jsonify(g.user.get_color_lists())
 
 
 # -------------------------------
