@@ -29,6 +29,7 @@ class WebcandyClientManager:
         """
         Start this ``WebcandyClientManager``.
         """
+        # TODO: Use asyncio.Protocol
 
         async def _start_server():
             server = await asyncio.start_server(_handle_connection,

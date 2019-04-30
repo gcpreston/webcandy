@@ -7,45 +7,39 @@ from controller import Controller
 from fcserver import FadecandyServer
 
 
-class WebcandyClient:
+class WebcandyClientProtocol(asyncio.Protocol):
     """
-    Webcandy client to receive light configuration submission data from server.
+    Protocol describing communication of a Webcandy client.
+
+    When a connection is made, the client sends the server JSON data describing
+    the patterns it has available.
+
+    Received data is assumed to be JSON describing a lighting configuration.
+    Upon receiving data, the client attempts to decode it as JSON, and if
+    successful, passes the parsed data to a ``Controller`` to attempt to run
+    the described lighting configuration.
     """
 
-    def __init__(self, control: Controller, host: str, port: int):
+    def __init__(self, control: Controller, on_con_lost: asyncio.Future):
         self.control = control
-        self.host = host
-        self.port = port
+        self.on_con_lost = on_con_lost
 
-    def start(self):
-        """
-        Connect to the specified Webcandy server and start receiving data.
-        """
+    def connection_made(self, transport) -> None:
+        patterns = json.dumps({'patterns': ['test1', 'test2', 'test3']})
+        transport.write(patterns.encode())
+        logging.info(f'Data sent: {patterns}')
 
-        async def _start():
-            reader, writer = await asyncio.open_connection(self.host, self.port)
-            logging.info(f'Connected to server {self.host}:{self.port}')
+    def data_received(self, data):
+        try:
+            parsed = json.loads(data.decode())
+            logging.debug(f'Received JSON: {parsed}')
+            self.control.run(**parsed)
+        except json.decoder.JSONDecodeError:
+            logging.info(f'Received text: {data}')
 
-            # TODO: Send server available patterns
-
-            while True:
-                try:
-                    data = await reader.read(1024)
-                    if data:
-                        try:
-                            parsed = json.loads(data.decode())
-                            logging.debug(f'Received JSON: {parsed}')
-                            self.control.run(**parsed)
-                        except json.decoder.JSONDecodeError:
-                            logging.info(f'Received text: {data}')
-                except KeyboardInterrupt:
-                    break
-
-            writer.close()
-            logging.info('Connecton closed')
-            await writer.wait_closed()
-
-        asyncio.run(_start())
+    def connection_lost(self, exc):
+        logging.info('The server closed the connection')
+        self.on_con_lost.set_result(True)
 
 
 if __name__ == '__main__':
@@ -65,10 +59,25 @@ if __name__ == '__main__':
     cmd_host = cmd_args.host or '127.0.0.1'
     cmd_port = cmd_args.port or 6543
 
-    # create Fadecandy server and Webcandy client
-    server = FadecandyServer()
-    client = WebcandyClient(Controller(), cmd_host, cmd_port)
+    # create and start Fadecandy server
+    fc_server = FadecandyServer()
+    fc_server.start()
 
-    # start processes
-    server.start()
-    client.start()
+    # set up WebcandyClientProtocol
+    async def start_protocol():
+        loop = asyncio.get_running_loop()
+        on_con_lost = loop.create_future()
+
+        transport, protocol = await loop.create_connection(
+            lambda: WebcandyClientProtocol(Controller(), on_con_lost),
+            cmd_host, cmd_port)
+
+        # wait until the protocol signals that the connection is lost, then
+        # close the transport stop the Fadecandy server
+        try:
+            await on_con_lost
+        finally:
+            transport.close()
+            fc_server.stop()
+
+    asyncio.run(start_protocol())
