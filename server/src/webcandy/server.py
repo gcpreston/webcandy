@@ -2,9 +2,45 @@ import socket
 import threading
 import asyncio
 import atexit
+import json
 import util
 
 from flask import Flask
+
+
+class WebcandyServerProtocol(asyncio.Protocol):
+    """
+    Protocol describing how data is sent and received with a client.
+    """
+
+    def data_received(self, data: bytes) -> None:
+        """
+        Attempt to parse patterns out of received data. In practice, this
+        callback should only be invoked upon initial client connection.
+        """
+        try:
+            patterns = json.loads(data)['patterns']
+            print(f'Received patterns: {patterns}')
+        except json.JSONDecodeError:
+            print(f'Received text: {data.decode()!r}')
+        except KeyError:
+            print(f'Received JSON: {json.loads(data)}')
+
+
+# TODO: Finish implementation; remove test code
+async def main():
+    # Get a reference to the event loop as we plan to use
+    # low-level APIs.
+    loop = asyncio.get_running_loop()
+
+    server = await loop.create_server(WebcandyServerProtocol, '127.0.0.1', 6544)
+
+    async with server:
+        await server.serve_forever()
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
 
 
 class WebcandyClientManager:
