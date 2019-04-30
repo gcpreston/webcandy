@@ -9,7 +9,7 @@ class Fade(DynamicLightConfig):
     """
     _color_index = 0  # index of color being faded towards in self.colors
     _fade_index = 0  # how far we are between two colors [0-9]
-    speed = 10
+    speed = 5
 
     def __init__(self, colors: List[str], speed: int = None,
                  num_leds: int = 512, port: int = 7890):

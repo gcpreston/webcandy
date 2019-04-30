@@ -7,7 +7,7 @@ class Scroll(DynamicLightConfig):
     """
     Scroll through a multi-colored line.
     """
-    speed = 10
+    speed = 8
 
     def __init__(self, colors: List[str], speed: int = None,
                  num_leds: int = 512, port: int = 7890):
