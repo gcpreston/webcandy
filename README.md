@@ -2,7 +2,7 @@
 API and web interface for Fadecandy control.
 
 ## Requirements
-- [Python 3.6+](https://www.python.org/downloads/)
+- [Python 3.7+](https://www.python.org/downloads/)
 - [Node.js + npm](https://nodejs.org/en/download/)
 
 ## Setup
