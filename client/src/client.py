@@ -10,26 +10,29 @@ from fcserver import FadecandyServer
 class WebcandyClientProtocol(asyncio.Protocol):
     """
     Protocol describing communication of a Webcandy client.
-
-    When a connection is made, the client sends the server JSON data describing
-    the patterns it has available.
-
-    Received data is assumed to be JSON describing a lighting configuration.
-    Upon receiving data, the client attempts to decode it as JSON, and if
-    successful, passes the parsed data to a ``Controller`` to attempt to run
-    the described lighting configuration.
     """
+    # TODO: Complete type hints
 
     def __init__(self, control: Controller, on_con_lost: asyncio.Future):
         self.control = control
         self.on_con_lost = on_con_lost
 
     def connection_made(self, transport) -> None:
+        """
+        When a connection is made, the send the server JSON data describing the
+        patterns it has available.
+        """
         patterns = json.dumps({'patterns': ['test1', 'test2', 'test3']})
         transport.write(patterns.encode())
         logging.info(f'Data sent: {patterns}')
 
-    def data_received(self, data):
+    def data_received(self, data: bytes) -> None:
+        """
+        Received data is assumed to be JSON describing a lighting configuration.
+        Upon receiving data, attempt to decode it as JSON, and if successful,
+        pass the parsed data to a ``Controller`` to attempt to run the described
+        lighting configuration.
+        """
         try:
             parsed = json.loads(data.decode())
             logging.debug(f'Received JSON: {parsed}')
@@ -57,7 +60,7 @@ if __name__ == '__main__':
     cmd_args = parser.parse_args()
 
     cmd_host = cmd_args.host or '127.0.0.1'
-    cmd_port = cmd_args.port or 6543
+    cmd_port = cmd_args.port or 6544  # 6543
 
     # create and start Fadecandy server
     fc_server = FadecandyServer()
