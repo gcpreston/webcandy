@@ -11,13 +11,12 @@ class WebcandyClientProtocol(asyncio.Protocol):
     """
     Protocol describing communication of a Webcandy client.
     """
-    # TODO: Complete type hints
 
     def __init__(self, control: Controller, on_con_lost: asyncio.Future):
         self.control = control
         self.on_con_lost = on_con_lost
 
-    def connection_made(self, transport) -> None:
+    def connection_made(self, transport: asyncio.Transport) -> None:
         """
         When a connection is made, the send the server JSON data describing the
         patterns it has available.
@@ -40,7 +39,7 @@ class WebcandyClientProtocol(asyncio.Protocol):
         except json.decoder.JSONDecodeError:
             logging.info(f'Received text: {data}')
 
-    def connection_lost(self, exc):
+    def connection_lost(self, exc) -> None:
         logging.info('The server closed the connection')
         self.on_con_lost.set_result(True)
 
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     cmd_args = parser.parse_args()
 
     cmd_host = cmd_args.host or '127.0.0.1'
-    cmd_port = cmd_args.port or 6544  # 6543
+    cmd_port = cmd_args.port or 6543
 
     # create and start Fadecandy server
     fc_server = FadecandyServer()

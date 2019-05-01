@@ -132,14 +132,14 @@ def submit():
     Handle the submission of a lighting configuration to run.
 
     POST JSON fields:
-    - "pattern": the pattern to run
-    - "strobe": whether to add a strobe effect
-    - "color": the color to use, if applicable
-    - "color_list": the color list to use, if applicable
+    - "pattern": (string) the pattern to run
+    - "strobe": (boolean) whether to add a strobe effect
+    - "color": (string) the color to use, if applicable
+    - "color_list": (array[string]) the color list to use, if applicable
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(success=manager.send(request.get_data()))
+    return jsonify(success=manager.send(g.user.username, request.get_data()))
 
 
 @api.route('/patterns', methods=['GET'])

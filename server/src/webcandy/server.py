@@ -1,23 +1,53 @@
+import asyncio
 import socket
 import threading
-import asyncio
-import atexit
 import json
 import util
 
-from flask import Flask
+from typing import NewType, Dict, Tuple, Optional
+from flask import Flask, g
+
+# define Address to be 2-tuple of (host, port)
+Address = NewType('Address', Tuple[str, int])
+
+# IDEA
+# - Keep track of Protocol instances associated with each client
+#   * Maybe use a dict mapping client address to Protocol instance?
+# - Call send method on proper Protocol instance to make send go through
+
+# map username to client Protocol instance (assumes one client per user)
+# TODO: Generalize to support multiple clients per user
+CLIENTS: Dict[str, 'WebcandyServerProtocol'] = dict()
 
 
 class WebcandyServerProtocol(asyncio.Protocol):
     """
-    Protocol describing how data is sent and received with a client.
+    Protocol describing how data is sent and received with a client. Note
+    that each client connection creates a new Protocol instance.
     """
+    # TODO: Use app logger
+    peername: Address = None
+    transport: asyncio.Transport = None
+
+    def connection_made(self, transport: asyncio.Transport) -> None:
+        """
+        Handle an incoming connection.
+        """
+        self.peername = transport.get_extra_info('peername')
+        print(f'Connection made to {self.peername}')
+        CLIENTS['testuser'] = self  # TODO: Register for a specified user
+        self.transport = transport
+
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        del CLIENTS['testuser']
 
     def data_received(self, data: bytes) -> None:
         """
         Attempt to parse patterns out of received data. In practice, this
         callback should only be invoked upon initial client connection.
         """
+        print(f'Incoming data from {self.peername}')
+
         try:
             patterns = json.loads(data)['patterns']
             print(f'Received patterns: {patterns}')
@@ -26,30 +56,27 @@ class WebcandyServerProtocol(asyncio.Protocol):
         except KeyError:
             print(f'Received JSON: {json.loads(data)}')
 
-
-# TODO: Finish implementation; remove test code
-async def main():
-    # Get a reference to the event loop as we plan to use
-    # low-level APIs.
-    loop = asyncio.get_running_loop()
-
-    server = await loop.create_server(WebcandyServerProtocol, '127.0.0.1', 6544)
-
-    async with server:
-        await server.serve_forever()
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
+    def send(self, data: bytes) -> bool:
+        """
+        Send data to a client.
+        :param data: the data to send
+        :return: ``True`` if the operation was successful; ``False`` otherwise
+        """
+        try:
+            self.transport.write(data)
+        except AttributeError:
+            print('No client connection established')
+            return False
+        except OSError as e:
+            print(e)
+            return False
+        return True
 
 
 class WebcandyClientManager:
     """
-    Class to manage client connections.
+    Manage current open client connections.
     """
-
-    reader: asyncio.StreamReader = None
-    writer: asyncio.StreamWriter = None
     _server_running: bool = False
 
     def __init__(self, app: Flask = None, host: str = '127.0.0.1',
@@ -58,32 +85,22 @@ class WebcandyClientManager:
         self.host = host
         self.port = port
 
-    def init_app(self, app):
+    def init_app(self, app: Flask):
         self.app = app
 
     def start(self) -> None:
         """
-        Start this ``WebcandyClientManager``.
+        Start this Webcandy server.
         """
-        # TODO: Use asyncio.Protocol
 
-        async def _start_server():
-            server = await asyncio.start_server(_handle_connection,
-                                                self.host, self.port)
-            self._server_running = True
-            addr = server.sockets[0].getsockname()
-            self.app.logger.info(f'Serving on {util.format_addr(addr)}')
-
+        async def _go():
+            loop = asyncio.get_running_loop()
+            server = await loop.create_server(
+                WebcandyServerProtocol, '127.0.0.1', 6543)
             async with server:
+                addr = server.sockets[0].getsockname()
+                self.app.logger.info(f'Serving on {util.format_addr(addr)}')
                 await server.serve_forever()
-
-        def _handle_connection(reader, writer):
-            addr = writer.get_extra_info('peername')
-            self.app.logger.info(f'Connected client {util.format_addr(addr)}')
-            # set reader and writer to most recent connection
-            # TODO: Handle multiple connections
-            self.reader = reader
-            self.writer = writer
 
         if not self._server_running:
             # test if other instance is already running
@@ -91,33 +108,21 @@ class WebcandyClientManager:
                 result = test_sock.connect_ex((self.host, self.port))
 
             if result == 10061:  # nothing running
-                # start server loop in separate thread
                 server_thread = threading.Thread(
-                    target=lambda: asyncio.run(_start_server()))
+                    target=lambda: asyncio.run(_go()))
                 server_thread.start()
 
-                atexit.register(self.stop)
+    def send(self, username: str, data: bytes) -> bool:
+        """
+        Send data to the client associated with the specified user.
 
-    def stop(self) -> None:
-        """
-        Stop this ``WebcandyClientManager``.
-        """
-        self.app.logger.info('Stopped client manager server')
-        self.writer.close()
-        self._server_running = False
-
-    def send(self, data: bytes) -> bool:
-        """
-        Send data to a client.
+        :param username: the user whose client to send data to
         :param data: the data to send
-        :return: ``True`` if the operation was successful; ``False`` otherwise
+        :return: ``True`` if sending was successful; ``False`` otherwise
         """
-        try:
-            self.writer.write(data)
-        except AttributeError:
-            self.app.logger.error('No client connection established')
+        if username not in CLIENTS:
+            self.app.logger.error(f'{username} has no associated clients')
             return False
-        except OSError as e:
-            self.app.logger.error(e)
-            return False
+
+        CLIENTS[username].send(data)
         return True
