@@ -76,6 +76,20 @@ def api_catch_all(path: str):
     return not_found(NotFound())
 
 
+@api.route('/token', methods=['POST'])
+def get_auth_token():
+    req_json = request.get_json()
+
+    user = User.query.filter_by(username=req_json["username"]).first()
+    if not user or not user.check_password(req_json["password"]):
+        description = 'Invalid username and password combination'
+        return jsonify(util.format_error(401, description)), 401
+
+    g.user = user
+    token = g.user.generate_auth_token()
+    return jsonify({'token': token.decode('ascii')})
+
+
 @api.route('/newuser', methods=['POST'])
 def new_user():
     username = request.json.get('username')
@@ -110,38 +124,45 @@ def new_user():
     )
 
 
-@api.route('/token', methods=['POST'])
-def get_auth_token():
-    req_json = request.get_json()
-
-    user = User.query.filter_by(username=req_json["username"]).first()
-    if not user or not user.check_password(req_json["password"]):
-        description = 'Invalid username and password combination'
-        return jsonify(util.format_error(401, description)), 401
-
-    g.user = user
-    token = g.user.generate_auth_token()
-    return jsonify({'token': token.decode('ascii')})
-
-
-@api.route('/submit', methods=['POST'])
-@auth.login_required
-def submit():
+# TODO: Require admin authentication
+@api.route('/get_user', methods=['GET'])
+def get_user():
     """
-    Handle the submission of a lighting configuration to run.
+    Get user information.
 
-    POST JSON fields:
-    - "pattern": the pattern to run
-    - "strobe": whether to add a strobe effect
-    - "color": the color to use, if applicable
-    - "color_list": the color list to use, if applicable
+    Query string parameters:
+    - ``u``: username or ID to get data for (required)
+    - ``type``: "username" or "id" to specify if ``u`` is a username or ID. If
+                unspecified or some other value, ``u`` will first be interpreted
+                as a username, and then an ID.
 
-    :return: JSON indicating if running was successful
+    :return: user information as JSON
     """
-    return jsonify(success=manager.send(request.get_data()))
+    u = request.args.get('u')
+    u_type = request.args.get('type')
+
+    if not u:
+        return (jsonify(util.format_error(
+            400, 'Please provide a username or ID the u parameter')),
+                400)
+
+    if u_type == 'username':
+        user = User.query.filter_by(username=u).first()
+    elif u_type == 'id':
+        user = User.query.get(u)
+    else:
+        # first, query with u as useranme
+        user = User.query.filter_by(username=u).first()
+        if not user:
+            # if that doesn't work, query with u as id
+            user = User.query.get(u)
+
+    if not user:
+        return jsonify(util.format_error(400, 'User not found')), 400
+    return jsonify(util.load_user_data(user.id))
 
 
-@api.route('/patterns', methods=['GET'])
+@api.route('/get_patterns', methods=['GET'])
 def patterns():
     """
     Get a list of valid lighting pattern names.
@@ -166,6 +187,23 @@ def color_lists():
     logged in user.
     """
     return jsonify(util.load_user_data(g.user.username)['color_lists'])
+
+
+@api.route('/submit', methods=['POST'])
+@auth.login_required
+def submit():
+    """
+    Handle the submission of a lighting configuration to run.
+
+    POST JSON fields:
+    - "pattern": the name of the pattern to run (required)
+    - "strobe": whether to add a strobe effect
+    - "color": the color to use, if applicable
+    - "color_list": the color list to use, if applicable
+
+    :return: JSON indicating if running was successful
+    """
+    return jsonify(success=manager.send(request.get_data()))
 
 
 # -------------------------------
