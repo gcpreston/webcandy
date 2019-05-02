@@ -170,23 +170,23 @@ def patterns():
     return jsonify(util.get_config_names())
 
 
-@api.route('/colors', methods=['GET'])
+@api.route('/get_colors', methods=['GET'])
 @auth.login_required
 def colors():
     """
     Get a mapping from name to hex value of saved colors for the logged in user.
     """
-    return jsonify(util.load_user_data(g.user.username)['colors'])
+    return jsonify(util.load_user_data(g.user.id)['colors'])
 
 
-@api.route('/color-lists', methods=['GET'])
+@api.route('/get_color_lists', methods=['GET'])
 @auth.login_required
 def color_lists():
     """
     Get a mapping from name to list of hex value of saved color lists for the
     logged in user.
     """
-    return jsonify(util.load_user_data(g.user.username)['color_lists'])
+    return jsonify(util.load_user_data(g.user.id)['color_lists'])
 
 
 @api.route('/submit', methods=['POST'])
