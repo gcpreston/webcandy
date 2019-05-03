@@ -40,9 +40,8 @@ class ClientManager(dict):
         Add a new ``WebcandyServerProtocol``. Map the user ID associated with
         ``token`` to ``protocol``.
 
-        :param token:
-        :param protocol:
-        :return:
+        :param token: access token to use
+        :param protocol: ``WebcandyServerProtocol`` to associate with user
         """
         with self.app.app_context():
             user: User = User.get_user(token)  # TODO: Handle exceptions
@@ -50,7 +49,7 @@ class ClientManager(dict):
             super().__setitem__(user.id, protocol)
 
 
-manager = ClientManager()  # TODO: Move somewhere else
+clients = ClientManager()  # make sure to call init_app on this
 
 
 class WebcandyServerProtocol(asyncio.Protocol):
@@ -78,11 +77,11 @@ class WebcandyServerProtocol(asyncio.Protocol):
         until token data is received.
         """
         self.peername = transport.get_extra_info('peername')
-        print(f'Connection made to {self.peername}')
+        print(f'Connected client {util.format_addr(self.peername)}')
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
-        del manager['testuser']
+        del clients['testuser']
 
     def data_received(self, data: bytes) -> None:
         """
@@ -90,7 +89,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
         practice, this callback should only be invoked upon initial client
         connection, though it should not error if this is not the case.
         """
-        print(f'Incoming data from {self.peername}')
+        print(f'Incoming data from {util.format_addr(self.peername)}')
 
         try:
             parsed = json.loads(data)
@@ -106,7 +105,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
             return
 
         print(f'Received patterns: {patterns}')
-        manager[token] = self
+        clients[token] = self
 
     def send(self, data: bytes) -> bool:
         """
@@ -172,9 +171,12 @@ class ProxyServer:
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
-        if user_id not in manager:
+        if user_id not in clients:
             self.app.logger.error(f'User {user_id} has no associated clients')
             return False
 
-        manager[user_id].send(data)
+        clients[user_id].send(data)
         return True
+
+
+proxy_server = ProxyServer()

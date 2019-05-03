@@ -14,7 +14,7 @@ from itsdangerous import (
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db
-from .local_extensions import proxy_server
+from .server import proxy_server
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
