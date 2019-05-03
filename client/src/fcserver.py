@@ -12,6 +12,7 @@ class FadecandyServer:
     """
     Controller for Fadecandy server.
     """
+    # TODO: Fix logging
 
     _server_running: bool = False
     _fcserver_proc: subprocess.Popen = None
@@ -40,10 +41,9 @@ class FadecandyServer:
             if result == 10061:  # nothing running
                 self._fcserver_proc = asyncio.run(_go())
                 self._server_running = True
-
                 atexit.register(self.stop)  # stop fcserver on exit
             else:
-                logging.debug('Another instance of fcserver is already running')
+                logging.info('Another instance of fcserver is already running')
 
     def stop(self) -> None:
         """
@@ -52,3 +52,11 @@ class FadecandyServer:
         self._fcserver_proc.terminate()
         self._server_running = False
         logging.info('Stopped fcserver')
+
+    def __repr__(self):
+        # TODO: Make better repr for FadecandyServer
+        if self._server_running:
+            end = ' RUNNING'
+        else:
+            end = ' STOPPED'
+        return super().__repr__() + end

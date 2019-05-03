@@ -1,10 +1,8 @@
 .idea/
 *.pyc
 */.pytest_cache
+*/venv
 
 static/node_modules
 static/dist
-server/venv
 server/migrations
-
-webcandy.dbqw21

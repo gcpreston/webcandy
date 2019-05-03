@@ -97,4 +97,9 @@ if __name__ == '__main__':
             fc_server.stop()
 
 
-    asyncio.run(start_protocol())
+    # TODO: Fix keyboard interrupt
+    try:
+        asyncio.run(start_protocol())
+    except KeyboardInterrupt:
+        # allow user to exit client program
+        pass
