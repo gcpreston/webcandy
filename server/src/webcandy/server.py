@@ -17,40 +17,37 @@ from .models import User
 Address = NewType('Address', Tuple[str, int])
 
 
-class ClientManager:
+class ClientManager(dict):
     """
-    Map a username to ``WebcandyServerProtocol`` instance. Used for ensuring
-    authentication and calling ``init_app`` on each protocol automatically.
-    Does not subclass ``dict`` due to requiring a token upon setting value.
+    Wrapper class around ``dict`` used for mapping user ID to and automatically
+    calling ``init_app`` on a ``WebcandyServerProtocol`` instance. Please note
+    that when setting an item, though the syntax would imply that the required
+    access token is the key, the user ID is actually parsed out of the token
+    and that becomes the key.
     """
-    # TODO: Subclass some kind of dict
     # TODO: Enforce that app is initialized
     # TODO: Generalize to support multiple clients per user
 
-    def __init__(self, app: Flask = None):
+    def __init__(self, app: Flask = None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.app = app
-        self.data = dict()
 
     def init_app(self, app: Flask):
         self.app = app
 
-    def get(self, key):
-        return self.__getitem__(key)
+    def __setitem__(self, token: str, protocol: 'WebcandyServerProtocol'):
+        """
+        Add a new ``WebcandyServerProtocol``. Map the user ID associated with
+        ``token`` to ``protocol``.
 
-    def set(self, token: str, value: 'WebcandyServerProtocol'):
+        :param token:
+        :param protocol:
+        :return:
+        """
         with self.app.app_context():
             user: User = User.get_user(token)  # TODO: Handle exceptions
-            value.init_app(self.app)  # TODO: Handle exceptions?
-            self.data[user.id] = value
-
-    def __getitem__(self, key):
-        return self.data[key]
-
-    def __delitem__(self, key):
-        del self.data['key']
-
-    def __contains__(self, item):
-        return item in self.data
+            protocol.init_app(self.app)  # TODO: Handle exceptions?
+            super().__setitem__(user.id, protocol)
 
 
 manager = ClientManager()  # TODO: Move somewhere else
@@ -109,7 +106,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
             return
 
         print(f'Received patterns: {patterns}')
-        manager.set(token, self)
+        manager[token] = self
 
     def send(self, data: bytes) -> bool:
         """
