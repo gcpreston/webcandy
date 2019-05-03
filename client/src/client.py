@@ -24,10 +24,12 @@ class WebcandyClientProtocol(asyncio.Protocol):
         When a connection is made, the send the server JSON data describing the
         patterns it has available.
         """
+        peername = transport.get_extra_info('peername')
+        logging.info(f'Connected to server {peername}')
         data = json.dumps(
             {'token': self._token, 'patterns': ['test1', 'test2', 'test3']})
         transport.write(data.encode())
-        logging.info(f'Data sent: {data}')
+        logging.info(f'Sent token and patterns')
 
     def data_received(self, data: bytes) -> None:
         """

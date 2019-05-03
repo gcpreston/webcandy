@@ -5,8 +5,7 @@ from config import Config
 from definitions import ROOT_DIR
 from . import routes
 from .extensions import db, migrate
-from .local_extensions import proxy_server
-from .server import manager
+from .server import clients, proxy_server
 
 
 def create_app():
@@ -25,11 +24,11 @@ def create_app():
 
 def register_extensions(app: Flask) -> None:
     """
-    Register Flask extensions.
+    Register Flask extensions and objects that require a Flask app to be passed.
     """
     db.init_app(app)
     migrate.init_app(app, db)
-    manager.init_app(app)
+    clients.init_app(app)
     proxy_server.init_app(app)
 
 
