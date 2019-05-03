@@ -4,22 +4,56 @@ import threading
 import json
 import util
 
-from typing import NewType, Dict, Tuple, Optional
+from typing import NewType, Tuple, Optional
 from flask import Flask
-from .auth_tools import get_user
 from .models import User
-
-# define Address to be 2-tuple of (host, port)
-Address = NewType('Address', Tuple[str, int])
 
 # IDEA
 # - Keep track of Protocol instances associated with each client
 #   * Maybe use a dict mapping client address to Protocol instance?
 # - Call send method on proper Protocol instance to make send go through
 
-# map username to client Protocol instance (assumes one client per user)
-# TODO: Generalize to support multiple clients per user
-CLIENTS: Dict[str, 'WebcandyServerProtocol'] = dict()
+# define Address to be 2-tuple of (host, port)
+Address = NewType('Address', Tuple[str, int])
+
+
+class ClientManager:
+    """
+    Map a username to ``WebcandyServerProtocol`` instance. Used for ensuring
+    authentication and calling ``init_app`` on each protocol automatically.
+    Does not subclass ``dict`` due to requiring a token upon setting value.
+    """
+    # TODO: Subclass some kind of dict
+    # TODO: Enforce that app is initialized
+    # TODO: Generalize to support multiple clients per user
+
+    def __init__(self, app: Flask = None):
+        self.app = app
+        self.data = dict()
+
+    def init_app(self, app: Flask):
+        self.app = app
+
+    def get(self, key):
+        return self.__getitem__(key)
+
+    def set(self, token: str, value: 'WebcandyServerProtocol'):
+        with self.app.app_context():
+            user: User = User.get_user(token)  # TODO: Handle exceptions
+            value.init_app(self.app)  # TODO: Handle exceptions?
+            self.data[user.id] = value
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __delitem__(self, key):
+        del self.data['key']
+
+    def __contains__(self, item):
+        return item in self.data
+
+
+manager = ClientManager()  # TODO: Move somewhere else
 
 
 class WebcandyServerProtocol(asyncio.Protocol):
@@ -30,6 +64,16 @@ class WebcandyServerProtocol(asyncio.Protocol):
     # TODO: Use app logger
     peername: Address = None
     transport: asyncio.Transport = None
+    app = None
+
+    def init_app(self, app: Flask):
+        """
+        Associate this ``WebcandyServerProtocol`` with a Flask application. This
+        must be called before the protocol is used for authentication and
+        logging capabilities.
+        :param app: the Flask app to associate
+        """
+        self.app = app
 
     def connection_made(self, transport: asyncio.Transport) -> None:
         """
@@ -41,7 +85,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
-        del CLIENTS['testuser']
+        del manager['testuser']
 
     def data_received(self, data: bytes) -> None:
         """
@@ -65,8 +109,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
             return
 
         print(f'Received patterns: {patterns}')
-        user: User = get_user(token)  # TODO: Handle exceptions
-        CLIENTS[user.username] = self
+        manager.set(token, self)
 
     def send(self, data: bytes) -> bool:
         """
@@ -85,9 +128,9 @@ class WebcandyServerProtocol(asyncio.Protocol):
         return True
 
 
-class WebcandyClientManager:
+class ProxyServer:
     """
-    Manage current open client connections.
+    Manage running a server implementing ``WebcandyServerProtocol``.
     """
     _server_running: bool = False
 
@@ -124,17 +167,17 @@ class WebcandyClientManager:
                     target=lambda: asyncio.run(_go()))
                 server_thread.start()
 
-    def send(self, username: str, data: bytes) -> bool:
+    def send(self, user_id: int, data: bytes) -> bool:
         """
         Send data to the client associated with the specified user.
 
-        :param username: the user whose client to send data to
+        :param user_id: ID of the user whose client to send data to
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
-        if username not in CLIENTS:
-            self.app.logger.error(f'{username} has no associated clients')
+        if user_id not in manager:
+            self.app.logger.error(f'User {user_id} has no associated clients')
             return False
 
-        CLIENTS[username].send(data)
+        manager[user_id].send(data)
         return True
