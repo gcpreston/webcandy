@@ -6,46 +6,15 @@ from flask import (
     g, Blueprint, render_template, jsonify, request, url_for
 )
 from werkzeug.exceptions import NotFound
-from itsdangerous import (
-    TimedJSONWebSignatureSerializer as Serializer,
-    SignatureExpired,
-    BadSignature
-)
 
-from config import Config
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
-from .extensions import auth, db, manager
+from .extensions import auth, db
+from .local_extensions import manager
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
 api = Blueprint('api', __name__)
-
-
-# -------------------------------
-# Login methods
-# -------------------------------
-
-
-@auth.verify_token
-def verify_auth_token(token: str) -> bool:
-    """
-    Verify an authentication token.
-
-    :param token: the token to verify
-    :return: ``True`` if a valid token was provided; ``False`` otherwise
-    """
-    s = Serializer(Config.SECRET_KEY)
-    try:
-        data = s.loads(token)
-    except SignatureExpired:
-        return False  # valid token, but expired
-    except BadSignature:
-        return False  # invalid token
-    g.user = User.query.get(data['id'])
-    # TODO: Set client to be the one associated with this user
-    return True
-
 
 # -------------------------------
 # React routes
