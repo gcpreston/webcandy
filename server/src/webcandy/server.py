@@ -25,6 +25,7 @@ class ClientManager(dict):
     access token is the key, the user ID is actually parsed out of the token
     and that becomes the key.
     """
+
     # TODO: Enforce that app is initialized
     # TODO: Generalize to support multiple clients per user
 
@@ -47,6 +48,9 @@ class ClientManager(dict):
             user: User = User.get_user(token)  # TODO: Handle exceptions
             protocol.init_app(self.app)  # TODO: Handle exceptions?
             super().__setitem__(user.id, protocol)
+            self.app.logger.info(
+                f'Registered client {util.format_addr(protocol.peername)} with '
+                f'user {user.username!r}')
 
 
 clients = ClientManager()  # make sure to call init_app on this
