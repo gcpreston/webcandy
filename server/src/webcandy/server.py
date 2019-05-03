@@ -5,7 +5,9 @@ import json
 import util
 
 from typing import NewType, Dict, Tuple, Optional
-from flask import Flask, g
+from flask import Flask
+from .auth_tools import get_user
+from .models import User
 
 # define Address to be 2-tuple of (host, port)
 Address = NewType('Address', Tuple[str, int])
@@ -31,11 +33,11 @@ class WebcandyServerProtocol(asyncio.Protocol):
 
     def connection_made(self, transport: asyncio.Transport) -> None:
         """
-        Handle an incoming connection.
+        Handle an incoming connection. Do not register the client with a user
+        until token data is received.
         """
         self.peername = transport.get_extra_info('peername')
         print(f'Connection made to {self.peername}')
-        CLIENTS['testuser'] = self  # TODO: Register for a specified user
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
@@ -43,18 +45,28 @@ class WebcandyServerProtocol(asyncio.Protocol):
 
     def data_received(self, data: bytes) -> None:
         """
-        Attempt to parse patterns out of received data. In practice, this
-        callback should only be invoked upon initial client connection.
+        Attempt to parse access token and patterns out of received data. In
+        practice, this callback should only be invoked upon initial client
+        connection, though it should not error if this is not the case.
         """
         print(f'Incoming data from {self.peername}')
 
         try:
-            patterns = json.loads(data)['patterns']
-            print(f'Received patterns: {patterns}')
+            parsed = json.loads(data)
         except json.JSONDecodeError:
             print(f'Received text: {data.decode()!r}')
+            return
+
+        try:
+            token = parsed['token']
+            patterns = parsed['patterns']
         except KeyError:
             print(f'Received JSON: {json.loads(data)}')
+            return
+
+        print(f'Received patterns: {patterns}')
+        user: User = get_user(token)  # TODO: Handle exceptions
+        CLIENTS[user.username] = self
 
     def send(self, data: bytes) -> bool:
         """

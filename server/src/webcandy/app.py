@@ -4,7 +4,8 @@ from flask import Flask
 from config import Config
 from definitions import ROOT_DIR
 from . import routes
-from .extensions import db, migrate, manager
+from .extensions import db, migrate
+from .local_extensions import manager
 
 
 def create_app():
