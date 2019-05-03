@@ -1,3 +1,3 @@
-from .server import WebcandyClientManager
+from .server import ProxyServer
 
-manager = WebcandyClientManager()
+proxy_server = ProxyServer()

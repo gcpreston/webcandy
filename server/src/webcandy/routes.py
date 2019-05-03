@@ -6,15 +6,43 @@ from flask import (
     g, Blueprint, render_template, jsonify, request, url_for
 )
 from werkzeug.exceptions import NotFound
+from itsdangerous import (
+    SignatureExpired,
+    BadSignature
+)
 
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db
-from .local_extensions import manager
+from .local_extensions import proxy_server
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
 api = Blueprint('api', __name__)
+
+
+# -------------------------------
+# Authentication
+# -------------------------------
+
+
+@auth.verify_token
+def verify_auth_token(token: str) -> bool:
+    """
+    Verify an authentication token and set the current user to that represented
+    by the token.
+
+    :param token: the token to verify
+    :return: ``True`` if a valid token was provided; ``False`` otherwise
+    """
+    try:
+        g.user = User.get_user(token)
+    except SignatureExpired:
+        return False  # valid token, but expired
+    except BadSignature:
+        return False  # invalid token
+    return True
+
 
 # -------------------------------
 # React routes
@@ -108,7 +136,7 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(success=manager.send(g.user.username, request.get_data()))
+    return jsonify(success=proxy_server.send(g.user.id, request.get_data()))
 
 
 @api.route('/patterns', methods=['GET'])

@@ -77,7 +77,6 @@ if __name__ == '__main__':
     fc_server = FadecandyServer()
     fc_server.start()
 
-
     # set up WebcandyClientProtocol
     async def start_protocol():
         loop = asyncio.get_running_loop()

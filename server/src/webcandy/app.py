@@ -5,7 +5,8 @@ from config import Config
 from definitions import ROOT_DIR
 from . import routes
 from .extensions import db, migrate
-from .local_extensions import manager
+from .local_extensions import proxy_server
+from .server import manager
 
 
 def create_app():
@@ -18,7 +19,7 @@ def create_app():
     app.logger.setLevel(logging.DEBUG)
     register_extensions(app)
     register_views(app)
-    manager.start()
+    proxy_server.start()
     return app
 
 
@@ -29,6 +30,7 @@ def register_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db)
     manager.init_app(app)
+    proxy_server.init_app(app)
 
 
 def register_views(app: Flask) -> None:
