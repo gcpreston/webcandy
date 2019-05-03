@@ -19,7 +19,9 @@ class User(db.Model):
     @classmethod
     def get_user(cls, token: str) -> 'User':
         """
-        Get the user represented by a given authentication token.
+        Get the user represented by a given authentication token. Must be called
+        from within Flask application context.
+        TODO: Contain application context within User or a new class
 
         :param token: the token to process
         :return: the stored user ID
