@@ -162,6 +162,15 @@ def get_user():
     return jsonify(util.load_user_data(user.id))
 
 
+@api.route('/get_user/me', methods=['GET'])
+@auth.login_required
+def get_me():
+    """
+    Get user information for the current user.
+    """
+    return jsonify(util.load_user_data(g.user.id))
+
+
 @api.route('/get_patterns', methods=['GET'])
 def patterns():
     """
