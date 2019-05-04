@@ -16,7 +16,7 @@ from config import Config
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db
-from .server import proxy_server
+from .server import proxy_server, clients
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
@@ -180,11 +180,12 @@ def get_me():
 
 
 @api.route('/patterns', methods=['GET'])
+@auth.login_required
 def patterns():
     """
     Get a list of valid lighting pattern names.
     """
-    return jsonify(util.get_patterns())
+    return jsonify(clients[g.user.id].patterns)
 
 
 @api.route('/colors', methods=['GET', 'PUT'])

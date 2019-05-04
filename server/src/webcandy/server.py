@@ -4,58 +4,62 @@ import threading
 import json
 import util
 
-from typing import NewType, Tuple, Optional
+from typing import NewType, Optional, Tuple, List, Dict
 from flask import Flask
 from .models import User
-
-# IDEA
-# - Keep track of Protocol instances associated with each client
-#   * Maybe use a dict mapping client address to Protocol instance?
-# - Call send method on proper Protocol instance to make send go through
 
 # define Address to be 2-tuple of (host, port)
 Address = NewType('Address', Tuple[str, int])
 
 
-class ClientManager(dict):
+class ClientManager:
     """
-    Wrapper class around ``dict`` used for mapping user ID to and automatically
-    calling ``init_app`` on a ``WebcandyServerProtocol`` instance. Please note
-    that when setting an item, though the syntax would imply that the required
-    access token is the key, the user ID is actually parsed out of the token
-    and that becomes the key.
+    Keep track of currently conected clients.
     """
 
-    # TODO: Enforce that app is initialized
-    # TODO: Generalize to support multiple clients per user
+    class Client:
+        """
+        Data model for a connected client instance.
+        """
 
-    def __init__(self, app: Flask = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        def __init__(self, patterns: List[str],
+                     protocol: 'WebcandyServerProtocol'):
+            self.patterns = patterns
+            self.protocol = protocol
+
+    clients: Dict[int, Client] = dict()  # map user_id to Client instance
+
+    def __init__(self, app: Flask = None):
         self.app = app
 
     def init_app(self, app: Flask):
         self.app = app
 
-    def __setitem__(self, token: str, protocol: 'WebcandyServerProtocol'):
+    def register(self, token: str, patterns: List[str],
+                 protocol: 'WebcandyServerProtocol') -> None:
         """
-        Add a new ``WebcandyServerProtocol``. Map the user ID associated with
-        ``token`` to ``protocol``.
+        Register a new client.
 
-        :param token: access token to use
-        :param protocol: ``WebcandyServerProtocol`` to associate with user
+        :param token: authorization token provided by the client
+        :param patterns: available patterns provided by the client
+        :param protocol: ``WebcandyServerProtocol`` instance for the client
         """
         with self.app.app_context():
             user: User = User.get_user(token)  # TODO: Handle exceptions
-            protocol.init_app(self.app, user.id)  # TODO: Handle exceptions?
-            super().__setitem__(user.id, protocol)
+            protocol.user_id = user.id
+
+            self.clients[user.id] = self.Client(patterns, protocol)
             self.app.logger.debug(
                 f'Registered client {util.format_addr(protocol.peername)} with '
                 f'user {user.username!r}')
 
-    def __delitem__(self, user_id: int):
-        self.app.logger.debug(
-            f'Removed client {util.format_addr(self[user_id].peername)}')
-        super().__delitem__(user_id)
+    # TODO: Add remove functionality
+
+    def __getitem__(self, user_id):
+        return self.clients[user_id]
+
+    def __contains__(self, user_id):
+        return user_id in self.clients
 
 
 clients = ClientManager()  # make sure to call init_app on this
@@ -66,24 +70,11 @@ class WebcandyServerProtocol(asyncio.Protocol):
     Protocol describing how data is sent and received with a client. Note that
     each client connection creates a new Protocol instance.
     """
-    # TODO: Use app logger
+    # TODO: Use logging
 
     peername: Address = None
     transport: asyncio.Transport = None
-    user_id = None
-    app = None
-
-    def init_app(self, app: Flask, user_id: int):
-        """
-        Associate this ``WebcandyServerProtocol`` with a Flask application and a
-        user. This must be called before the protocol is used for authentication
-        and logging capabilities.
-
-        :param app: the Flask app to associate
-        :param user_id: ID of the user to associate
-        """
-        self.app = app
-        self.user_id = user_id
+    user_id: int = None  # this must be set
 
     def connection_made(self, transport: asyncio.Transport) -> None:
         """
@@ -96,7 +87,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         self.transport.close()
-        del clients[self.user_id]
+        # TODO: Remove from clients once functionality is implemented
         print(f'Disconnected client {util.format_addr(self.peername)}')
 
     def data_received(self, data: bytes) -> None:
@@ -121,7 +112,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
             return
 
         print(f'Received patterns: {patterns}')
-        clients[token] = self
+        clients.register(token, patterns, self)
 
     def send(self, data: bytes) -> bool:
         """
@@ -192,7 +183,7 @@ class ProxyServer:
                 f'No clients associated with user_id {user_id}')
             return False
 
-        clients[user_id].send(data)
+        clients[user_id].protocol.send(data)
         return True
 
 

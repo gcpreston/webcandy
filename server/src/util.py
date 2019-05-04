@@ -2,8 +2,8 @@ import os
 import re
 import json
 
-from typing import List, Dict, Tuple
-from definitions import DATA_DIR, OPCLIB_DIR
+from typing import Dict, Tuple
+from definitions import DATA_DIR
 
 
 # TODO: Remove duplicate definitions in util and opclib.opcutil
@@ -15,17 +15,6 @@ def is_color(s: str) -> bool:
     :return: ``True`` if ``s`` fits the pattern; ``False`` otherwise
     """
     return bool(re.match(r'^#[A-Fa-f0-9]{6}$', s))
-
-
-def get_patterns() -> List[str]:
-    """
-    Get the names of available Fadecandy lighting configurations.
-    :return: a list of names of existing configurations
-    """
-    ignore = {'__pycache__', '__init__.py', 'off.py', 'strobe.py'}
-    return list(map(lambda e: e[:-3],
-                    filter(lambda e: e not in ignore,
-                           os.listdir(OPCLIB_DIR))))
 
 
 # TODO: Add ability to reference colors by name in other JSON files
