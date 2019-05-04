@@ -1,6 +1,7 @@
 import asyncio
 import json
 import requests
+import signal
 import logging
 import argparse
 
@@ -97,9 +98,5 @@ if __name__ == '__main__':
             fc_server.stop()
 
 
-    # TODO: Fix keyboard interrupt
-    try:
-        asyncio.run(start_protocol())
-    except KeyboardInterrupt:
-        # allow user to exit client program
-        pass
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow for keyboard interrupt
+    asyncio.run(start_protocol())  # run the client
