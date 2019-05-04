@@ -48,9 +48,14 @@ class ClientManager(dict):
             user: User = User.get_user(token)  # TODO: Handle exceptions
             protocol.init_app(self.app, user.id)  # TODO: Handle exceptions?
             super().__setitem__(user.id, protocol)
-            self.app.logger.info(
+            self.app.logger.debug(
                 f'Registered client {util.format_addr(protocol.peername)} with '
                 f'user {user.username!r}')
+
+    def __delitem__(self, user_id: int):
+        self.app.logger.debug(
+            f'Removed client {util.format_addr(self[user_id].peername)}')
+        super().__delitem__(user_id)
 
 
 clients = ClientManager()  # make sure to call init_app on this
@@ -89,7 +94,9 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
+        self.transport.close()
         del clients[self.user_id]
+        print(f'Disconnected client {util.format_addr(self.peername)}')
 
     def data_received(self, data: bytes) -> None:
         """
