@@ -85,6 +85,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
+        # TODO: Associate client ID and use that to delete from clients here
         del clients['testuser']
 
     def data_received(self, data: bytes) -> None:
