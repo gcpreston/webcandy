@@ -113,7 +113,12 @@ def new_user():
     # create data file
     with open(f'{ROOT_DIR}/server/data/{user.id}.json', 'w+') as file:
         json.dump(
-            {'username': username, 'colors': dict(), 'color_lists': dict()},
+            {
+                'username': username,
+                'email': email,
+                'colors': dict(),
+                'color_lists': dict()
+            },
             file)
 
     # add new user to database
@@ -218,15 +223,40 @@ def colors():
         return jsonify(retval)
 
 
-@api.route('/color_lists', methods=['GET'])
+@api.route('/color_lists', methods=['GET', 'PUT'])
 @auth.login_required
 def color_lists():
     """
-    Get a mapping from name to list of hex value of saved color lists for the
-    logged in user.
+    Operations on the ``color_lists`` attribute of the logged in user.
+
+    GET: Get a mapping from name to list of hex value of saved colors lists
+    PUT: Add a new saved color list
     """
-    # TODO: Add PUT functionality
-    return jsonify(util.load_user_data(g.user.id)['color_lists'])
+    if request.method == 'GET':
+        return jsonify(util.load_user_data(g.user.id)['color_lists'])
+    else:
+        # PUT request
+        retval = {
+            'added': dict(),
+            'modified': dict(),
+        }
+
+        with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
+            user_data = json.load(data_file)
+
+        for name, color_list in request.get_json().items():
+            if all([util.is_color(color) for color in color_list]):
+                if name in user_data['color_lists']:
+                    retval['modified'][name] = color_list
+                else:
+                    retval['added'][name] = color_list
+                user_data['color_lists'][name] = color_list
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
+            json.dump(user_data, data_file, indent=4)
+
+        return jsonify(retval)
 
 
 @api.route('/submit', methods=['POST'])

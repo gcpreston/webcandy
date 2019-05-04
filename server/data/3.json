@@ -1,5 +1,6 @@
 {
     "username": "testuser",
+    "email": "",
     "colors": {
         "blue": "#4169e1",
         "green": "#00ff80",
