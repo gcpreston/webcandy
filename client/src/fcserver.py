@@ -12,7 +12,7 @@ class FadecandyServer:
     """
     Controller for Fadecandy server.
     """
-    # TODO: Fix logging
+    # TODO: Allow user to indicate where to redirect console output
 
     _server_running: bool = False
     _fcserver_proc: subprocess.Popen = None
