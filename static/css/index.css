@@ -6,9 +6,12 @@ body {
     position: relative;
 }
 
-.title {
+.center {
     text-align: center;
-    margin-bottom: 20%;
+}
+
+.config {
+    margin-top: 20%;
 }
 
 .dark {
