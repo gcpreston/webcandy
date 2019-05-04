@@ -243,7 +243,7 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(success=proxy_server.send(request.get_data()))
+    return jsonify(success=proxy_server.send(g.user.id, request.get_data()))
 
 
 # -------------------------------
