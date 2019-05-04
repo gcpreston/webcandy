@@ -8,10 +8,11 @@ import logging
 from definitions import ROOT_DIR
 
 
-class FCServer:
+class FadecandyServer:
     """
     Controller for Fadecandy server.
     """
+    # TODO: Allow user to indicate where to redirect console output
 
     _server_running: bool = False
     _fcserver_proc: subprocess.Popen = None
@@ -40,8 +41,9 @@ class FCServer:
             if result == 10061:  # nothing running
                 self._fcserver_proc = asyncio.run(_go())
                 self._server_running = True
-
                 atexit.register(self.stop)  # stop fcserver on exit
+            else:
+                logging.info('Another instance of fcserver is already running')
 
     def stop(self) -> None:
         """
@@ -50,3 +52,11 @@ class FCServer:
         self._fcserver_proc.terminate()
         self._server_running = False
         logging.info('Stopped fcserver')
+
+    def __repr__(self):
+        # TODO: Make better repr for FadecandyServer
+        if self._server_running:
+            end = ' RUNNING'
+        else:
+            end = ' STOPPED'
+        return super().__repr__() + end

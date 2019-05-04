@@ -1,8 +1,10 @@
 import multiprocessing
 import json
 import logging
+import argparse
 
 from opclib.interface import LightConfig
+from fcserver import FadecandyServer
 
 
 def _execute(**kwargs) -> None:
@@ -67,3 +69,26 @@ class Controller:
             self._current_proc.terminate()
             return True
         return False
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG,
+                        format='[%(asctime)s] %(levelname)s: %(message)s')
+
+    # Allow the direct, local running of lighting configurations
+    parser = argparse.ArgumentParser(
+        description='Offline controller for Fadecandy server.')
+    parser.add_argument('-f', '--file', metavar='PATH',
+                        help='path of JSON file specifying light configuration')
+    cmd_args = parser.parse_args()
+
+    if cmd_args.file:
+        server = FadecandyServer()
+        server.start()  # start Fadecandy server if not already running
+
+        control = Controller()
+        control.run_json(cmd_args.file)
+        # TODO: Fix conflict when mixing dynamic configs across a separate
+        #     client and controller processes
+    else:
+        parser.print_help()

@@ -48,7 +48,7 @@ class TestAPI(unittest.TestCase):
         """
         response = self.get('/api/patterns')  # authorization not needed
         self.assertEqual(json.loads(response.get_data()),
-                         ['fade', 'scroll', 'solid_color'])
+                         ['fade', 'scroll', 'solid_color', 'stripes'])
 
     def test_colors(self):
         """

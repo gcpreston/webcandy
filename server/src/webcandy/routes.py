@@ -13,9 +13,10 @@ from itsdangerous import (
 )
 
 from config import Config
-from definitions import ROOT_DIR
+from definitions import ROOT_DIR, DATA_DIR
 from .models import User
-from .extensions import auth, db, manager
+from .extensions import auth, db
+from .server import proxy_server
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
@@ -112,7 +113,12 @@ def new_user():
     # create data file
     with open(f'{ROOT_DIR}/server/data/{user.id}.json', 'w+') as file:
         json.dump(
-            {'username': username, 'colors': dict(), 'color_lists': dict()},
+            {
+                'username': username,
+                'email': email,
+                'colors': dict(),
+                'color_lists': dict()
+            },
             file)
 
     # add new user to database
@@ -173,31 +179,84 @@ def get_me():
     return jsonify(util.load_user_data(g.user.id))
 
 
-@api.route('/get_patterns', methods=['GET'])
+@api.route('/patterns', methods=['GET'])
 def patterns():
     """
     Get a list of valid lighting pattern names.
     """
-    return jsonify(util.get_config_names())
+    return jsonify(util.get_patterns())
 
 
-@api.route('/get_colors', methods=['GET'])
+@api.route('/colors', methods=['GET', 'PUT'])
 @auth.login_required
 def colors():
     """
-    Get a mapping from name to hex value of saved colors for the logged in user.
+    Operations on the ``colors`` attribute of the logged in user.
+
+    GET: Get a mapping from name to hex value of saved colors
+    PUT: Add a new saved color
     """
-    return jsonify(util.load_user_data(g.user.id)['colors'])
+    if request.method == 'GET':
+        return jsonify(g.user.get_colors())
+    else:
+        # PUT request
+        retval = {
+            'added': dict(),
+            'modified': dict(),
+        }
+
+        with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
+            user_data = json.load(data_file)
+
+        for name, color in request.get_json().items():
+            if util.is_color(color):
+                if name in user_data['colors']:
+                    retval['modified'][name] = color
+                else:
+                    retval['added'][name] = color
+                user_data['colors'][name] = color
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
+            json.dump(user_data, data_file, indent=4)
+
+        return jsonify(retval)
 
 
-@api.route('/get_color_lists', methods=['GET'])
+@api.route('/color_lists', methods=['GET', 'PUT'])
 @auth.login_required
 def color_lists():
     """
-    Get a mapping from name to list of hex value of saved color lists for the
-    logged in user.
+    Operations on the ``color_lists`` attribute of the logged in user.
+
+    GET: Get a mapping from name to list of hex value of saved colors lists
+    PUT: Add a new saved color list
     """
-    return jsonify(util.load_user_data(g.user.id)['color_lists'])
+    if request.method == 'GET':
+        return jsonify(util.load_user_data(g.user.id)['color_lists'])
+    else:
+        # PUT request
+        retval = {
+            'added': dict(),
+            'modified': dict(),
+        }
+
+        with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
+            user_data = json.load(data_file)
+
+        for name, color_list in request.get_json().items():
+            if all([util.is_color(color) for color in color_list]):
+                if name in user_data['color_lists']:
+                    retval['modified'][name] = color_list
+                else:
+                    retval['added'][name] = color_list
+                user_data['color_lists'][name] = color_list
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
+            json.dump(user_data, data_file, indent=4)
+
+        return jsonify(retval)
 
 
 @api.route('/submit', methods=['POST'])
@@ -214,7 +273,7 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(success=manager.send(request.get_data()))
+    return jsonify(success=proxy_server.send(g.user.id, request.get_data()))
 
 
 # -------------------------------
