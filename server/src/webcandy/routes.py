@@ -110,8 +110,10 @@ def new_user():
     user.set_password(password)
 
     # create data file
-    with open(f'{ROOT_DIR}/server/data/{user.username}.json', 'w+') as file:
-        json.dump({'colors': dict(), 'color_lists': dict()}, file)
+    with open(f'{ROOT_DIR}/server/data/{user.id}.json', 'w+') as file:
+        json.dump(
+            {'username': username, 'colors': dict(), 'color_lists': dict()},
+            file)
 
     # add new user to database
     db.session.add(user)
