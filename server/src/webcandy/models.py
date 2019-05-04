@@ -57,7 +57,7 @@ class User(db.Model):
         Get this user's saved colors.
         :return: a dictionary of name-color pairs; ``None`` if none are defined
         """
-        return util.load_user_data(self.username).get('colors')
+        return util.load_user_data(self.id).get('colors')
 
     def get_color_lists(self) -> Optional[Dict[str, str]]:
         """
@@ -65,7 +65,7 @@ class User(db.Model):
         :return: a dictionary of name-color list pairs; ``None`` if none are
             defined
         """
-        return util.load_user_data(self.username).get('color_lists')
+        return util.load_user_data(self.id).get('color_lists')
 
     def __repr__(self):
         return f'<User {self.username}>'

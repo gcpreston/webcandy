@@ -188,7 +188,8 @@ class ProxyServer:
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
         if user_id not in clients:
-            self.app.logger.error(f'User {user_id} has no associated clients')
+            self.app.logger.error(
+                f'No clients associated with user_id {user_id}')
             return False
 
         clients[user_id].send(data)
