@@ -42,10 +42,11 @@ class WebcandyClientProtocol(asyncio.Protocol):
         """
         peername = transport.get_extra_info('peername')
         logging.info(f'Connected to server {peername}')
+        patterns = _get_pattern_names()
         data = json.dumps(
-            {'token': self._token, 'patterns': _get_pattern_names()})
+            {'token': self._token, 'patterns': patterns})
         transport.write(data.encode())
-        logging.info(f'Sent token and patterns')
+        logging.info(f'Sent token and patterns: {patterns}')
 
     def data_received(self, data: bytes) -> None:
         """

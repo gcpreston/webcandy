@@ -46,7 +46,7 @@ class ClientManager(dict):
         """
         with self.app.app_context():
             user: User = User.get_user(token)  # TODO: Handle exceptions
-            protocol.init_app(self.app)  # TODO: Handle exceptions?
+            protocol.init_app(self.app, user.id)  # TODO: Handle exceptions?
             super().__setitem__(user.id, protocol)
             self.app.logger.info(
                 f'Registered client {util.format_addr(protocol.peername)} with '
@@ -64,16 +64,20 @@ class WebcandyServerProtocol(asyncio.Protocol):
     # TODO: Use app logger
     peername: Address = None
     transport: asyncio.Transport = None
+    user_id = None
     app = None
 
-    def init_app(self, app: Flask):
+    def init_app(self, app: Flask, user_id: int):
         """
-        Associate this ``WebcandyServerProtocol`` with a Flask application. This
-        must be called before the protocol is used for authentication and
-        logging capabilities.
+        Associate this ``WebcandyServerProtocol`` with a Flask application and a
+        user. This must be called before the protocol is used for authentication
+        and logging capabilities.
+
         :param app: the Flask app to associate
+        :param user_id: ID of the user to associate
         """
         self.app = app
+        self.user_id = user_id
 
     def connection_made(self, transport: asyncio.Transport) -> None:
         """
@@ -85,8 +89,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
-        # TODO: Associate client ID and use that to delete from clients here
-        del clients['testuser']
+        del clients[self.user_id]
 
     def data_received(self, data: bytes) -> None:
         """
