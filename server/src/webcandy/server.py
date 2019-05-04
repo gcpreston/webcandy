@@ -63,10 +63,11 @@ clients = ClientManager()  # make sure to call init_app on this
 
 class WebcandyServerProtocol(asyncio.Protocol):
     """
-    Protocol describing how data is sent and received with a client. Note
-    that each client connection creates a new Protocol instance.
+    Protocol describing how data is sent and received with a client. Note that
+    each client connection creates a new Protocol instance.
     """
     # TODO: Use app logger
+
     peername: Address = None
     transport: asyncio.Transport = None
     user_id = None

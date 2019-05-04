@@ -114,5 +114,5 @@ if __name__ == '__main__':
             fc_server.stop()
 
 
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow for keyboard interrupt
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
     asyncio.run(start_protocol())  # run the client
