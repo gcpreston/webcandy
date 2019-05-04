@@ -17,16 +17,16 @@ def get_config_names() -> List[str]:
 
 
 # TODO: Add ability to reference colors by name in other JSON files
-def load_user_data(username: str) -> Dict:
+def load_user_data(user_id: int) -> Dict:
     """
     Retrieve data about a specified user.
 
-    :param username: the user to get the data of
+    :param user_id: ID of the user to get data of
     :return: the JSON contents as a dictionary
     """
-    fp = f'{DATA_DIR}/{username}.json'
+    fp = f'{DATA_DIR}/{user_id}.json'
     if not os.path.isfile(fp):
-        raise ValueError(f'User "{username}" does not exist')
+        raise ValueError(f'Data not found for user {user_id}')
     with open(fp) as file:
         return json.load(file)
 
