@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     # Allow the direct, local running of lighting configurations
     parser = argparse.ArgumentParser(
-        description='Local controller for Fadecandy server')
+        description='Offline controller for Fadecandy server.')
     parser.add_argument('-f', '--file', metavar='PATH',
                         help='path of JSON file specifying light configuration')
     cmd_args = parser.parse_args()
@@ -90,3 +90,5 @@ if __name__ == '__main__':
         control.run_json(cmd_args.file)
         # TODO: Fix conflict when mixing dynamic configs across a separate
         #     client and controller processes
+    else:
+        parser.print_help()

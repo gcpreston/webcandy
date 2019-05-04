@@ -1,3 +1,4 @@
+import os
 import asyncio
 import json
 import requests
@@ -5,8 +6,22 @@ import signal
 import logging
 import argparse
 
+from typing import List
+
 from controller import Controller
 from fcserver import FadecandyServer
+from definitions import OPCLIB_DIR
+
+
+def _get_pattern_names() -> List[str]:
+    """
+    Get the names of available Fadecandy lighting patterns.
+    :return: a list of names of existing patterns
+    """
+    ignore = {'__pycache__', '__init__.py', 'off.py', 'strobe.py'}
+    return list(map(lambda e: e[:-3],
+                    filter(lambda e: e not in ignore,
+                           os.listdir(OPCLIB_DIR + '/patterns'))))
 
 
 class WebcandyClientProtocol(asyncio.Protocol):
@@ -28,7 +43,7 @@ class WebcandyClientProtocol(asyncio.Protocol):
         peername = transport.get_extra_info('peername')
         logging.info(f'Connected to server {peername}')
         data = json.dumps(
-            {'token': self._token, 'patterns': ['test1', 'test2', 'test3']})
+            {'token': self._token, 'patterns': _get_pattern_names()})
         transport.write(data.encode())
         logging.info(f'Sent token and patterns')
 
