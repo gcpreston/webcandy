@@ -15,7 +15,8 @@ from itsdangerous import (
 from config import Config
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
-from .extensions import auth, db, manager
+from .extensions import auth, db
+from .server import proxy_server
 
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
@@ -224,6 +225,7 @@ def color_lists():
     Get a mapping from name to list of hex value of saved color lists for the
     logged in user.
     """
+    # TODO: Add PUT functionality
     return jsonify(util.load_user_data(g.user.id)['color_lists'])
 
 
@@ -241,7 +243,7 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(success=manager.send(request.get_data()))
+    return jsonify(success=proxy_server.send(request.get_data()))
 
 
 # -------------------------------
