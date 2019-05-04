@@ -26,14 +26,14 @@ export default class App extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <h1 className="center">Webcandy</h1>
-                <p className="center">Logged in as {this.state.username}</p>
-                <div className="config">
-                    <LightConfigForm/>
-                    <Button variant="warning" onClick={this.handleLogout}>
-                        Logout
-                    </Button>
+                <div className="title">
+                    <h1>Webcandy</h1>
+                    <p>Logged in as {this.state.username}</p>
                 </div>
+                <LightConfigForm/>
+                <Button variant="warning" onClick={this.handleLogout}>
+                    Logout
+                </Button>
             </React.Fragment>
         )
     }
