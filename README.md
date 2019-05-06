@@ -32,7 +32,7 @@ Then, install the project requirements:
 To run Webcandy, do the following:
 1. Run `npm run watch` from the `static` directory. This watches for any changes made to the front-end and will let you see them by refreshing the page.
 2. Start the Flask server by running `server/src/run.py`
-3. Start the Webcandy client by running `client/src/client.py`.
+3. Start a [Webcandy client](https://github.com/gcpreston/webcandy-client).
     *  *Note*: If this is done before the server is listening for client connections, an error will occur. Wait a few seconds until you see a log in the console saying "Serving on (host):(port)", and connecting should work fine.
 4. Navigate to the link in the Python console output to view the website!
 
