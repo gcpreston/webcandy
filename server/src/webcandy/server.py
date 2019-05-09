@@ -28,6 +28,7 @@ class ClientManager:
             self.patterns = patterns
             self.protocol = protocol
 
+    # TODO: Allow multiple clients per user
     clients: Dict[int, Client] = dict()  # map user_id to Client instance
 
     def __init__(self, app: Flask = None):
@@ -58,7 +59,18 @@ class ClientManager:
                     f'Registered client {util.format_addr(protocol.peername)} '
                     f'with user {user.username!r}')
 
-    # TODO: Add remove functionality
+    def remove(self, user_id: int) -> None:
+        """
+        Close a client's transport and remove it from the client manager.
+
+        :param user_id: the user to remove the client of
+        :raises ValueError: if user has no associated clients
+        """
+        if user_id not in self:
+            raise ValueError(f'user {user_id} has no associated clients')
+
+        self.clients[user_id].protocol.transport.close()
+        del self.clients[user_id]
 
     def __getitem__(self, user_id):
         # TODO: Handle if website logged in user has no connected clients
@@ -91,8 +103,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
-        self.transport.close()
-        # TODO: Remove from clients once functionality is implemented
+        clients.remove(self.user_id)
         logging.info(f'Disconnected client {util.format_addr(self.peername)}')
 
     def data_received(self, data: bytes) -> None:
