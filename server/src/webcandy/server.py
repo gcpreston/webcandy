@@ -44,10 +44,13 @@ class ClientManager:
         :param token: authorization token provided by the client
         :param patterns: available patterns provided by the client
         :param protocol: ``WebcandyServerProtocol`` instance for the client
+        :raises RuntimeError: if called before app is initialized
         """
+        if not self.app:
+            raise RuntimeError('app must be initialized to register client')
+
         with self.app.app_context():
             user: User = User.get_user(token)
-
             if user:
                 protocol.user_id = user.id
                 self.clients[user.id] = self.Client(patterns, protocol)

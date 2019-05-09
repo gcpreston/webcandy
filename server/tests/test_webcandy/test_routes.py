@@ -4,6 +4,7 @@ import json
 from webcandy.app import create_app
 
 
+# TODO: Fix issue of process not terminating after tests finish
 class TestAPI(unittest.TestCase):
     """
     Test API routes.
@@ -42,13 +43,7 @@ class TestAPI(unittest.TestCase):
             headers['Authorization'] = f'Bearer {token}'
         return self.app.get(route, headers=headers)
 
-    def test_patterns(self):
-        """
-        Test the /patterns URI.
-        """
-        response = self.get('/api/patterns')  # authorization not needed
-        self.assertEqual(json.loads(response.get_data()),
-                         ['fade', 'scroll', 'solid_color', 'stripes'])
+    # TODO: Create /api/patterns tests now that it requires a client
 
     def test_colors(self):
         """
@@ -66,12 +61,12 @@ class TestAPI(unittest.TestCase):
 
     def test_color_lists(self):
         """
-        Test the /color-lists URI.
+        Test the /color_lists URI.
         """
-        response = self.get('/api/color-lists', self.token)
+        response = self.get('/api/color_lists', self.token)
         self.assertEqual(json.loads(response.get_data()),
                          {
-                             "default": [
+                             "rainbow": [
                                  "#ff0000",
                                  "#ff7f00",
                                  "#ffff00",

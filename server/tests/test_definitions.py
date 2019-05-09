@@ -13,7 +13,7 @@ class TestDefinitions(unittest.TestCase):
         """
         ROOT_DIR should point to the project root.
         """
-        for folder in {'bin', 'server', 'static'}:
+        for folder in {'server', 'static'}:
             self.assertTrue(folder in os.listdir(ROOT_DIR))
 
     def test_data_dir(self):

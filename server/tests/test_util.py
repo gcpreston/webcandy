@@ -10,7 +10,7 @@ class TestUtil(unittest.TestCase):
     def test_load_user_data(self):
         # User "testfakeuser" does not exist
         self.assertRaises(ValueError, util.load_user_data, 'testfakeuser')
-        self.assertTrue(util.load_user_data('testuser'))
+        self.assertTrue(util.load_user_data(3))  # testuser
 
     def test_format_error(self):
         self.assertEqual(util.format_error(5050, 'Some description'),
