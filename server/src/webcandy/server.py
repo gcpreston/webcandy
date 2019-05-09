@@ -46,17 +46,19 @@ class ClientManager:
         :param protocol: ``WebcandyServerProtocol`` instance for the client
         """
         with self.app.app_context():
-            user: User = User.get_user(token)  # TODO: Handle exceptions
-            protocol.user_id = user.id
+            user: User = User.get_user(token)
 
-            self.clients[user.id] = self.Client(patterns, protocol)
-            logging.info(
-                f'Registered client {util.format_addr(protocol.peername)} with '
-                f'user {user.username!r}')
+            if user:
+                protocol.user_id = user.id
+                self.clients[user.id] = self.Client(patterns, protocol)
+                logging.info(
+                    f'Registered client {util.format_addr(protocol.peername)} '
+                    f'with user {user.username!r}')
 
     # TODO: Add remove functionality
 
     def __getitem__(self, user_id):
+        # TODO: Handle if website logged in user has no connected clients
         return self.clients[user_id]
 
     def __contains__(self, user_id):
@@ -149,7 +151,7 @@ class ProxyServer:
 
     def start(self) -> None:
         """
-        Start this Webcandy server.
+        Start the proxy server.
         """
 
         async def _go():
@@ -170,6 +172,7 @@ class ProxyServer:
                 server_thread = threading.Thread(
                     target=lambda: asyncio.run(_go()))
                 server_thread.start()
+                self._server_running = True
 
     def send(self, user_id: int, data: bytes) -> bool:
         """
@@ -179,8 +182,12 @@ class ProxyServer:
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
+        if not self._server_running:
+            logging.error('Proxy server is not running')
+            return False
+
         if user_id not in clients:
-            self.app.logger.error(
+            logging.error(
                 f'No clients associated with user_id {user_id}')
             return False
 

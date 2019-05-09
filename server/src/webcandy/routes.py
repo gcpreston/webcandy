@@ -31,20 +31,17 @@ api = Blueprint('api', __name__)
 @auth.verify_token
 def verify_auth_token(token: str) -> bool:
     """
-    Verify an authentication token.
+    Verify an authentication token and set ``g.user`` to the user associated
+    with the token if it is valid.
 
     :param token: the token to verify
     :return: ``True`` if a valid token was provided; ``False`` otherwise
     """
-    s = Serializer(Config.SECRET_KEY)
-    try:
-        data = s.loads(token)
-    except SignatureExpired:
-        return False  # valid token, but expired
-    except BadSignature:
-        return False  # invalid token
-    g.user = User.query.get(data['id'])
-    return True
+    user = User.get_user(token)
+    if user:
+        g.user = user
+        return True
+    return False
 
 
 # -------------------------------
