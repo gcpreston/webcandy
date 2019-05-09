@@ -16,6 +16,8 @@ def create_app():
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
     app.logger.setLevel(logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='[%(asctime)s] %(levelname)s: %(message)s')
     register_extensions(app)
     register_views(app)
     proxy_server.start()

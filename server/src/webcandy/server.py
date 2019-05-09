@@ -2,6 +2,7 @@ import asyncio
 import socket
 import threading
 import json
+import logging
 import util
 
 from typing import NewType, Optional, Tuple, List, Dict
@@ -49,7 +50,7 @@ class ClientManager:
             protocol.user_id = user.id
 
             self.clients[user.id] = self.Client(patterns, protocol)
-            self.app.logger.debug(
+            logging.info(
                 f'Registered client {util.format_addr(protocol.peername)} with '
                 f'user {user.username!r}')
 
@@ -70,7 +71,6 @@ class WebcandyServerProtocol(asyncio.Protocol):
     Protocol describing how data is sent and received with a client. Note that
     each client connection creates a new Protocol instance.
     """
-    # TODO: Use logging
 
     peername: Address = None
     transport: asyncio.Transport = None
@@ -82,13 +82,13 @@ class WebcandyServerProtocol(asyncio.Protocol):
         until token data is received.
         """
         self.peername = transport.get_extra_info('peername')
-        print(f'Connected client {util.format_addr(self.peername)}')
+        logging.info(f'Connected client {util.format_addr(self.peername)}')
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         self.transport.close()
         # TODO: Remove from clients once functionality is implemented
-        print(f'Disconnected client {util.format_addr(self.peername)}')
+        logging.info(f'Disconnected client {util.format_addr(self.peername)}')
 
     def data_received(self, data: bytes) -> None:
         """
@@ -96,22 +96,23 @@ class WebcandyServerProtocol(asyncio.Protocol):
         practice, this callback should only be invoked upon initial client
         connection, though it should not error if this is not the case.
         """
-        print(f'Incoming data from {util.format_addr(self.peername)}')
-
         try:
             parsed = json.loads(data)
         except json.JSONDecodeError:
-            print(f'Received text: {data.decode()!r}')
+            logging.debug(f'Received text: {data.decode()!r} '
+                          f'from {util.format_addr(self.peername)}')
             return
 
         try:
             token = parsed['token']
             patterns = parsed['patterns']
         except KeyError:
-            print(f'Received JSON: {json.loads(data)}')
+            logging.debug(f'Received JSON: {json.loads(data)} '
+                          f'from {util.format_addr(self.peername)}')
             return
 
-        print(f'Received patterns: {patterns}')
+        logging.debug(f'Received patterns: {patterns} '
+                      f'from {util.format_addr(self.peername)}')
         clients.register(token, patterns, self)
 
     def send(self, data: bytes) -> bool:
@@ -123,10 +124,10 @@ class WebcandyServerProtocol(asyncio.Protocol):
         try:
             self.transport.write(data)
         except AttributeError:
-            print('No client connection established')
+            logging.error('No client connection established')
             return False
         except OSError as e:
-            print(e)
+            logging.error(e)
             return False
         return True
 
@@ -157,7 +158,7 @@ class ProxyServer:
                 WebcandyServerProtocol, '127.0.0.1', 6543)
             async with server:
                 addr = server.sockets[0].getsockname()
-                self.app.logger.info(f'Serving on {util.format_addr(addr)}')
+                logging.info(f'Serving on {util.format_addr(addr)}')
                 await server.serve_forever()
 
         if not self._server_running:
