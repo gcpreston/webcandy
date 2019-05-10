@@ -154,7 +154,7 @@ class ProxyServer:
     """
     _server_running: bool = False
 
-    def __init__(self, app: Flask = None, host: str = '127.0.0.1',
+    def __init__(self, app: Flask = None, host: str = '0.0.0.0',
                  port: int = 6543):
         self.app = app
         self.host = host
@@ -171,7 +171,7 @@ class ProxyServer:
         async def _go():
             loop = asyncio.get_running_loop()
             server = await loop.create_server(
-                WebcandyServerProtocol, '127.0.0.1', 6543)
+                WebcandyServerProtocol, self.host, self.port)
             async with server:
                 addr = server.sockets[0].getsockname()
                 logging.info(f'Serving on {util.format_addr(addr)}')
