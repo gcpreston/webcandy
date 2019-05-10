@@ -102,7 +102,8 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
-        clients.remove(self.user_id)
+        if self.user_id and self.user_id in clients:
+            clients.remove(self.user_id)
         logging.info(f'Disconnected client {util.format_addr(self.peername)}')
 
     def data_received(self, data: bytes) -> None:
