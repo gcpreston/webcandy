@@ -8,11 +8,22 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            username: ""
+            username: "",
+            clientConnected: false
         };
     }
 
     componentWillMount() {
+        // TODO: Figure out better way to handle errors for production
+        axios.get("/api/clients", {
+            headers: {
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+            }
+        }).then(response => {
+            const clientConnected = response.data;
+            this.setState({ clientConnected: clientConnected })
+        }).catch(error => console.log(error.response));
+
         axios.get("/api/get_user/me", {
             headers: {
                 "Authorization": "Bearer " + sessionStorage.getItem("token")
@@ -20,7 +31,7 @@ export default class App extends React.Component {
         }).then(response => {
             const data = response.data;
             this.setState({ username: data['username'] })
-        });
+        }).catch(error => console.log(error.response));
     }
 
     render() {
@@ -30,7 +41,7 @@ export default class App extends React.Component {
                     <h1>Webcandy</h1>
                     <p>Logged in as {this.state.username}</p>
                 </div>
-                <LightConfigForm/>
+                {this.state.clientConnected ? <LightConfigForm/> : <p>No clients currently connected.</p>}
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
                 </Button>

@@ -164,6 +164,7 @@ def get_user():
 
     if not user:
         return jsonify(util.format_error(400, 'User not found')), 400
+
     return jsonify(util.load_user_data(user.id))
 
 
@@ -176,12 +177,23 @@ def get_me():
     return jsonify(util.load_user_data(g.user.id))
 
 
+@api.route('/clients', methods=['GET'])
+@auth.login_required
+def get_clients():
+    """
+    Determine if the current user has a connected client.
+    """
+    return jsonify(g.user.id in clients)
+
+
 @api.route('/patterns', methods=['GET'])
 @auth.login_required
 def patterns():
     """
     Get a list of valid lighting pattern names.
     """
+    if g.user.id not in clients:
+        return util.format_error(400, 'No connected clients for current user')
     return jsonify(clients[g.user.id].patterns)
 
 
