@@ -73,7 +73,6 @@ class ClientManager:
         del self.clients[user_id]
 
     def __getitem__(self, user_id):
-        # TODO: Handle if website logged in user has no connected clients
         return self.clients[user_id]
 
     def __contains__(self, user_id):
@@ -180,15 +179,17 @@ class ProxyServer:
         if not self._server_running:
             # test if other instance is already running
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as test_sock:
-                result = test_sock.connect_ex((self.host, self.port))
+                status = test_sock.connect_ex((self.host, self.port))
 
-            if result == 10061:  # nothing running
+            if status in {10061, 111}:  # nothing running
                 server_thread = threading.Thread(
                     target=lambda: asyncio.run(_go()))
                 server_thread.start()
                 self._server_running = True
             else:
-                logging.debug(f'Port {self.port} is in use ({result})')
+                logging.debug(
+                    f'Proxy server connection test to {self.host}:{self.port} '
+                    f'returned status {status}')
 
     def send(self, user_id: int, data: bytes) -> bool:
         """
