@@ -187,6 +187,8 @@ class ProxyServer:
                     target=lambda: asyncio.run(_go()))
                 server_thread.start()
                 self._server_running = True
+            else:
+                logging.debug(f'Port {self.port} is in use ({result})')
 
     def send(self, user_id: int, data: bytes) -> bool:
         """
