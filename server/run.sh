@@ -1,0 +1,1 @@
+sudo venv/scripts/python src/run.py
