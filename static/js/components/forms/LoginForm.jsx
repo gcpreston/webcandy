@@ -12,7 +12,7 @@ export default class LoginForm extends React.Component {
         this.state = {
             username: "",
             password: "",
-            errors: [],  // TODO: Implement Login form validation
+            errors: [],
         };
     }
 
@@ -59,7 +59,6 @@ export default class LoginForm extends React.Component {
         };
 
         axios.post("/api/token", data).then(response => {
-            console.log(response);
             const token = response.data["token"];
             sessionStorage.setItem("token", token);
             window.location = "/";

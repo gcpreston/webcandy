@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Form } from 'react-bootstrap';
+import axios from "axios";
 
 /**
  * Account creation form.
@@ -12,7 +13,6 @@ export default class CreateAccountForm extends React.Component {
             username: "",
             email: "",
             password: "",
-            confirmPassword: "",
             errors: [],  // TODO: Implement account creation form validation
         };
     }
@@ -49,13 +49,6 @@ export default class CreateAccountForm extends React.Component {
                                       onChange={e => this.setState({ password: e.target.value })}/>
                     </Form.Group>
 
-                    <Form.Group controlId="confirmPassword">
-                        <Form.Label>Confirm password</Form.Label>
-                        <Form.Control type="password"
-                                      value={this.state.confirmPassword}
-                                      onChange={e => this.setState({ confirmPassword: e.target.value })}/>
-                    </Form.Group>
-
                     <Form.Group controlId="submitButton">
                         <Button variant="primary" type="submit">
                             Submit
@@ -68,6 +61,17 @@ export default class CreateAccountForm extends React.Component {
 
     handleSubmit = (event) => {
         event.preventDefault();
-        console.log(this.state);
+
+        const data = {
+            "username": this.state.username,
+            "email": this.state.email,
+            "password": this.state.password
+        };
+
+        axios.post("/api/new_user", data).then(() => {
+            window.location = "/";
+        }).catch(error => {
+            this.setState({ errors: [error.response.data["error_description"]] })
+        });
     }
 }

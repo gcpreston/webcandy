@@ -81,14 +81,14 @@ def get_auth_token():
     return jsonify({'token': token.decode('ascii')})
 
 
-@api.route('/newuser', methods=['POST'])
+@api.route('/new_user', methods=['POST'])
 def new_user():
     username = request.json.get('username')
     email = request.json.get('email')  # optional
     password = request.json.get('password')
 
     # TODO: Use either logging or app.logger consistently
-    if username is None or password is None:
+    if not (username and password):
         error_description = 'Missing username or password'
         logging.error(error_description)
         return jsonify(util.format_error(400, error_description)), 400
@@ -97,8 +97,15 @@ def new_user():
         logging.error(error_description)
         return jsonify(util.format_error(400, error_description)), 400
 
-    user = User(username=username, email=email)
+    if not email:
+        user = User(username=username)
+    else:
+        user = User(username=username, email=email)
     user.set_password(password)
+
+    # add new user to database
+    db.session.add(user)
+    db.session.commit()
 
     # create data file
     with open(f'{ROOT_DIR}/server/data/{user.id}.json', 'w+') as file:
@@ -110,10 +117,6 @@ def new_user():
                 'color_lists': dict()
             },
             file)
-
-    # add new user to database
-    db.session.add(user)
-    db.session.commit()
 
     return (
         jsonify({'username': user.username}),

@@ -46,7 +46,7 @@ export default class App extends React.Component {
                 </div>
                 {this.state.clientConnected ? <LightConfigForm/> :
                     <p style={{ textAlign: "center" }}>
-                        No clients currentlyconnected.
+                        No clients currently connected.
                     </p>}
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
