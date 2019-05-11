@@ -65,6 +65,8 @@ export default class LoginForm extends React.Component {
         }).catch(error => {
             if (error.response.status === 401) {
                 this.setState({ errors: [error.response.data["error_description"]] })
+            } else {
+                console.log(error);
             }
         });
     }

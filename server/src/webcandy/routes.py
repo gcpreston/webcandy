@@ -6,6 +6,8 @@ from flask import (
     g, Blueprint, render_template, jsonify, request, url_for
 )
 from werkzeug.exceptions import NotFound
+from typing import Optional
+
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db
@@ -81,7 +83,7 @@ def get_auth_token():
     return jsonify({'token': token.decode('ascii')})
 
 
-@api.route('/new_user', methods=['POST'])
+@api.route('/users/new', methods=['POST'])
 def new_user():
     username = request.json.get('username')
     email = request.json.get('email')  # optional
@@ -125,11 +127,9 @@ def new_user():
     )
 
 
-# TODO: Require admin authentication
-@api.route('/get_user', methods=['GET'])
-def get_user():
+def get_user_from_request() -> Optional[User]:
     """
-    Get user information.
+    Get the user referenced in a request.
 
     Query string parameters:
     - ``u``: username or ID to get data for (required)
@@ -137,15 +137,14 @@ def get_user():
                 unspecified or some other value, ``u`` will first be interpreted
                 as a username, and then an ID.
 
-    :return: user information as JSON
+    :return: a ``User`` if one was found
+    :raises ValueError: if no ``u`` query string parameter was provided
     """
     u = request.args.get('u')
     u_type = request.args.get('type')
 
     if not u:
-        return (jsonify(util.format_error(
-            400, 'Please provide a username or ID the u parameter')),
-                400)
+        raise ValueError('Please provide a username or ID the u parameter')
 
     if u_type == 'username':
         user = User.query.filter_by(username=u).first()
@@ -158,19 +157,66 @@ def get_user():
             # if that doesn't work, query with u as id
             user = User.query.get(u)
 
+    return user  # possibly None
+
+
+# TODO: Require admin authentication?
+@api.route('/users/data', methods=['GET'])
+def user_data():
+    """
+    Get saved user data such as colors and color lists. See
+    ``get_user_from_request`` docs for query string parameters.
+
+    :return: user data as JSON
+    """
+    try:
+        user = get_user_from_request()
+    except ValueError as e:
+        return jsonify(util.format_error(400, str(e))), 400
+
     if not user:
         return jsonify(util.format_error(400, 'User not found')), 400
 
     return jsonify(util.load_user_data(user.id))
 
 
-@api.route('/get_user/me', methods=['GET'])
-@auth.login_required
-def get_me():
+@api.route('/users/info', methods=['GET'])
+def user_info():
     """
-    Get user information for the current user.
+    Get user account information such as username and email. See
+    ``get_user_from_request`` docs for query string parameters.
+
+    :return: user info as JSON
+    """
+    try:
+        user = get_user_from_request()
+    except ValueError as e:
+        return jsonify(util.format_error(400, str(e))), 400
+
+    if not user:
+        return jsonify(util.format_error(400, 'User not found')), 400
+
+    return jsonify({'user_id': user.id, 'username': user.username,
+                    'email': user.email})
+
+
+@api.route('/users/data/me', methods=['GET'])
+@auth.login_required
+def my_data():
+    """
+    Get saved user data for the current user.
     """
     return jsonify(util.load_user_data(g.user.id))
+
+
+@api.route('/users/info/me', methods=['GET'])
+@auth.login_required
+def my_info():
+    """
+    Get account information for the current user
+    """
+    return jsonify({'user_id': g.user.id, 'username': g.user.username,
+                    'email': g.user.email})
 
 
 @api.route('/clients', methods=['GET'])
@@ -212,19 +258,19 @@ def colors():
         }
 
         with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
-            user_data = json.load(data_file)
+            json_data = json.load(data_file)
 
         for name, color in request.get_json().items():
             if util.is_color(color):
-                if name in user_data['colors']:
+                if name in json_data['colors']:
                     retval['modified'][name] = color
                 else:
                     retval['added'][name] = color
-                user_data['colors'][name] = color
+                json_data['colors'][name] = color
 
         # re-open to overwrite rather than append to using r+
         with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
-            json.dump(user_data, data_file, indent=4)
+            json.dump(json_data, data_file, indent=4)
 
         return jsonify(retval)
 
@@ -248,19 +294,19 @@ def color_lists():
         }
 
         with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
-            user_data = json.load(data_file)
+            json_data = json.load(data_file)
 
         for name, color_list in request.get_json().items():
             if all([util.is_color(color) for color in color_list]):
-                if name in user_data['color_lists']:
+                if name in json_data['color_lists']:
                     retval['modified'][name] = color_list
                 else:
                     retval['added'][name] = color_list
-                user_data['color_lists'][name] = color_list
+                json_data['color_lists'][name] = color_list
 
         # re-open to overwrite rather than append to using r+
         with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
-            json.dump(user_data, data_file, indent=4)
+            json.dump(json_data, data_file, indent=4)
 
         return jsonify(retval)
 
@@ -285,7 +331,16 @@ def submit():
 # -------------------------------
 # Error handlers
 # -------------------------------
-# TODO: Make better 404 response
+
 
 def not_found(error):
     return jsonify(util.format_error(404, error.description)), 404
+
+
+def internal_server_error(_):
+    return (
+        jsonify(
+            util.format_error(500, 'The server encountered an internal error '
+                                   'and was unable to complete your request.')),
+        500
+    )

@@ -27,7 +27,7 @@ export default class App extends React.Component {
             this.setState({ clientConnected: clientConnected })
         }).catch(error => console.log(error.response));
 
-        axios.get("/api/get_user/me", {
+        axios.get("/api/users/info/me", {
             headers: {
                 "Authorization": "Bearer " + sessionStorage.getItem("token")
             }
@@ -45,9 +45,7 @@ export default class App extends React.Component {
                     <p>Logged in as {this.state.username}</p>
                 </div>
                 {this.state.clientConnected ? <LightConfigForm/> :
-                    <p style={{ textAlign: "center" }}>
-                        No clients currently connected.
-                    </p>}
+                    <p>No clients currently connected.</p>}
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
                 </Button>

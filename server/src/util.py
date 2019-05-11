@@ -6,7 +6,6 @@ from typing import Dict, Tuple
 from definitions import DATA_DIR
 
 
-# TODO: Remove duplicate definitions in util and opclib.opcutil
 def is_color(s: str) -> bool:
     """
     Determine if ``s`` is a color hex in the format #RRGGBB.
@@ -17,7 +16,6 @@ def is_color(s: str) -> bool:
     return bool(re.match(r'^#[A-Fa-f0-9]{6}$', s))
 
 
-# TODO: Add ability to reference colors by name in other JSON files
 def load_user_data(user_id: int) -> Dict:
     """
     Retrieve data about a specified user.
@@ -44,6 +42,7 @@ def format_error(status: int, description: str) -> Dict[str, str]:
         400: 'Bad Request',
         401: 'Unauthorized',
         404: 'Not Found',
+        500: 'Internal Server Error'
     }
     return {'error': errors.get(status) or '(undefined)',
             'error_description': description}
