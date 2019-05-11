@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import App from './components/App';
 import Login from './components/Login';
+import CreateAccount from './components/CreateAccount';
 import NotFound from './components/NotFound';
 import '../css/index.css';
 
@@ -24,6 +25,7 @@ const router = (
                     return loggedIn() ? <App/> : <Redirect to="/login"/>
                 }}/>
                 <Route path="/login" component={Login}/>
+                <Route path="/create-account" component={CreateAccount}/>
                 <Route component={NotFound}/>
             </Switch>
         </div>

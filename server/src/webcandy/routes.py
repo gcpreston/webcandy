@@ -6,13 +6,6 @@ from flask import (
     g, Blueprint, render_template, jsonify, request, url_for
 )
 from werkzeug.exceptions import NotFound
-from itsdangerous import (
-    TimedJSONWebSignatureSerializer as Serializer,
-    SignatureExpired,
-    BadSignature
-)
-
-from config import Config
 from definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db

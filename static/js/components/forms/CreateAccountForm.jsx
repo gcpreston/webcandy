@@ -1,28 +1,30 @@
 import React from 'react';
-import axios from 'axios';
 import { Button, Form } from 'react-bootstrap';
 
 /**
- * Login form.
+ * Account creation form.
  */
-export default class LoginForm extends React.Component {
+export default class CreateAccountForm extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
             username: "",
+            email: "",
             password: "",
-            errors: [],  // TODO: Implement Login form validation
+            confirmPassword: "",
+            errors: [],  // TODO: Implement account creation form validation
         };
     }
 
-    // TODO: Remember me
     render() {
         return (
             <React.Fragment>
                 {this.state.errors ?
                     <ul className="errors">
-                        {this.state.errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
+                        {this.state.errors.map((msg, idx) => {
+                            return <li key={idx}>{msg}</li>
+                        })}
                     </ul> : null}
 
                 <Form onSubmit={this.handleSubmit}>
@@ -33,11 +35,25 @@ export default class LoginForm extends React.Component {
                                       onChange={e => this.setState({ username: e.target.value })}/>
                     </Form.Group>
 
+                    <Form.Group controlId="email">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control type="email"
+                                      value={this.state.email}
+                                      onChange={e => this.setState({ email: e.target.value })}/>
+                    </Form.Group>
+
                     <Form.Group controlId="password">
                         <Form.Label>Password</Form.Label>
                         <Form.Control type="password"
                                       value={this.state.password}
                                       onChange={e => this.setState({ password: e.target.value })}/>
+                    </Form.Group>
+
+                    <Form.Group controlId="confirmPassword">
+                        <Form.Label>Confirm password</Form.Label>
+                        <Form.Control type="password"
+                                      value={this.state.confirmPassword}
+                                      onChange={e => this.setState({ confirmPassword: e.target.value })}/>
                     </Form.Group>
 
                     <Form.Group controlId="submitButton">
@@ -52,21 +68,6 @@ export default class LoginForm extends React.Component {
 
     handleSubmit = (event) => {
         event.preventDefault();
-
-        const data = {
-            "username": this.state.username,
-            "password": this.state.password
-        };
-
-        axios.post("/api/token", data).then(response => {
-            console.log(response);
-            const token = response.data["token"];
-            sessionStorage.setItem("token", token);
-            window.location = "/";
-        }).catch(error => {
-            if (error.response.status === 401) {
-                this.setState({ errors: [error.response.data["error_description"]] })
-            }
-        });
+        console.log(this.state);
     }
 }

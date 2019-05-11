@@ -7,6 +7,7 @@ from webcandy.app import create_app
 #   send route uses the old manager, which has no initialized connections
 debug = False
 
+# TODO: Create production environment
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=debug)

@@ -3,6 +3,9 @@ import { Button } from 'react-bootstrap';
 import axios from 'axios';
 import LightConfigForm from './forms/LightConfigForm';
 
+/**
+ * Webcandy main app page.
+ */
 export default class App extends React.Component {
     constructor(props) {
         super(props);
@@ -41,7 +44,10 @@ export default class App extends React.Component {
                     <h1>Webcandy</h1>
                     <p>Logged in as {this.state.username}</p>
                 </div>
-                {this.state.clientConnected ? <LightConfigForm/> : <p>No clients currently connected.</p>}
+                {this.state.clientConnected ? <LightConfigForm/> :
+                    <p style={{ textAlign: "center" }}>
+                        No clients currentlyconnected.
+                    </p>}
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
                 </Button>
