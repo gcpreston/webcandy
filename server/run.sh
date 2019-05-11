@@ -1,1 +1,1 @@
-sudo ./venv/bin/python ./src/run.py
+sudo ./venv/bin/python -m flask run
