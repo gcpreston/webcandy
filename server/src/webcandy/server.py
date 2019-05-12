@@ -53,8 +53,8 @@ class ClientManager:
         with self.app.app_context():
             user: User = User.get_user(token)
             if user:
-                protocol.user_id = user.id
-                self.clients[user.id] = self.Client(patterns, protocol)
+                protocol.user_id = user.user_id
+                self.clients[user.user_id] = self.Client(patterns, protocol)
                 logging.info(
                     f'Registered client {util.format_addr(protocol.peername)} '
                     f'with user {user.username!r}')

@@ -1,4 +1,5 @@
 import logging
+import signal
 
 from flask import Flask
 from config import Config
@@ -21,6 +22,7 @@ def create_app():
     register_extensions(app)
     register_views(app)
     proxy_server.start()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
     return app
 
 

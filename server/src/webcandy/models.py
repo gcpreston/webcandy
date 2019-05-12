@@ -15,7 +15,7 @@ from .extensions import db
 class User(db.Model):
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key=True)  # TODO: Change to user_id
+    user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -58,14 +58,14 @@ class User(db.Model):
         :return: the generated authentication token
         """
         s = Serializer(Config.SECRET_KEY, expires_in=expiration)
-        return s.dumps({'id': self.id})
+        return s.dumps({'id': self.user_id})
 
     def get_colors(self) -> Optional[Dict[str, str]]:
         """
         Get this user's saved colors.
         :return: a dictionary of name-color pairs; ``None`` if none are defined
         """
-        return util.load_user_data(self.id).get('colors')
+        return util.load_user_data(self.user_id).get('colors')
 
     def get_color_lists(self) -> Optional[Dict[str, str]]:
         """
@@ -73,7 +73,7 @@ class User(db.Model):
         :return: a dictionary of name-color list pairs; ``None`` if none are
             defined
         """
-        return util.load_user_data(self.id).get('color_lists')
+        return util.load_user_data(self.user_id).get('color_lists')
 
     def __repr__(self):
         return f'<User {self.username}>'

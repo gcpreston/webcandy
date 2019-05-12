@@ -110,15 +110,8 @@ def new_user():
     db.session.commit()
 
     # create data file
-    with open(f'{ROOT_DIR}/server/data/{user.id}.json', 'w+') as file:
-        json.dump(
-            {
-                'username': username,
-                'email': email,
-                'colors': dict(),
-                'color_lists': dict()
-            },
-            file)
+    with open(f'{ROOT_DIR}/server/data/{user.user_id}.json', 'w+') as file:
+        json.dump({'colors': dict(), 'color_lists': dict()}, file)
 
     return (
         jsonify({'username': user.username}),
@@ -177,7 +170,7 @@ def user_data():
     if not user:
         return jsonify(util.format_error(400, 'User not found')), 400
 
-    return jsonify(util.load_user_data(user.id))
+    return jsonify(util.load_user_data(user.user_id))
 
 
 @api.route('/users/info', methods=['GET'])
@@ -196,7 +189,7 @@ def user_info():
     if not user:
         return jsonify(util.format_error(400, 'User not found')), 400
 
-    return jsonify({'user_id': user.id, 'username': user.username,
+    return jsonify({'user_id': user.user_id, 'username': user.username,
                     'email': user.email})
 
 
@@ -206,7 +199,7 @@ def my_data():
     """
     Get saved user data for the current user.
     """
-    return jsonify(util.load_user_data(g.user.id))
+    return jsonify(util.load_user_data(g.user.user_id))
 
 
 @api.route('/users/info/me', methods=['GET'])
@@ -215,7 +208,7 @@ def my_info():
     """
     Get account information for the current user
     """
-    return jsonify({'user_id': g.user.id, 'username': g.user.username,
+    return jsonify({'user_id': g.user.user_id, 'username': g.user.username,
                     'email': g.user.email})
 
 
@@ -225,7 +218,7 @@ def get_clients():
     """
     Determine if the current user has a connected client.
     """
-    return jsonify(g.user.id in clients)
+    return jsonify(g.user.user_id in clients)
 
 
 @api.route('/patterns', methods=['GET'])
@@ -234,9 +227,9 @@ def patterns():
     """
     Get a list of valid lighting pattern names.
     """
-    if g.user.id not in clients:
+    if g.user.user_id not in clients:
         return util.format_error(400, 'No connected clients for current user')
-    return jsonify(clients[g.user.id].patterns)
+    return jsonify(clients[g.user.user_id].patterns)
 
 
 @api.route('/colors', methods=['GET', 'PUT'])
@@ -257,7 +250,7 @@ def colors():
             'modified': dict(),
         }
 
-        with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
+        with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
             json_data = json.load(data_file)
 
         for name, color in request.get_json().items():
@@ -269,7 +262,7 @@ def colors():
                 json_data['colors'][name] = color
 
         # re-open to overwrite rather than append to using r+
-        with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
+        with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
             json.dump(json_data, data_file, indent=4)
 
         return jsonify(retval)
@@ -285,7 +278,7 @@ def color_lists():
     PUT: Add a new saved color list
     """
     if request.method == 'GET':
-        return jsonify(util.load_user_data(g.user.id)['color_lists'])
+        return jsonify(util.load_user_data(g.user.user_id)['color_lists'])
     else:
         # PUT request
         retval = {
@@ -293,7 +286,7 @@ def color_lists():
             'modified': dict(),
         }
 
-        with open(f'{DATA_DIR}/{g.user.id}.json') as data_file:
+        with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
             json_data = json.load(data_file)
 
         for name, color_list in request.get_json().items():
@@ -305,7 +298,7 @@ def color_lists():
                 json_data['color_lists'][name] = color_list
 
         # re-open to overwrite rather than append to using r+
-        with open(f'{DATA_DIR}/{g.user.id}.json', 'w') as data_file:
+        with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
             json.dump(json_data, data_file, indent=4)
 
         return jsonify(retval)
@@ -325,7 +318,8 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(success=proxy_server.send(g.user.id, request.get_data()))
+    return jsonify(
+        success=proxy_server.send(g.user.user_id, request.get_data()))
 
 
 # -------------------------------
