@@ -154,24 +154,25 @@ class ProxyServer:
     """
     _server_running: bool = False
 
-    def __init__(self, app: Flask = None, host: str = '127.0.0.1',
-                 port: int = 6543):
+    def __init__(self, app: Flask = None):
         self.app = app
-        self.host = host
-        self.port = port
 
     def init_app(self, app: Flask):
         self.app = app
 
-    def start(self) -> None:
+    # TODO: Make proxy server host/port configurable within app context
+    def start(self, host: str = '0.0.0.0', port: int = 6543) -> None:
         """
         Start the proxy server.
+
+        :param host: the host to serve on
+        :param port: the port to serve on
         """
 
         async def _go():
             loop = asyncio.get_running_loop()
             server = await loop.create_server(
-                WebcandyServerProtocol, self.host, self.port)
+                WebcandyServerProtocol, host, port)
             async with server:
                 addr = server.sockets[0].getsockname()
                 logging.info(f'Serving on {util.format_addr(addr)}')
@@ -180,7 +181,7 @@ class ProxyServer:
         if not self._server_running:
             # test if other instance is already running
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as test_sock:
-                status = test_sock.connect_ex((self.host, self.port))
+                status = test_sock.connect_ex((host, port))
 
             if status in {10061, 111}:  # nothing running
                 server_thread = threading.Thread(
@@ -189,7 +190,7 @@ class ProxyServer:
                 self._server_running = True
             else:
                 logging.debug(
-                    f'Proxy server connection test to {self.host}:{self.port} '
+                    f'Proxy server connection test to {host}:{port} '
                     f'returned status {status}')
 
     def send(self, user_id: int, data: bytes) -> bool:
