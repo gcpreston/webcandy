@@ -161,7 +161,7 @@ class ProxyServer:
         self.app = app
 
     # TODO: Make proxy server host/port configurable within app context
-    def start(self, host: str = '0.0.0.0', port: int = 6543) -> None:
+    def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
         Start the proxy server.
 

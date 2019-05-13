@@ -1,5 +1,6 @@
-import logging
+import os
 import signal
+import logging
 
 from flask import Flask
 from config import Config
@@ -21,7 +22,12 @@ def create_app():
                         format='[%(asctime)s] %(levelname)s: %(message)s')
     register_extensions(app)
     register_views(app)
-    proxy_server.start()
+
+    if os.getenv('FLASK_ENV') == 'production':
+        proxy_server.start(host='0.0.0.0')
+    else:
+        proxy_server.start()
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
     return app
 
