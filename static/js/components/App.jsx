@@ -18,14 +18,7 @@ export default class App extends React.Component {
 
     componentWillMount() {
         // TODO: Figure out better way to handle errors for production
-        axios.get("/api/clients", {
-            headers: {
-                "Authorization": "Bearer " + sessionStorage.getItem("token")
-            }
-        }).then(response => {
-            const clientConnected = response.data;
-            this.setState({ clientConnected: clientConnected })
-        }).catch(error => console.log(error.response));
+        this.updateClientConnected();
 
         axios.get("/api/users/info/me", {
             headers: {
@@ -33,7 +26,7 @@ export default class App extends React.Component {
             }
         }).then(response => {
             const data = response.data;
-            this.setState({ username: data['username'] })
+            this.setState({username: data['username']})
         }).catch(error => console.log(error.response));
     }
 
@@ -45,7 +38,13 @@ export default class App extends React.Component {
                     <p>Logged in as {this.state.username}</p>
                 </div>
                 {this.state.clientConnected ? <LightConfigForm/> :
-                    <p>No clients currently connected.</p>}
+                    <React.Fragment>
+                        <span>No clients currently connected. </span>
+                        <Button onClick={this.updateClientConnected}>
+                            Refresh
+                        </Button>
+                        <br/>
+                    </React.Fragment>}
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
                 </Button>
@@ -53,8 +52,19 @@ export default class App extends React.Component {
         )
     }
 
+    updateClientConnected = () => {
+        axios.get("/api/clients", {
+            headers: {
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+            }
+        }).then(response => {
+            const clientConnected = response.data;
+            this.setState({clientConnected: clientConnected})
+        }).catch(error => console.log(error.response));
+    };
+
     handleLogout = () => {
         sessionStorage.removeItem("token");
         window.location = "/login";
-    }
+    };
 }
