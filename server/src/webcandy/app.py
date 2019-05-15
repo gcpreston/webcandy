@@ -33,9 +33,10 @@ def create_app():
     register_views(app)
 
     if os.getenv('FLASK_ENV') == 'production':
-        proxy_server.start(host='0.0.0.0')
+        host = '0.0.0.0'
     else:
-        proxy_server.start()
+        host = '127.0.0.1'
+    proxy_server.start(host=host)
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
     return app
