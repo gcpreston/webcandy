@@ -14,12 +14,21 @@ def create_app():
     """
     Build the Flask app and start the client manager.
     """
+    prod = os.getenv('FLASK_ENV') == 'production'
+
     app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
-    app.logger.setLevel(logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG,
-                        format='[%(asctime)s] %(levelname)s: %(message)s')
+
+    # use logging rather than app.logger
+    if prod:
+        logging.basicConfig(level=logging.DEBUG,
+                            format='[%(asctime)s] %(levelname)s: %(message)s',
+                            filename='webcandy.log', filemode='a')
+    else:
+        logging.basicConfig(level=logging.DEBUG,
+                            format='[%(asctime)s] %(levelname)s: %(message)s')
+
     register_extensions(app)
     register_views(app)
 

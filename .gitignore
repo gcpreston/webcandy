@@ -2,8 +2,11 @@
 */__pycache__/
 *.pyc
 
+webcandy.log
+
 static/node_modules
 static/dist
+
 server/venv
 server/migrations
 server/.env

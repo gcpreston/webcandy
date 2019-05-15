@@ -89,7 +89,6 @@ def new_user():
     email = request.json.get('email')  # optional
     password = request.json.get('password')
 
-    # TODO: Use either logging or app.logger consistently
     if not (username and password):
         error_description = 'Missing username or password'
         logging.error(error_description)
