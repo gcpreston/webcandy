@@ -1,4 +1,4 @@
-import util
+from webcandy import util
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import (
@@ -8,7 +8,7 @@ from itsdangerous import (
 )
 from typing import Optional, Dict
 
-from config import Config
+from webcandy.config import Config
 from .extensions import db
 
 

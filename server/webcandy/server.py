@@ -3,7 +3,7 @@ import socket
 import threading
 import json
 import logging
-import util
+from webcandy import util
 
 from typing import NewType, Optional, Tuple, List, Dict
 from flask import Flask

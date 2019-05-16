@@ -1,6 +1,6 @@
 import logging
 import json
-import util
+from webcandy import util
 
 from flask import (
     g, Blueprint, render_template, jsonify, request, url_for
@@ -8,7 +8,7 @@ from flask import (
 from werkzeug.exceptions import NotFound
 from typing import Optional
 
-from definitions import ROOT_DIR, DATA_DIR
+from webcandy.definitions import ROOT_DIR, DATA_DIR
 from .models import User
 from .extensions import auth, db
 from .server import proxy_server, clients

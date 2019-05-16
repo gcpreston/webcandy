@@ -16,7 +16,7 @@ class TestAPI(unittest.TestCase):
         """
         self.app = create_app().test_client()
         # this tests the /api/token route
-        self.token = self.login('testuser', 'Webcandy1')
+        self.token = self.login('testuser1', 'Webcandy1')
 
     def login(self, username: str, password: str) -> str:
         """
@@ -44,6 +44,7 @@ class TestAPI(unittest.TestCase):
         return self.app.get(route, headers=headers)
 
     # TODO: Create /api/patterns tests now that it requires a client
+    # TODO: Test PUT on colors and color_lists
 
     def test_colors(self):
         """

@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from definitions import ROOT_DIR, DATA_DIR
+from webcandy.definitions import ROOT_DIR, DATA_DIR
 
 
 class TestDefinitions(unittest.TestCase):

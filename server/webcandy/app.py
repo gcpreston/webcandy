@@ -3,8 +3,8 @@ import signal
 import logging
 
 from flask import Flask
-from config import Config
-from definitions import ROOT_DIR
+from webcandy.config import Config
+from webcandy.definitions import ROOT_DIR
 from . import routes
 from .extensions import db, migrate
 from .server import clients, proxy_server

@@ -1,5 +1,5 @@
 import unittest
-import util
+from webcandy import util
 
 
 class TestUtil(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestUtil(unittest.TestCase):
     def test_load_user_data(self):
         # User "testfakeuser" does not exist
         self.assertRaises(ValueError, util.load_user_data, 'testfakeuser')
-        self.assertTrue(util.load_user_data(3))  # testuser
+        self.assertTrue(util.load_user_data(1))  # testuser1
 
     def test_format_error(self):
         self.assertEqual(util.format_error(5050, 'Some description'),
