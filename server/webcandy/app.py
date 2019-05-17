@@ -10,7 +10,7 @@ from .extensions import db, migrate
 from .server import clients, proxy_server
 
 
-def create_app():
+def create_app(start_proxy: bool = False):
     """
     Build the Flask app and start the client manager.
     """
@@ -36,7 +36,9 @@ def create_app():
         host = '0.0.0.0'
     else:
         host = '127.0.0.1'
-    proxy_server.start(host=host)
+
+    if start_proxy:
+        proxy_server.start(host=host)
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
     return app
