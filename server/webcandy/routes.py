@@ -152,13 +152,59 @@ def get_user_from_request() -> Optional[User]:
     return user  # possibly None
 
 
-@api.route('/user_data', methods=['GET'])
+@api.route('/user_data', methods=['GET', 'PUT'])
 @auth.login_required
 def user_data():
     """
     Get saved user data for the current user.
     """
-    return jsonify(util.load_user_data(g.user.user_id))
+    if request.method == 'GET':
+        # TODO: Return patterns with user data?
+        return jsonify(util.load_user_data(g.user.user_id))
+    else:
+        # PUT request
+        retval = {
+            'colors': {
+                'added': dict(),
+                'modified': dict()
+            },
+            'color_lists': {
+                'added': dict(),
+                'modified': dict()
+            }
+        }
+
+        with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
+            json_data = json.load(data_file)
+
+        for section, data in request.get_json().items():
+
+            # ensure section is valid
+            if section == 'colors':
+
+                for name, color in data.items():
+                    if util.is_color(color):
+                        if name in json_data['colors']:
+                            retval['colors']['modified'][name] = color
+                        else:
+                            retval['colors']['added'][name] = color
+                        json_data['colors'][name] = color
+
+            elif section == 'color_lists':
+
+                for name, color_list in data.items():
+                    if all([util.is_color(color) for color in color_list]):
+                        if name in json_data['color_lists']:
+                            retval['color_lists']['modified'][name] = color_list
+                        else:
+                            retval['color_lists']['added'][name] = color_list
+                        json_data['color_lists'][name] = color_list
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
+            json.dump(json_data, data_file, indent=4)
+
+        return jsonify(retval)
 
 
 @api.route('/user_info', methods=['GET'])

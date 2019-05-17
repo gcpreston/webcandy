@@ -1,6 +1,7 @@
 {
     "colors": {
-        "green": "#0000FF"
+        "green": "#0000ff",
+        "purple": "#aa00aa"
     },
     "color_lists": {
         "warm": [
