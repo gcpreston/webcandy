@@ -20,13 +20,13 @@ export default class App extends React.Component {
         // TODO: Figure out better way to handle errors for production
         this.updateClientConnected();
 
-        axios.get("/api/users/info/me", {
+        axios.get("/api/user_info", {
             headers: {
                 "Authorization": "Bearer " + sessionStorage.getItem("token")
             }
         }).then(response => {
             const data = response.data;
-            this.setState({username: data['username']})
+            this.setState({ username: data['username'] })
         }).catch(error => console.log(error.response));
     }
 
@@ -59,7 +59,7 @@ export default class App extends React.Component {
             }
         }).then(response => {
             const clientConnected = response.data;
-            this.setState({clientConnected: clientConnected})
+            this.setState({ clientConnected: clientConnected })
         }).catch(error => console.log(error.response));
     };
 

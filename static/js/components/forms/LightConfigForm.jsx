@@ -58,15 +58,18 @@ export default class LightConfigForm extends React.Component {
             }
         });
 
-        axios.get("/api/users/data/me", config).then(response => {
+        axios.get("/api/user_data", config).then(response => {
             const colors = response.data['colors'];
             const colorLists = response.data['color_lists'];
 
             this.setState({ colors: colors, colorLists: colorLists });
 
-            // set currentColor initial value
+            // set initial values
             if (colors) {
                 this.setState({ currentColor: Object.values(colors)[0] })
+            }
+            if (colorLists) {
+                this.setState({ currentColorList: Object.values(colorLists)[0] })
             }
         }).catch(error => {
             if (error.response.status === 401) {

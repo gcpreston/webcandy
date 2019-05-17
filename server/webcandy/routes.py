@@ -152,60 +152,20 @@ def get_user_from_request() -> Optional[User]:
     return user  # possibly None
 
 
-# TODO: Require admin authentication?
-@api.route('/users/data', methods=['GET'])
-def user_data():
-    """
-    Get saved user data such as colors and color lists. See
-    ``get_user_from_request`` docs for query string parameters.
-
-    :return: user data as JSON
-    """
-    try:
-        user = get_user_from_request()
-    except ValueError as e:
-        return jsonify(util.format_error(400, str(e))), 400
-
-    if not user:
-        return jsonify(util.format_error(400, 'User not found')), 400
-
-    return jsonify(util.load_user_data(user.user_id))
-
-
-@api.route('/users/info', methods=['GET'])
-def user_info():
-    """
-    Get user account information such as username and email. See
-    ``get_user_from_request`` docs for query string parameters.
-
-    :return: user info as JSON
-    """
-    try:
-        user = get_user_from_request()
-    except ValueError as e:
-        return jsonify(util.format_error(400, str(e))), 400
-
-    if not user:
-        return jsonify(util.format_error(400, 'User not found')), 400
-
-    return jsonify({'user_id': user.user_id, 'username': user.username,
-                    'email': user.email})
-
-
-@api.route('/users/data/me', methods=['GET'])
+@api.route('/user_data', methods=['GET'])
 @auth.login_required
-def my_data():
+def user_data():
     """
     Get saved user data for the current user.
     """
     return jsonify(util.load_user_data(g.user.user_id))
 
 
-@api.route('/users/info/me', methods=['GET'])
+@api.route('/user_info', methods=['GET'])
 @auth.login_required
-def my_info():
+def user_info():
     """
-    Get account information for the current user
+    Get account information for the current user.
     """
     return jsonify({'user_id': g.user.user_id, 'username': g.user.username,
                     'email': g.user.email})
