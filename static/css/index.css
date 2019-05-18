@@ -1,12 +1,16 @@
 body {
-    margin: 4% 30%;
+  margin: 4% 10%;
 }
 
 #title {
-    text-align: center;
+  text-align: center;
 }
 
 #content {
-    position: relative;
-    margin-top: 20%;
+  position: relative;
+  margin-top: 10%;
+}
+
+.dark-contrast {
+  background-color: dimgray;
 }
