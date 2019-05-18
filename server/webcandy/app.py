@@ -18,6 +18,7 @@ def create_app(start_proxy: bool = False, log_file: str = None):
     app.config.from_object(Config)
 
     # use logging rather than app.logger
+    # TODO: Fix built-in Flask logs
     if log_file:
         logging.basicConfig(level=logging.DEBUG,
                             format='[%(asctime)s] %(levelname)s: %(message)s',
