@@ -5,7 +5,7 @@ from flask import Flask
 from webcandy.config import Config
 from webcandy.definitions import ROOT_DIR
 from . import routes
-from .extensions import db, migrate
+from .extensions import db, migrate, api
 from .server import clients, proxy_server
 
 
@@ -48,6 +48,7 @@ def register_extensions(app: Flask) -> None:
     """
     db.init_app(app)
     migrate.init_app(app, db)
+    api.init_app(app)
     clients.init_app(app)
     proxy_server.init_app(app)
 
@@ -56,7 +57,16 @@ def register_views(app: Flask) -> None:
     """
     Register Flask blueprints and error handlers.
     """
+    api.add_resource(routes.Token, '/token')
+    api.add_resource(routes.NewUser, '/new_user')
+    api.add_resource(routes.UserInfo, '/user/info')
+    api.add_resource(routes.UserData, '/user/data')
+    api.add_resource(routes.UserClients, '/user/clients')
+    api.add_resource(routes.ClientPatterns, '/user/client/patterns')
+    api.add_resource(routes.Submit, '/submit')
+    api.add_resource(routes.CatchAll, '/<path:path>')
+
     app.register_blueprint(routes.views)
-    app.register_blueprint(routes.api, url_prefix='/api')
     app.register_error_handler(404, routes.not_found)
     app.register_error_handler(500, routes.internal_server_error)
+

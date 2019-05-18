@@ -58,6 +58,9 @@ export default class LoginForm extends React.Component {
             "password": this.state.password
         };
 
+        console.log("Posting /api/token with data:");
+        console.log(data);
+
         axios.post("/api/token", data).then(response => {
             const token = response.data["token"];
             sessionStorage.setItem("token", token);
@@ -66,7 +69,7 @@ export default class LoginForm extends React.Component {
             if (error.response.status === 401) {
                 this.setState({ errors: [error.response.data["error_description"]] })
             } else {
-                console.log(error);
+                console.log(error.response);
             }
         });
     }

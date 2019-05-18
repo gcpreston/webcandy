@@ -42,7 +42,7 @@ export default class LightConfigForm extends React.Component {
         // make API calls
         const config = getConfig();
 
-        axios.get("/api/patterns", config).then(response => {
+        axios.get("/api/user/client/patterns", config).then(response => {
             const patterns = response.data;
             this.setState({ patterns: patterns });
 
@@ -58,7 +58,7 @@ export default class LightConfigForm extends React.Component {
             }
         });
 
-        axios.get("/api/user_data", config).then(response => {
+        axios.get("/api/user/data", config).then(response => {
             const colors = response.data['colors'];
             const colorLists = response.data['color_lists'];
 
@@ -228,7 +228,7 @@ export default class LightConfigForm extends React.Component {
         strobe = this.state.strobe;
 
         // set color field
-        if (this.state.customColor) {
+        if (target["colorField"] && this.state.customColor) {
             color = target["colorField"].value;
         } else if (target["colorSelect"]) {
             color = this.state.colors[target["colorSelect"].value];

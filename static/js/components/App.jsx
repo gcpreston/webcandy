@@ -20,7 +20,7 @@ export default class App extends React.Component {
         // TODO: Figure out better way to handle errors for production
         this.updateClientConnected();
 
-        axios.get("/api/user_info", {
+        axios.get("/api/user/info", {
             headers: {
                 "Authorization": "Bearer " + sessionStorage.getItem("token")
             }
@@ -53,7 +53,7 @@ export default class App extends React.Component {
     }
 
     updateClientConnected = () => {
-        axios.get("/api/clients", {
+        axios.get("/api/user/clients", {
             headers: {
                 "Authorization": "Bearer " + sessionStorage.getItem("token")
             }

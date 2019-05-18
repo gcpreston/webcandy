@@ -68,7 +68,7 @@ export default class CreateAccountForm extends React.Component {
             "password": this.state.password
         };
 
-        axios.post("/api/users/new", data).then(() => {
+        axios.post("/api/new_user", data).then(() => {
             window.location = "/";
         }).catch(error => {
             this.setState({ errors: [error.response.data["error_description"]] })
