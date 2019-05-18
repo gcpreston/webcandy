@@ -1,1 +1,0 @@
-<input type="checkbox" id="switch" /><label for="switch">Toggle</label>
