@@ -1,4 +1,3 @@
-import os
 import signal
 import logging
 
@@ -10,21 +9,19 @@ from .extensions import db, migrate
 from .server import clients, proxy_server
 
 
-def create_app(start_proxy: bool = False):
+def create_app(start_proxy: bool = False, log_file: str = None):
     """
     Build the Flask app and start the client manager.
     """
-    prod = os.getenv('FLASK_ENV') == 'production'
-
     app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
 
     # use logging rather than app.logger
-    if prod:
+    if log_file:
         logging.basicConfig(level=logging.DEBUG,
                             format='[%(asctime)s] %(levelname)s: %(message)s',
-                            filename='webcandy.log', filemode='a')
+                            filename=log_file, filemode='a')
     else:
         logging.basicConfig(level=logging.DEBUG,
                             format='[%(asctime)s] %(levelname)s: %(message)s')
@@ -32,7 +29,7 @@ def create_app(start_proxy: bool = False):
     register_extensions(app)
     register_views(app)
 
-    if os.getenv('FLASK_ENV') == 'production':
+    if app.config['ENV'] == 'production':
         host = '0.0.0.0'
     else:
         host = '127.0.0.1'
