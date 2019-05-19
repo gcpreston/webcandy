@@ -8,7 +8,6 @@ setup(
         'Flask',
         'Flask-HTTPAuth',
         'Flask-Migrate',
-        'Flask-RESTful',
         'Flask-SQLAlchemy',
         'gunicorn',
         'python-dotenv'
