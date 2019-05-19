@@ -1,5 +1,8 @@
 import os
+from dotenv import load_dotenv
 from webcandy.definitions import ROOT_DIR
+
+load_dotenv(f'{ROOT_DIR}/server/.env')
 
 
 class Config:
@@ -16,6 +19,5 @@ class Config:
             SECRET_KEY = 'dev-secret'
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL') or 'sqlite:///' + os.path.join(ROOT_DIR, 'server',
-                                                       'webcandy.db')
+        'DATABASE_URL') or f'sqlite:///{ROOT_DIR}/server/webcandy.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
