@@ -14,7 +14,7 @@ class TestAPI(unittest.TestCase):
         """
         Initialize API tests by retrieving an access token.
         """
-        self.app = create_app().test_client()
+        self.app = create_app(False).test_client()
         # this tests the /api/token route
         self.token = self.login('testuser1', 'Webcandy1')
 

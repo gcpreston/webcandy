@@ -9,7 +9,7 @@ from .extensions import db, migrate
 from .server import clients, proxy_server
 
 
-def create_app(start_proxy: bool = False, log_file: str = None):
+def create_app(start_proxy: bool = True, log_file: str = None):
     """
     Build the Flask app and start the client manager.
     """
