@@ -3,14 +3,25 @@ import socket
 import threading
 import json
 import logging
-from webcandy import util
 
 from typing import NewType, Optional, Tuple, List, Dict
 from flask import Flask
+from . import util
+from .config import Config, configure_logger
 from .models import User
 
 # define Address to be 2-tuple of (host, port)
 Address = NewType('Address', Tuple[str, int])
+
+# define module logger since app isn't initialized when this is run
+logger = logging.getLogger(__name__)
+configure_logger(logger)
+
+if Config.LOG_FILE:
+    fh = logging.FileHandler(Config.LOG_FILE)
+    fh.setLevel(Config.LOG_FILE_LEVEL)
+    fh.setFormatter(logging.Formatter(Config.LOG_FILE_FORMAT))
+    logger.addHandler(fh)
 
 
 class ClientManager:
@@ -55,7 +66,7 @@ class ClientManager:
             if user:
                 protocol.user_id = user.user_id
                 self.clients[user.user_id] = self.Client(patterns, protocol)
-                logging.info(
+                logger.info(
                     f'Registered client {util.format_addr(protocol.peername)} '
                     f'with user {user.username!r}')
 
@@ -98,13 +109,13 @@ class WebcandyServerProtocol(asyncio.Protocol):
         until token data is received.
         """
         self.peername = transport.get_extra_info('peername')
-        logging.info(f'Connected client {util.format_addr(self.peername)}')
+        logger.info(f'Connected client {util.format_addr(self.peername)}')
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         if self.user_id and self.user_id in clients:
             clients.remove(self.user_id)
-        logging.info(f'Disconnected client {util.format_addr(self.peername)}')
+        logger.info(f'Disconnected client {util.format_addr(self.peername)}')
 
     def data_received(self, data: bytes) -> None:
         """
@@ -115,20 +126,20 @@ class WebcandyServerProtocol(asyncio.Protocol):
         try:
             parsed = json.loads(data)
         except json.JSONDecodeError:
-            logging.debug(f'Received text: {data.decode()!r} '
-                          f'from {util.format_addr(self.peername)}')
+            logger.debug(f'Received text: {data.decode()!r} '
+                         f'from {util.format_addr(self.peername)}')
             return
 
         try:
             token = parsed['token']
             patterns = parsed['patterns']
         except KeyError:
-            logging.debug(f'Received JSON: {json.loads(data)} '
-                          f'from {util.format_addr(self.peername)}')
+            logger.debug(f'Received JSON: {json.loads(data)} '
+                         f'from {util.format_addr(self.peername)}')
             return
 
-        logging.debug(f'Received patterns: {patterns} '
-                      f'from {util.format_addr(self.peername)}')
+        logger.debug(f'Received patterns: {patterns} '
+                     f'from {util.format_addr(self.peername)}')
         clients.register(token, patterns, self)
 
     def send(self, data: bytes) -> bool:
@@ -140,10 +151,10 @@ class WebcandyServerProtocol(asyncio.Protocol):
         try:
             self.transport.write(data)
         except AttributeError:
-            logging.error('No client connection established')
+            logger.error('No client connection established')
             return False
         except OSError as e:
-            logging.error(e)
+            logger.error(e)
             return False
         return True
 
@@ -153,12 +164,6 @@ class ProxyServer:
     Manage running a server implementing ``WebcandyServerProtocol``.
     """
     _server_running: bool = False
-
-    def __init__(self, app: Flask = None):
-        self.app = app
-
-    def init_app(self, app: Flask):
-        self.app = app
 
     # TODO: Make proxy server host/port configurable within app context
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
@@ -175,7 +180,7 @@ class ProxyServer:
                 WebcandyServerProtocol, host, port)
             async with server:
                 addr = server.sockets[0].getsockname()
-                logging.info(f'Serving on {util.format_addr(addr)}')
+                logger.info(f'Proxy server bound to {util.format_addr(addr)}')
                 await server.serve_forever()
 
         if not self._server_running:
@@ -189,7 +194,7 @@ class ProxyServer:
                 server_thread.start()
                 self._server_running = True
             else:
-                logging.debug(
+                logger.warning(
                     f'Proxy server connection test to {host}:{port} '
                     f'returned status {status}')
 
@@ -202,12 +207,11 @@ class ProxyServer:
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
         if not self._server_running:
-            logging.error('Proxy server is not running')
+            logger.error('Proxy server is not running')
             return False
 
         if user_id not in clients:
-            logging.error(
-                f'No clients associated with user_id {user_id}')
+            logger.error(f'No clients associated with user_id {user_id}')
             return False
 
         clients[user_id].protocol.send(data)

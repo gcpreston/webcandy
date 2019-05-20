@@ -71,6 +71,7 @@ export default class CreateAccountForm extends React.Component {
         axios.post("/api/users/new", data).then(() => {
             window.location = "/";
         }).catch(error => {
+            console.log(error);
             this.setState({ errors: [error.response.data["error_description"]] })
         });
     }

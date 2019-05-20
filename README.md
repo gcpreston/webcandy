@@ -37,7 +37,7 @@ To run Webcandy, do the following:
     * *Note*: Modern browsers tend to cache web pages. For this reason, use `Ctrl/Cmd+Shift+R` to refresh and clear cache if you don't see your changes pop up.
 2. Start the Flask server by running `server/src/run.py`
 3. Start a [Webcandy client](https://github.com/gcpreston/webcandy-client).
-    *  *Note*: If this is done before the server is listening for client connections, an error will occur. Wait a few seconds until you see a log in the console saying "Serving on (host):(port)", and connecting should work fine.
+    *  *Note*: If this is done before the server is listening for client connections, an error will occur. Wait a few seconds until you see a log in the console saying "Proxy server bound to (host):(port)", and connecting should work fine.
 4. Navigate to the link in the Python console output to view the website!
 
 ###  Login

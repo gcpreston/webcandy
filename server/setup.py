@@ -10,6 +10,8 @@ setup(
         'Flask-Migrate',
         'Flask-SQLAlchemy',
         'gunicorn',
-        'python-dotenv'
+        'itsdangerous',
+        'python-dotenv',
+        'werkzeug'
     ]
 )

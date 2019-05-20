@@ -1,31 +1,28 @@
 import signal
-import logging
 
 from flask import Flask
-from webcandy.config import Config
-from webcandy.definitions import ROOT_DIR
+from flask.logging import default_handler
+
 from . import routes
+from .config import Config, configure_logger
+from .definitions import ROOT_DIR
 from .extensions import db, migrate
 from .server import clients, proxy_server
 
 
-def create_app(start_proxy: bool = True, log_file: str = None):
+def create_app(start_proxy: bool = True):
     """
     Build the Flask app and start the client manager.
+    :param start_proxy: whether to start the proxy server
     """
     app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
 
-    # use logging rather than app.logger
-    # TODO: Fix built-in Flask logs
-    if log_file:
-        logging.basicConfig(level=logging.DEBUG,
-                            format='[%(asctime)s] %(levelname)s: %(message)s',
-                            filename=log_file, filemode='a')
-    else:
-        logging.basicConfig(level=logging.DEBUG,
-                            format='[%(asctime)s] %(levelname)s: %(message)s')
+    # TODO: Why are duplicate log messages being generated for proxy server
+    #   start only in file and user login for both console and file?
+    configure_logger(app.logger)
+    app.logger.removeHandler(default_handler)
 
     register_extensions(app)
     register_views(app)
@@ -49,7 +46,6 @@ def register_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db)
     clients.init_app(app)
-    proxy_server.init_app(app)
 
 
 def register_views(app: Flask) -> None:
