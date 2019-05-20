@@ -28,13 +28,14 @@ class Config:
         'DATABASE_URL') or f'sqlite:///{ROOT_DIR}/server/webcandy.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
-    LOG_FILE = os.getenv('LOG_FILE')
+    LOG_LEVEL = os.getenv('LOG_LEVEL') or logging.INFO
+    LOG_FORMAT = os.getenv('LOG_FORMAT') or \
+        '%(levelname)s in %(module)s: %(message)s'
+
+    LOG_FILE = os.getenv('LOG_FILE')  # if None, don't log to file
     LOG_FILE_LEVEL = os.getenv('LOG_FILE_LEVEL') or logging.DEBUG
     LOG_FILE_FORMAT = os.getenv('LOG_FILE_FORMAT') or \
         '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-
-    LOG_LEVEL = os.getenv('LOG_LEVEL') or logging.INFO
-    LOG_FORMAT = os.getenv('LOG_FORMAT') or LOG_FILE_FORMAT
 
 
 def configure_logger(logger: logging.Logger) -> None:

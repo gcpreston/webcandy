@@ -19,8 +19,6 @@ def create_app(start_proxy: bool = True):
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
 
-    # TODO: Why are duplicate log messages being generated for proxy server
-    #   start only in file and user login for both console and file?
     configure_logger(app.logger)
     app.logger.removeHandler(default_handler)
 

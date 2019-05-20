@@ -33,7 +33,6 @@ def verify_auth_token(token: str) -> bool:
     """
     user = User.get_user(token)
     if user:
-        app.logger.info(f'Logged in {user.username}')
         g.user = user
         return True
     return False
@@ -107,6 +106,8 @@ def new_user():
     # add new user to database
     db.session.add(user)
     db.session.commit()
+
+    app.logger.debug(f'Created new user {user.username} <{user.email}>')
 
     # create data file
     with open(f'{ROOT_DIR}/server/data/{user.user_id}.json', 'w+') as file:
@@ -323,8 +324,9 @@ def submit():
 
     :return: JSON indicating if running was successful
     """
-    return jsonify(
-        success=proxy_server.send(g.user.user_id, request.get_data()))
+    data = request.get_data()
+    app.logger.debug(f'Received submission data from {g.user.username}: {data}')
+    return jsonify(success=proxy_server.send(g.user.user_id, data))
 
 
 # -------------------------------

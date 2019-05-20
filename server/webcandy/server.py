@@ -7,7 +7,7 @@ import logging
 from typing import NewType, Optional, Tuple, List, Dict
 from flask import Flask
 from . import util
-from .config import Config, configure_logger
+from .config import configure_logger
 from .models import User
 
 # define Address to be 2-tuple of (host, port)
@@ -16,12 +16,6 @@ Address = NewType('Address', Tuple[str, int])
 # define module logger since app isn't initialized when this is run
 logger = logging.getLogger(__name__)
 configure_logger(logger)
-
-if Config.LOG_FILE:
-    fh = logging.FileHandler(Config.LOG_FILE)
-    fh.setLevel(Config.LOG_FILE_LEVEL)
-    fh.setFormatter(logging.Formatter(Config.LOG_FILE_FORMAT))
-    logger.addHandler(fh)
 
 
 class ClientManager:
