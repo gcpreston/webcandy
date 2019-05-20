@@ -27,8 +27,8 @@ def create_app(start_proxy: bool = False, log_file: str = None):
         logging.basicConfig(level=logging.DEBUG,
                             format='[%(asctime)s] %(levelname)s: %(message)s')
 
-    register_extensions(app)
     register_views(app)
+    register_extensions(app)
 
     if app.config['ENV'] == 'production':
         host = '0.0.0.0'
