@@ -1,6 +1,5 @@
 import json
 
-from typing import Optional
 from flask import (
     g, Blueprint, render_template, jsonify, request, url_for, current_app as app
 )
@@ -69,6 +68,7 @@ class CatchAll(Resource):
         del path
         return util.format_error(404, NotFound().description)
 
+
 class Token(Resource):
     """
     Provide an authentication token.
@@ -101,11 +101,11 @@ class NewUser(Resource):
 
         if not (username and password):
             error_description = 'Missing username or password'
-            logging.error(error_description)
+            app.logger.error(error_description)
             return jsonify(util.format_error(400, error_description)), 400
         if User.query.filter_by(username=username).first() is not None:
             error_description = f"User '{username}' already exists"
-            logging.error(error_description)
+            app.logger.error(error_description)
             return jsonify(util.format_error(400, error_description)), 400
 
         if not email:
@@ -117,6 +117,8 @@ class NewUser(Resource):
         # add new user to database
         db.session.add(user)
         db.session.commit()
+
+        app.logger.debug(f'Created new user {user.username} <{user.email}>')
 
         # create data file
         with open(f'{ROOT_DIR}/server/data/{user.user_id}.json', 'w+') as file:
@@ -155,7 +157,7 @@ class UserData(Resource):
     @staticmethod
     @auth.login_required
     def put():
-        # TODO: User defaultdict
+        # TODO: Use defaultdict
         retval = {
             'colors': {
                 'added': dict(),
@@ -241,8 +243,10 @@ class Submit(Resource):
     @staticmethod
     @auth.login_required
     def post():
-        return jsonify(
-            success=proxy_server.send(g.user.user_id, request.get_data()))
+        data = request.get_data()
+        app.logger.debug(f'Received submission data from {g.user.username}: '
+                         f'{data}')
+        return jsonify(success=proxy_server.send(g.user.user_id, data))
 
 # -------------------------------
 # Error handlers
