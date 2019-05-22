@@ -25,12 +25,14 @@ export default class LightConfigForm extends React.Component {
 
         this.state = {
             patterns: [],
-            currentPattern: "",
+            pattern: "",
             colors: {},
+            color: "",
+            selectedColor: "",  // name of color
             customColor: false,
-            currentColor: "",
             colorLists: {},
-            currentColorList: "",
+            colorList: [],
+            selectedColorList: "",  // name of color list
             strobe: false,
         };
     }
@@ -46,9 +48,9 @@ export default class LightConfigForm extends React.Component {
             const patterns = response.data;
             this.setState({ patterns: patterns });
 
-            // set currentPattern initial value
+            // set pattern initial value
             if (patterns) {
-                this.setState({ currentPattern: Object.values(patterns)[0] })
+                this.setState({ pattern: Object.values(patterns)[0] })
             }
         }).catch(error => {
             if (error.response.status === 401) {
@@ -66,10 +68,10 @@ export default class LightConfigForm extends React.Component {
 
             // set initial values
             if (colors) {
-                this.setState({ currentColor: Object.values(colors)[0] })
+                this.setState({ color: Object.values(colors)[0] })
             }
             if (colorLists) {
-                this.setState({ currentColorList: Object.values(colorLists)[0] })
+                this.setState({ selectedColorList: Object.values(colorLists)[0] })
             }
         }).catch(error => {
             if (error.response.status === 401) {
@@ -104,24 +106,32 @@ export default class LightConfigForm extends React.Component {
                                  placement="right">
                             <Popover>
                                 <ChromePicker
-                                    color={this.state.currentColor}
-                                    onChange={e => this.setState({ currentColor: e.hex })}/>
+                                    color={this.state.color}
+                                    onChange={e => this.setState({ color: e.hex })}/>
                             </Popover>
                         </Overlay>
                         <Form.Control ref="colorField"
                                       type="text"
                                       placeholder="#RRGGBB"
-                                      value={this.state.currentColor}
-                                      onChange={e => this.setState({ currentColor: e.target.value })}
+                                      value={this.state.color}
+                                      onChange={e => this.setState({ color: e.target.value })}
                                       disabled={!this.state.customColor}/>
                     </Form.Group>
                 </Form.Row>
 
-                <Form.Group controlId="customColorCheck">
-                    <Form.Check value={this.state.customColor}
-                                onChange={this.handleCustomColorCheck}
-                                label="Custom color"/>
-                </Form.Group>
+                <Form.Row>
+                    <Form.Group controlId="customColorCheck">
+                        <Form.Check value={this.state.customColor}
+                                    onChange={this.handleCustomColorCheck}
+                                    label="Custom color"/>
+                    </Form.Group>
+
+                    <Form.Group controlId="saveButton">
+                        <Button variant="success" onClick={this.handleSave}>
+                            Save
+                        </Button>
+                    </Form.Group>
+                </Form.Row>
             </React.Fragment>
         );
 
@@ -141,7 +151,7 @@ export default class LightConfigForm extends React.Component {
         );
 
         let config;
-        switch (this.state.currentPattern) {
+        switch (this.state.pattern) {
             case "fade":
             case "scroll":
             case "stripes":
@@ -157,7 +167,7 @@ export default class LightConfigForm extends React.Component {
                 <Form.Group controlId="config">
                     <Form.Label>Pattern</Form.Label>
                     <Form.Control as="select"
-                                  onChange={e => this.setState({ currentPattern: e.target.value })}>
+                                  onChange={e => this.setState({ pattern: e.target.value })}>
                         {this.state.patterns.map((name, idx) => {
                             return <option key={idx}>{name}</option>;
                         })}
@@ -192,7 +202,10 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the select
      */
     handleColorSelect = (event) => {
-        this.setState({ currentColor: this.state.colors[event.target.value] });
+        this.setState({
+            selectedColor: event.target.value,
+            color: this.state.colors[event.target.value]
+        });
     };
 
     /**
@@ -200,7 +213,10 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the select
      */
     handleColorListSelect = (event) => {
-        this.setState({ currentColorList: this.state.colorLists[event.target.value] })
+        this.setState({
+            selectedColorList: event.target.value,
+            colorList: this.state.colorLists[event.target.value]
+        });
     };
 
     /**
@@ -209,7 +225,19 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the checkbox
      */
     handleCustomColorCheck = (event) => {
-        this.setState({ customColor: event.target.checked })
+        this.setState({ customColor: event.target.checked });
+
+        if (!event.target.checked) {
+            this.setState({ color: this.state.colors[this.state.selectedColor] })
+        }
+    };
+
+    /**
+     * Save the current custom color or color_List for the logged-in user.
+     * @param event - The save event
+     */
+    handleSave = (event) => {
+        // TODO: Implement save
     };
 
     /**
@@ -227,6 +255,7 @@ export default class LightConfigForm extends React.Component {
         pattern = target["config"].value;
         strobe = this.state.strobe;
 
+        // TODO: Synchronize state to not need any logic in this method
         // set color field
         if (target["colorField"] && this.state.customColor) {
             color = target["colorField"].value;
