@@ -5,6 +5,9 @@ import ChromePicker from 'react-color';
 import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
 import { getAuthConfig } from '../../util.js';
 
+let colorPatterns = ["solid_color"];
+let colorListPatterns = ["fade", "scroll", "stripes"];
+
 /**
  * Form for building lighting configuration request.
  */
@@ -16,26 +19,40 @@ export default class LightConfigForm extends React.Component {
             patterns: [],
             pattern: "",
             colors: {},
-            color: "",
+            enteredColor: "",
             selectedColor: "",  // name of color
             customColor: false,
             colorLists: {},
-            colorList: [],
+            enteredColorList: [],
             selectedColorList: "",  // name of color list
             strobe: false,
         };
     }
 
     /**
-     * Get the current color based on whether or not the "Custom oolor" checkbox
-     * is selected.
+     * Get the current color based on if the current pattern utilizes the color
+     * field and if the "Custom color" checkbox is selected.
      */
     getCurrentColor() {
-        if (this.state.customColor) {
-            return this.state.color
-        } else {
+        if (colorPatterns.includes(this.state.pattern)) {
+            if (this.state.customColor) {
+                return this.state.enteredColor;
+            }
             return this.state.colors[this.state.selectedColor];
         }
+        return null;
+    }
+
+    /**
+     * Get the current color list basedo n if the current pattern utilitzes
+     * the color_list field
+     */
+    getCurrentColorList() {
+        if (colorListPatterns.includes(this.state.pattern)) {
+            // TODO: Update this logic when color list entry is implemented
+            return this.state.colorLists[this.state.selectedColorList];
+        }
+        return null;
     }
 
     /**
@@ -71,10 +88,16 @@ export default class LightConfigForm extends React.Component {
 
             // set initial values
             if (colors) {
-                this.setState({ color: Object.values(colors)[0] })
+                this.setState({
+                    selectedColor: Object.keys(colors)[0],
+                    enteredColor: Object.values(colors)[0]
+                })
             }
             if (colorLists) {
-                this.setState({ selectedColorList: Object.values(colorLists)[0] })
+                this.setState({
+                    selectedColorList: Object.keys(colorLists)[0],
+                    enteredColorList: Object.values(colorLists)[0]
+                })
             }
         }).catch(error => {
             if (error.response && error.response.status === 401) {
@@ -109,15 +132,15 @@ export default class LightConfigForm extends React.Component {
                                  placement="right">
                             <Popover>
                                 <ChromePicker
-                                    color={this.state.color}
-                                    onChange={e => this.setState({ color: e.hex })}/>
+                                    color={this.state.enteredColor}
+                                    onChange={e => this.setState({ enteredColor: e.hex })}/>
                             </Popover>
                         </Overlay>
                         <Form.Control ref="colorField"
                                       type="text"
                                       placeholder="#RRGGBB"
-                                      value={this.state.color}
-                                      onChange={e => this.setState({ color: e.target.value })}
+                                      value={this.state.enteredColor}
+                                      onChange={e => this.setState({ enteredColor: e.target.value })}
                                       disabled={!this.state.customColor}/>
                     </Form.Group>
                 </Form.Row>
@@ -129,7 +152,6 @@ export default class LightConfigForm extends React.Component {
                                     label="Custom color"/>
                     </Form.Group>
 
-                    // TODO: Align right
                     <Form.Group controlId="saveButton">
                         <Button variant="success" onClick={this.handleSave}>
                             Save
@@ -160,9 +182,11 @@ export default class LightConfigForm extends React.Component {
             case "scroll":
             case "stripes":
                 config = colorListEntry;
+                // this.setState({ enteredColor: "" });
                 break;
             case "solid_color":
                 config = colorEntry;
+                // this.setState({ enteredColorList: [] });
                 break;
         }
 
@@ -208,7 +232,7 @@ export default class LightConfigForm extends React.Component {
     handleColorSelect = (event) => {
         this.setState({
             selectedColor: event.target.value,
-            color: this.state.colors[event.target.value]
+            enteredColor: this.state.colors[event.target.value]
         });
     };
 
@@ -219,7 +243,7 @@ export default class LightConfigForm extends React.Component {
     handleColorListSelect = (event) => {
         this.setState({
             selectedColorList: event.target.value,
-            colorList: this.state.colorLists[event.target.value]
+            enteredColorList: this.state.colorLists[event.target.value]
         });
     };
 
@@ -232,7 +256,7 @@ export default class LightConfigForm extends React.Component {
         this.setState({ customColor: event.target.checked });
 
         if (!event.target.checked) {
-            this.setState({ color: this.state.colors[this.state.selectedColor] })
+            this.setState({ enteredColor: this.state.colors[this.state.selectedColor] })
         }
     };
 
@@ -251,33 +275,11 @@ export default class LightConfigForm extends React.Component {
     handleSubmit = (event) => {
         event.preventDefault();
 
-        const target = event.currentTarget;  // TODO: Use only state if possible
-
-        // data fields
-        let pattern, strobe, color, colorList;
-
-        pattern = target["patternSelect"].value;
-        strobe = this.state.strobe;
-
-        // TODO: Synchronize state to not need any logic in this method
-        // set color field
-        if (target["colorField"] && this.state.customColor) {
-            color = target["colorField"].value;
-        } else if (target["colorSelect"]) {
-            color = this.state.colors[target["colorSelect"].value];
-        }
-
-        // set color_list field
-        if (target["colorListSelect"]) {
-            colorList = this.state.colorLists[target["colorListSelect"].value];
-        }
-
         const data = {
-            "client_id": this.props.clientId,
-            "pattern": pattern,
-            "strobe": strobe,
-            "color": color,
-            "color_list": colorList
+            "pattern": this.state.pattern,
+            "strobe": this.state.strobe,
+            "color": this.getCurrentColor(),
+            "color_list": this.getCurrentColorList()
         };
 
         this.submit(data);
