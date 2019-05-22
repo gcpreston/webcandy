@@ -126,6 +126,7 @@ export default class LightConfigForm extends React.Component {
                                     label="Custom color"/>
                     </Form.Group>
 
+                    // TODO: Align right
                     <Form.Group controlId="saveButton">
                         <Button variant="success" onClick={this.handleSave}>
                             Save
