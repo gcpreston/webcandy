@@ -3,7 +3,7 @@ import re
 import json
 
 from typing import Dict, Tuple
-from webcandy.definitions import DATA_DIR
+from .definitions import DATA_DIR
 
 
 def is_color(s: str) -> bool:

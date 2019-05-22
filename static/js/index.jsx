@@ -17,6 +17,7 @@ function loggedIn() {
    return Boolean(sessionStorage.getItem("token"));
 }
 
+// TODO: Going to /hello tries to load /hello/dist/bundle.js??
 const router = (
     <Router>
         <div>
