@@ -27,6 +27,18 @@ export default class LightConfigForm extends React.Component {
     }
 
     /**
+     * Get the current color based on whether or not the "Custom oolor" checkbox
+     * is selected.
+     */
+    getCurrentColor() {
+        if (this.state.customColor) {
+            return this.state.color
+        } else {
+            return this.state.colors[this.state.selectedColor];
+        }
+    }
+
+    /**
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
