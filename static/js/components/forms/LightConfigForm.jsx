@@ -162,7 +162,7 @@ export default class LightConfigForm extends React.Component {
                     </Form.Group>
 
                     <Form.Group controlId="saveButton">
-                        <Button variant="success" onClick={this.handleSave}>
+                        <Button variant="success" onClick={this.handleSaveColor}>
                             Save
                         </Button>
                     </Form.Group>
@@ -270,11 +270,25 @@ export default class LightConfigForm extends React.Component {
     };
 
     /**
-     * Save the current custom color or color_List for the logged-in user.
+     * Save the current custom color for the logged-in user.
      * @param event - The save event
      */
-    handleSave = (event) => {
-        // TODO: Implement save
+    handleSaveColor = (event) => {
+        event.preventDefault();
+
+        const data = {
+            "colors": [this.state.currentColor]
+        };
+
+        axios.put("/api/user/data", data, getConfig())
+            .then(response => console.log(response))
+            .catch(error => {
+                if (error.response.status === 401) {
+                    window.location = '/login'; // unauthorized
+                } else {
+                    console.log(error);
+                }
+            });
     };
 
     /**
@@ -290,7 +304,6 @@ export default class LightConfigForm extends React.Component {
             "color": this.getCurrentColor(),
             "color_list": this.getCurrentColorList()
         };
-        console.log(data);
 
         this.submit(data);
     };

@@ -81,7 +81,7 @@ class Token(Resource):
         user = User.query.filter_by(username=req_json["username"]).first()
         if not user or not user.check_password(req_json["password"]):
             description = 'Invalid username and password combination'
-            return jsonify(util.format_error(401, description)), 401
+            return util.format_error(401, description), 401
         
         g.user = user
         token = g.user.generate_auth_token()
