@@ -76,7 +76,7 @@ class ClientManager:
         :raises ValueError: if user has no associated clients
         """
         if not self.contains(user_id, client_id):
-            raise ValueError(f'user {user_id} has no associated client with ID '
+            raise ValueError(f'User {user_id} has no associated client with ID '
                              f'{client_id!r}')
 
         self.clients[user_id][client_id].protocol.transport.close()
@@ -240,8 +240,9 @@ class ProxyServer:
             logger.error('Proxy server is not running')
             return False
 
-        if user_id not in clients:
-            logger.error(f'No clients associated with user_id {user_id}')
+        if not clients.contains(user_id, client_id):
+            logger.error(f'user {user_id} has no associated client with ID '
+                         f'{client_id!r}')
             return False
 
         clients.get(user_id, client_id).protocol.send(data)
