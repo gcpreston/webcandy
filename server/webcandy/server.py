@@ -82,11 +82,11 @@ class ClientManager:
         self.clients[user_id][client_id].protocol.transport.close()
         del self.clients[user_id][client_id]
 
-    def available_clients(self, user_id: int) -> Dict[str, Client]:
+    def available_clients(self, user_id: int) -> List[str]:
         """
-        Get a dictionary of currently connected clients for the specified user.
+        Get a list of IDs of currently connected clients.
         """
-        return self.clients[user_id]
+        return list(self.clients[user_id])
 
     def get(self, user_id: int, client_id: str) -> Client:
         """

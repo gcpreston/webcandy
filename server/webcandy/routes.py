@@ -205,27 +205,19 @@ class UserData(Resource):
 
 class UserClients(Resource):
     """
-    Determine if the current user has a connected client.
-    """
-
-    @staticmethod
-    @auth.login_required
-    def get():
-        return clients.available_clients(g.user.user_id)
-
-
-class ClientPatterns(Resource):
-    """
-    Get a list of valid lighting pattern names for the current user's client.
+    Provide information about the user's currently connected clients.
     """
 
     @staticmethod
     @auth.login_required
     def get():
         client_id = request.args.get('client_id')
-        if not client_id:
-            return util.format_error(400, 'Please provide a client_id'), 400
 
+        # if client_id not specified, return a dictionary of available clients
+        if not client_id:
+            return clients.available_clients(g.user.user_id)
+
+        # if client_id is specified, return info about that client
         if not clients.contains(g.user.user_id, client_id):
             return (
                 util.format_error(400,
@@ -234,7 +226,7 @@ class ClientPatterns(Resource):
                 400
             )
 
-        return jsonify(clients[g.user.user_id].patterns)
+        return {'patterns': clients.get(g.user.user_id, client_id).patterns}
 
 
 class Submit(Resource):
