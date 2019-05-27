@@ -78,9 +78,14 @@ export default class App extends React.Component {
             const connectedClients = response.data;
             this.setState({ connectedClients: connectedClients });
 
-            // set initial clientId value if not already set
-            if (!this.state.clientId && connectedClients.length > 0) {
-                this.setState({ clientId: connectedClients[0] })
+            if (connectedClients.length > 0) {
+                // set initial clientId value if not already set
+                if (!this.state.clientId) {
+                    this.setState({ clientId: connectedClients[0] });
+                }
+            } else {
+                // clear clientId if no clients are connected
+                this.setState({ clientId: "" });
             }
         }).catch(error => console.log(error.response));
     };
