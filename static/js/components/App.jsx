@@ -32,6 +32,12 @@ export default class App extends React.Component {
     }
 
     render() {
+        const refreshButton = (
+            <Button onClick={this.updateConnectedClients}>
+                Refresh
+            </Button>
+        );
+
         return (
             <React.Fragment>
                 <div className="title">
@@ -41,20 +47,23 @@ export default class App extends React.Component {
 
                 <Form>
                     <Form.Group controlId="clientSelect">
-                        <Form.Label>Client</Form.Label>
-                        <Form.Control as="select"
-                                      onChange={e => this.setState({ clientId: e.target.value })}>
-                            {this.state.connectedClients.map((name, idx) => {
-                                return <option key={idx}>{name}</option>;
-                            })}
-                        </Form.Control>
+                        {this.state.connectedClients.length === 0 ?
+                            <Form.Text>No clients currently
+                                connected.</Form.Text> :
+                            <React.Fragment>
+                                <Form.Label>Client</Form.Label>
+                                <Form.Control as="select"
+                                              onChange={e => this.setState({ clientId: e.target.value })}>
+                                    {this.state.connectedClients.map((name, idx) => {
+                                        return <option
+                                            key={idx}>{name}</option>;
+                                    })}
+                                </Form.Control>
+                            </React.Fragment>}
                     </Form.Group>
 
-
                     <Form.Group controlId="refreshButton">
-                        <Button onClick={this.updateConnectedClients}>
-                            Refresh
-                        </Button>
+                        {refreshButton}
                     </Form.Group>
                 </Form>
 
