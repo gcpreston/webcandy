@@ -250,8 +250,8 @@ class Submit(Resource):
                          f'{data}')
 
         try:
-            client_id = data['client_id']
-            del data['client_id']
+            client_id = data['clientId']
+            del data['clientId']
 
             return dict(
                 success=proxy_server.send(g.user.user_id, client_id, data))

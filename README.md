@@ -28,9 +28,6 @@ Then, install the project requirements:
 (venv) $ pip install -r requirements.txt
 ```
 
-### Configuration
-
-
 ## Running
 To run Webcandy, do the following:
 1. Run `npm run watch` from the `static` directory. This watches for any changes made to the front-end and will let you see them by refreshing the page.

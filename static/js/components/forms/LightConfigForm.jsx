@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios/index';
 import ChromePicker from 'react-color';
 import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
@@ -7,7 +8,7 @@ import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
  * Get config with authorization token to make Webcandy API calls.
  * @returns {{headers: {Authorization: string}}}
  */
-function getConfig() {
+function getAuthConfig() {
     const token = sessionStorage.getItem("token");
     return {
         headers: {
@@ -40,11 +41,12 @@ export default class LightConfigForm extends React.Component {
      */
     componentWillMount() {
         // make API calls
-        const config = getConfig();
+        const authConfig = getAuthConfig();
+        const clientConfig = getAuthConfig();
+        clientConfig["params"] = {"client_id": this.props.clientId};
 
-        // TODO: Make client selection screen and use that data here
-        axios.get("/api/user/client/patterns", config).then(response => {
-            const patterns = response.data;
+        axios.get("/api/user/clients", clientConfig).then(response => {
+            const patterns = response.data.patterns;
             this.setState({ patterns: patterns });
 
             // set currentPattern initial value
@@ -52,17 +54,16 @@ export default class LightConfigForm extends React.Component {
                 this.setState({ currentPattern: Object.values(patterns)[0] })
             }
         }).catch(error => {
-            // TODO: error.response is undefined
-            if (error.response.status === 401) {
-                window.location = '/login'; // api key has expired
+            if (error.response && error.response.status === 401) {
+                window.location = "/login"; // api key has expired
             } else {
                 console.log(error);
             }
         });
 
-        axios.get("/api/user/data", config).then(response => {
-            const colors = response.data['colors'];
-            const colorLists = response.data['color_lists'];
+        axios.get("/api/user/data", authConfig).then(response => {
+            const colors = response.data["colors"];
+            const colorLists = response.data["color_lists"];
 
             this.setState({ colors: colors, colorLists: colorLists });
 
@@ -74,8 +75,8 @@ export default class LightConfigForm extends React.Component {
                 this.setState({ currentColorList: Object.values(colorLists)[0] })
             }
         }).catch(error => {
-            if (error.response.status === 401) {
-                window.location = '/login'; // api key has expired
+            if (error.response && error.response.status === 401) {
+                window.location = "/login"; // api key has expired
             } else {
                 console.log(error);
             }
@@ -156,7 +157,7 @@ export default class LightConfigForm extends React.Component {
 
         return (
             <Form onSubmit={this.handleSubmit}>
-                <Form.Group controlId="config">
+                <Form.Group controlId="patternSelect">
                     <Form.Label>Pattern</Form.Label>
                     <Form.Control as="select"
                                   onChange={e => this.setState({ currentPattern: e.target.value })}>
@@ -226,7 +227,7 @@ export default class LightConfigForm extends React.Component {
         // data fields
         let pattern, strobe, color, colorList;
 
-        pattern = target["config"].value;
+        pattern = target["patternSelect"].value;
         strobe = this.state.strobe;
 
         // set color field
@@ -242,6 +243,7 @@ export default class LightConfigForm extends React.Component {
         }
 
         const data = {
+            "client_id": this.props.clientId,
             "pattern": pattern,
             "strobe": strobe,
             "color": color,
@@ -259,6 +261,7 @@ export default class LightConfigForm extends React.Component {
         event.preventDefault();
 
         const data = {
+            "client_id": this.props.clientId,
             "pattern": "off"
         };
 
@@ -272,14 +275,18 @@ export default class LightConfigForm extends React.Component {
      * @param data - The lighting pattern and settings to run
      */
     submit(data) {
-        axios.post("/api/submit", data, getConfig())
+        axios.post("/api/submit", data, getAuthConfig())
             .then(response => console.log(response))
             .catch(error => {
                 if (error.response.status === 401) {
-                    window.location = '/login'; // unauthorized
+                    window.location = "/login"; // unauthorized
                 } else {
                     console.log(error);
                 }
             });
     }
 }
+
+LightConfigForm.propTypes = {
+    clientId: PropTypes.string.isRequired,
+};
