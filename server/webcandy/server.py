@@ -4,6 +4,7 @@ import threading
 import json
 import logging
 
+from collections import defaultdict
 from typing import NewType, Optional, Tuple, List, Dict
 from flask import Flask
 from . import util
@@ -33,8 +34,8 @@ class ClientManager:
             self.patterns = patterns
             self.protocol = protocol
 
-    # TODO: Allow multiple clients per user
-    clients: Dict[int, Client] = dict()  # map user_id to Client instance
+    # map user_id to map of client ID to Client instance
+    clients: Dict[int, Dict[str, Client]] = defaultdict(dict)
 
     def __init__(self, app: Flask = None):
         self.app = app
@@ -42,12 +43,13 @@ class ClientManager:
     def init_app(self, app: Flask):
         self.app = app
 
-    def register(self, token: str, patterns: List[str],
+    def register(self, token: str, client_id: str, patterns: List[str],
                  protocol: 'WebcandyServerProtocol') -> None:
         """
         Register a new client.
 
         :param token: authorization token provided by the client
+        :param client_id: the client ID to use; must be unique for this user
         :param patterns: available patterns provided by the client
         :param protocol: ``WebcandyServerProtocol`` instance for the client
         :raises RuntimeError: if called before app is initialized
@@ -58,30 +60,45 @@ class ClientManager:
         with self.app.app_context():
             user: User = User.get_user(token)
             if user:
-                protocol.user_id = user.user_id
-                self.clients[user.user_id] = self.Client(patterns, protocol)
+                protocol.init(user.user_id, client_id)
+                self.clients[user.user_id][client_id] = self.Client(patterns,
+                                                                    protocol)
                 logger.info(
-                    f'Registered client {util.format_addr(protocol.peername)} '
-                    f'with user {user.username!r}')
+                    f'Registered client {client_id!r} '
+                    f'with user {user.user_id}')
 
-    def remove(self, user_id: int) -> None:
+    def remove(self, user_id: int, client_id: str) -> None:
         """
         Close a client's transport and remove it from the client manager.
 
-        :param user_id: the user to remove the client of
+        :param user_id: the user who owns the client
+        :param client_id: the ID of the client to remove
         :raises ValueError: if user has no associated clients
         """
-        if user_id not in self:
-            raise ValueError(f'user {user_id} has no associated clients')
+        if not self.contains(user_id, client_id):
+            raise ValueError(f'user {user_id} has no associated client with ID '
+                             f'{client_id!r}')
 
-        self.clients[user_id].protocol.transport.close()
-        del self.clients[user_id]
+        self.clients[user_id][client_id].protocol.transport.close()
+        del self.clients[user_id][client_id]
 
-    def __getitem__(self, user_id):
+    def available_clients(self, user_id: int) -> Dict[str, Client]:
+        """
+        Get a dictionary of currently connected clients for the specified user.
+        """
         return self.clients[user_id]
 
-    def __contains__(self, user_id):
-        return user_id in self.clients
+    def get(self, user_id: int, client_id: str) -> Client:
+        """
+        Get a currently registered client.
+        """
+        return self.clients[user_id][client_id]
+
+    def contains(self, user_id: int, client_id: str):
+        """
+        Check if a user has a client with the specified ID.
+        """
+        return client_id in self.clients[user_id]
 
 
 clients = ClientManager()  # make sure to call init_app on this
@@ -95,7 +112,21 @@ class WebcandyServerProtocol(asyncio.Protocol):
 
     peername: Address = None
     transport: asyncio.Transport = None
-    user_id: int = None  # this must be set
+
+    # these must be set
+    user_id: int = None
+    client_id: str = None
+
+    def init(self, user_id: int, client_id: str):
+        """
+        Set required fields for this protocol.
+
+        :param user_id: the user owning the client this protocol represents
+        :param client_id: the ID of the client this protocol represents
+        :return:
+        """
+        self.user_id = user_id
+        self.client_id = client_id
 
     def connection_made(self, transport: asyncio.Transport) -> None:
         """
@@ -107,9 +138,11 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
-        if self.user_id and self.user_id in clients:
-            clients.remove(self.user_id)
-        logger.info(f'Disconnected client {util.format_addr(self.peername)}')
+        if self.user_id and clients.contains(self.user_id, self.client_id):
+            clients.remove(self.user_id, self.client_id)
+        logger.info(f'Disconnected user {self.user_id}, '
+                    f'client {self.client_id!r} '
+                    f'({util.format_addr(self.peername)})')
 
     def data_received(self, data: bytes) -> None:
         """
@@ -124,26 +157,28 @@ class WebcandyServerProtocol(asyncio.Protocol):
                          f'from {util.format_addr(self.peername)}')
             return
 
+        # TODO: Make this error log/send response to transport when incorrectly
+        #   formatted data is received
         try:
             token = parsed['token']
+            client_id = parsed['client_id']
             patterns = parsed['patterns']
+
+            logger.debug(f'Received patterns: {patterns} '
+                         f'from {util.format_addr(self.peername)}')
+            clients.register(token, client_id, patterns, self)
         except KeyError:
             logger.debug(f'Received JSON: {json.loads(data)} '
                          f'from {util.format_addr(self.peername)}')
-            return
 
-        logger.debug(f'Received patterns: {patterns} '
-                     f'from {util.format_addr(self.peername)}')
-        clients.register(token, patterns, self)
-
-    def send(self, data: bytes) -> bool:
+    def send(self, data: dict) -> bool:
         """
-        Send data to a client.
+        Send dictionary data to a client.
         :param data: the data to send
         :return: ``True`` if the operation was successful; ``False`` otherwise
         """
         try:
-            self.transport.write(data)
+            self.transport.write(bytes(json.dumps(data), 'utf-8'))
         except AttributeError:
             logger.error('No client connection established')
             return False
@@ -192,11 +227,12 @@ class ProxyServer:
                     f'Proxy server connection test to {host}:{port} '
                     f'returned status {status}')
 
-    def send(self, user_id: int, data: bytes) -> bool:
+    def send(self, user_id: int, client_id: str, data: dict) -> bool:
         """
-        Send data to the client associated with the specified user.
+        Send dictionary data to a client associated with the specified user.
 
         :param user_id: ID of the user whose client to send data to
+        :param client_id: ID of the client belonging to the user to send data to
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
@@ -208,7 +244,7 @@ class ProxyServer:
             logger.error(f'No clients associated with user_id {user_id}')
             return False
 
-        clients[user_id].protocol.send(data)
+        clients.get(user_id, client_id).protocol.send(data)
         return True
 
 

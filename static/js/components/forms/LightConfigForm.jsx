@@ -42,6 +42,7 @@ export default class LightConfigForm extends React.Component {
         // make API calls
         const config = getConfig();
 
+        // TODO: Make client selection screen and use that data here
         axios.get("/api/user/client/patterns", config).then(response => {
             const patterns = response.data;
             this.setState({ patterns: patterns });
@@ -51,6 +52,7 @@ export default class LightConfigForm extends React.Component {
                 this.setState({ currentPattern: Object.values(patterns)[0] })
             }
         }).catch(error => {
+            // TODO: error.response is undefined
             if (error.response.status === 401) {
                 window.location = '/login'; // api key has expired
             } else {
