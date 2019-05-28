@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import LightConfigForm from './forms/LightConfigForm';
 
@@ -12,13 +12,14 @@ export default class App extends React.Component {
 
         this.state = {
             username: "",
-            clientConnected: false
+            connectedClients: [],
+            clientId: ""
         };
     }
 
     componentWillMount() {
         // TODO: Figure out better way to handle errors for production
-        this.updateClientConnected();
+        this.updateConnectedClients();
 
         axios.get("/api/user/info", {
             headers: {
@@ -31,20 +32,45 @@ export default class App extends React.Component {
     }
 
     render() {
+        const refreshButton = (
+            <Button onClick={this.updateConnectedClients}>
+                Refresh
+            </Button>
+        );
+
         return (
             <React.Fragment>
                 <div className="title">
                     <h1>Webcandy</h1>
                     <p>Logged in as {this.state.username}</p>
                 </div>
-                {this.state.clientConnected ? <LightConfigForm/> :
-                    <React.Fragment>
-                        <span>No clients currently connected. </span>
-                        <Button onClick={this.updateClientConnected}>
-                            Refresh
-                        </Button>
-                        <br/>
-                    </React.Fragment>}
+
+                <Form>
+                    <Form.Group controlId="clientSelect">
+                        {this.state.connectedClients.length === 0 ?
+                            <Form.Text>No clients currently
+                                connected.</Form.Text> :
+                            <React.Fragment>
+                                <Form.Label>Client</Form.Label>
+                                <Form.Control as="select"
+                                              onChange={e => this.setState({ clientId: e.target.value })}>
+                                    {this.state.connectedClients.map((name, idx) => {
+                                        return <option
+                                            key={idx}>{name}</option>;
+                                    })}
+                                </Form.Control>
+                            </React.Fragment>}
+                    </Form.Group>
+
+                    <Form.Group controlId="refreshButton">
+                        {refreshButton}
+                    </Form.Group>
+                </Form>
+
+                {this.state.clientId ?
+                    <LightConfigForm clientId={this.state.clientId}/> :
+                    null}
+
                 <Button variant="warning" onClick={this.handleLogout}>
                     Logout
                 </Button>
@@ -52,14 +78,24 @@ export default class App extends React.Component {
         )
     }
 
-    updateClientConnected = () => {
+    updateConnectedClients = () => {
         axios.get("/api/user/clients", {
             headers: {
                 "Authorization": "Bearer " + sessionStorage.getItem("token")
             }
         }).then(response => {
-            const clientConnected = response.data;
-            this.setState({ clientConnected: clientConnected })
+            const connectedClients = response.data;
+            this.setState({ connectedClients: connectedClients });
+
+            if (connectedClients.length > 0) {
+                // set initial clientId value if not already set
+                if (!this.state.clientId) {
+                    this.setState({ clientId: connectedClients[0] });
+                }
+            } else {
+                // clear clientId if no clients are connected
+                this.setState({ clientId: "" });
+            }
         }).catch(error => console.log(error.response));
     };
 

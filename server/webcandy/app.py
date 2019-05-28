@@ -56,7 +56,6 @@ def register_views(app: Flask) -> None:
     api.add_resource(routes.UserInfo, '/user/info')
     api.add_resource(routes.UserData, '/user/data')
     api.add_resource(routes.UserClients, '/user/clients')
-    api.add_resource(routes.ClientPatterns, '/user/client/patterns')
     api.add_resource(routes.Submit, '/submit')
     api.add_resource(routes.CatchAll, '/<path:path>')
 

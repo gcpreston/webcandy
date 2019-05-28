@@ -2,7 +2,7 @@ import os
 import re
 import json
 
-from typing import Dict, Tuple
+from typing import Optional, Dict, Tuple
 from .definitions import DATA_DIR
 
 
@@ -14,6 +14,31 @@ def is_color(s: str) -> bool:
     :return: ``True`` if ``s`` fits the pattern; ``False`` otherwise
     """
     return bool(re.match(r'^#[A-Fa-f0-9]{6}$', s))
+
+
+def get_level(env_level: Optional[str]) -> Optional[int]:
+    """
+    Convert user-entered log level to a numeric one to send to the logger
+    module.
+
+    :param env_level: either log level number or log level name
+    :return: the associated log level number
+    """
+    if env_level is None:
+        return None
+
+    try:
+        return int(env_level)
+    except ValueError:
+        levels = {
+            'CRITICAL': 50,
+            'ERROR': 40,
+            'WARNING': 30,
+            'INFO': 20,
+            'DEBUG': 10,
+            'NOTSET': 0
+        }
+        return levels.get(env_level.upper())  # possibly None
 
 
 def load_user_data(user_id: int) -> Dict:
