@@ -45,27 +45,31 @@ export default class App extends React.Component {
                     <p>Logged in as {this.state.username}</p>
                 </div>
 
-                <Form>
-                    <Form.Group controlId="clientSelect">
-                        {this.state.connectedClients.length === 0 ?
-                            <Form.Text>No clients currently
-                                connected.</Form.Text> :
-                            <React.Fragment>
-                                <Form.Label>Client</Form.Label>
-                                <Form.Control as="select"
-                                              onChange={e => this.setState({ clientId: e.target.value })}>
-                                    {this.state.connectedClients.map((name, idx) => {
-                                        return <option
-                                            key={idx}>{name}</option>;
-                                    })}
-                                </Form.Control>
-                            </React.Fragment>}
-                    </Form.Group>
+                <div className="clientSelect">
+                    <Form>
+                        <Form.Group controlId="clientSelect">
+                            {this.state.connectedClients.length === 0 ?
+                                <Form.Text>No clients currently
+                                    connected.</Form.Text> :
+                                <React.Fragment>
+                                    <Form.Label>Client</Form.Label>
+                                    <Form.Control as="select"
+                                                  onChange={e => this.setState({ clientId: e.target.value })}>
+                                        {this.state.connectedClients.map((name, idx) => {
+                                            return <option
+                                                key={idx}>{name}</option>;
+                                        })}
+                                    </Form.Control>
+                                </React.Fragment>}
+                        </Form.Group>
 
-                    <Form.Group controlId="refreshButton">
-                        {refreshButton}
-                    </Form.Group>
-                </Form>
+                        <Form.Group controlId="refreshButton">
+                            {refreshButton}
+                        </Form.Group>
+                    </Form>
+                </div>
+
+                <hr/>
 
                 {this.state.clientId ?
                     <LightConfigForm clientId={this.state.clientId}/> :

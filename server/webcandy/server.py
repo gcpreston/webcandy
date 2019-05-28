@@ -161,7 +161,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
         #   formatted data is received
         try:
             token = parsed['token']
-            client_id = parsed['clientId']
+            client_id = parsed['client_id']
             patterns = parsed['patterns']
 
             logger.debug(f'Received patterns: {patterns} '

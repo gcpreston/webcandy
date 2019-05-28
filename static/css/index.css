@@ -8,12 +8,15 @@ body {
 
 .title {
     text-align: center;
-    margin-bottom: 20%;
 }
 
 .dark {
     background-color: #2b2b2b;
     color: aliceblue;
+}
+
+.dark hr {
+    border-color: aliceblue;
 }
 
 .errors {
