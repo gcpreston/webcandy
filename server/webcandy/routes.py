@@ -82,11 +82,11 @@ class Token(Resource):
         user = User.query.filter_by(username=req_json["username"]).first()
         if not user or not user.check_password(req_json["password"]):
             description = 'Invalid username and password combination'
-            return jsonify(util.format_error(401, description)), 401
+            return util.format_error(401, description), 401
 
         g.user = user
         token = g.user.generate_auth_token()
-        return jsonify({'token': token.decode('ascii')})
+        return {'token': token.decode('ascii')}
 
 
 class NewUser(Resource):
@@ -103,11 +103,11 @@ class NewUser(Resource):
         if not (username and password):
             error_description = 'Missing username or password'
             app.logger.error(error_description)
-            return jsonify(util.format_error(400, error_description)), 400
+            return util.format_error(400, error_description), 400
         if User.query.filter_by(username=username).first() is not None:
             error_description = f"User '{username}' already exists"
             app.logger.error(error_description)
-            return jsonify(util.format_error(400, error_description)), 400
+            return util.format_error(400, error_description), 400
 
         if not email:
             user = User(username=username)
@@ -140,8 +140,8 @@ class UserInfo(Resource):
     @staticmethod
     @auth.login_required
     def get():
-        return jsonify({'user_id': g.user.user_id, 'username': g.user.username,
-                        'email': g.user.email})
+        return {'user_id': g.user.user_id, 'username': g.user.username,
+                'email': g.user.email}
 
 
 class UserData(Resource):
@@ -152,8 +152,7 @@ class UserData(Resource):
     @staticmethod
     @auth.login_required
     def get():
-        # TODO: Return patterns with user data?
-        return jsonify(util.load_user_data(g.user.user_id))
+        return util.load_user_data(g.user.user_id)
 
     @staticmethod
     @auth.login_required
@@ -200,7 +199,7 @@ class UserData(Resource):
         with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
             json.dump(json_data, data_file, indent=4)
 
-        return jsonify(retval)
+        return retval
 
 
 class UserClients(Resource):
