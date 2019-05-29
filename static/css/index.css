@@ -23,10 +23,3 @@ body {
     text-align: center;
     color: #c75450;
 }
-
-@media only screen
-and (max-width : 640px) {
-    body {
-        margin: 8%;
-    }
-}
