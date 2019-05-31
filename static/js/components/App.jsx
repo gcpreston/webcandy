@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, Button } from 'react-bootstrap';
 import axios from 'axios';
+
 import LightConfigForm from './forms/LightConfigForm';
 
 /**
@@ -28,7 +29,14 @@ export default class App extends React.Component {
         }).then(response => {
             const data = response.data;
             this.setState({ username: data['username'] })
-        }).catch(error => console.log(error.response));
+        }).catch(error => {
+            // TODO: Redirect to login directly from index.jsx
+            if (error.response && error.response.status === 401) {
+                window.location = "/login"; // api key has expired
+            } else {
+                console.log(error);
+            }
+        });
     }
 
     render() {

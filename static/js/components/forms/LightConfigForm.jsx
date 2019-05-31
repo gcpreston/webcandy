@@ -1,21 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios/index';
+import axios from 'axios';
 import ChromePicker from 'react-color';
 import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
-
-/**
- * Get config with authorization token to make Webcandy API calls.
- * @returns {{headers: {Authorization: string}}}
- */
-function getAuthConfig() {
-    const token = sessionStorage.getItem("token");
-    return {
-        headers: {
-            Authorization: "Bearer " + token,
-        }
-    }
-}
+import { getAuthConfig } from '../../util.js';
 
 /**
  * Form for building lighting configuration request.

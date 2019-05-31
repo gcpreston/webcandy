@@ -6,16 +6,12 @@ import {
     Switch,
     Redirect
 } from 'react-router-dom';
+
 import App from './components/App';
 import Login from './components/Login';
 import CreateAccount from './components/CreateAccount';
 import NotFound from './components/NotFound';
 import '../css/index.css';
-
-function loggedIn() {
-    // TODO: Make API call to check if token is still valid
-   return Boolean(sessionStorage.getItem("token"));
-}
 
 // TODO: Going to /hello tries to load /hello/dist/bundle.js??
 const router = (
@@ -23,7 +19,8 @@ const router = (
         <div>
             <Switch>
                 <Route exact path="/" render={() => {
-                    return loggedIn() ? <App/> : <Redirect to="/login"/>
+                    // App will redirect back to login if token has expired
+                    return sessionStorage.getItem("token") === null ? <App/> : <Redirect to="/login"/>;
                 }}/>
                 <Route path="/login" component={Login}/>
                 <Route path="/create-account" component={CreateAccount}/>
