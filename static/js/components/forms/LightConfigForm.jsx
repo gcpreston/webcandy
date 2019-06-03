@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios';
+import axios from 'axios/index';
 import ChromePicker from 'react-color';
 import {
     Button,
@@ -160,13 +160,11 @@ export default class LightConfigForm extends React.Component {
                     </Form.Group>
                 </Form.Row>
 
-                <Form.Row>
-                    <Form.Group controlId="customColorCheck">
-                        <Form.Check value={this.state.customColor}
-                                    onChange={this.handleCustomColorCheck}
-                                    label="Custom color"/>
-                    </Form.Group>
-                </Form.Row>
+                <Form.Group controlId="customColorCheck">
+                    <Form.Check value={this.state.customColor}
+                                onChange={this.handleCustomColorCheck}
+                                label="Custom color"/>
+                </Form.Group>
             </React.Fragment>
         );
 
