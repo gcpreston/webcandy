@@ -8,7 +8,8 @@ import {
     Form,
     InputGroup,
     Overlay,
-    Popover
+    Popover,
+    Modal
 } from 'react-bootstrap';
 import { getAuthConfig } from '../../util.js';
 
@@ -33,6 +34,7 @@ export default class LightConfigForm extends React.Component {
             enteredColorList: [],  // hex list
             selectedColorList: "",  // name of color list
             strobe: false,
+            saveModalShow: false
         };
     }
 
@@ -165,6 +167,28 @@ export default class LightConfigForm extends React.Component {
                                 onChange={this.handleCustomColorCheck}
                                 label="Custom color"/>
                 </Form.Group>
+
+                <Modal show={this.state.saveModalShow}
+                       size="sm"
+                       centered
+                       className="text-dark">
+                    <Modal.Header>
+                        <Modal.Title>Save Color</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        Test
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="primary"
+                                onClick={() => this.setState({ saveModalShow: false })}>
+                            Save
+                        </Button>
+                        <Button variant="secondary"
+                                onClick={() => this.setState({ saveModalShow: false })}>
+                            Camcel
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </React.Fragment>
         );
 
@@ -274,6 +298,9 @@ export default class LightConfigForm extends React.Component {
     handleSaveColor = (event) => {
         event.preventDefault();
 
+        this.setState({ saveModalShow: true });
+
+        /*
         const data = {
             "colors": [this.state.currentColor]
         };
@@ -287,6 +314,7 @@ export default class LightConfigForm extends React.Component {
                     console.log(error);
                 }
             });
+         */
     };
 
     /**

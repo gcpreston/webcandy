@@ -40,12 +40,6 @@ export default class App extends React.Component {
     }
 
     render() {
-        const refreshButton = (
-            <Button onClick={this.updateConnectedClients}>
-                Refresh
-            </Button>
-        );
-
         return (
             <React.Fragment>
                 <div className="title">
@@ -72,7 +66,9 @@ export default class App extends React.Component {
                         </Form.Group>
 
                         <Form.Group controlId="refreshButton">
-                            {refreshButton}
+                            <Button onClick={this.updateConnectedClients}>
+                                Refresh
+                            </Button>
                         </Form.Group>
                     </Form>
                 </div>
