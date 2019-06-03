@@ -69,53 +69,8 @@ export default class LightConfigForm extends React.Component {
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        // make API calls
-        const authConfig = getAuthConfig();
-        const clientConfig = getAuthConfig();
-        clientConfig["params"] = { "client_id": this.props.clientId };
-
-        axios.get("/api/user/clients", clientConfig).then(response => {
-            const patterns = response.data.patterns;
-            this.setState({ patterns: patterns });
-
-            // set pattern initial value
-            if (patterns) {
-                this.setState({ pattern: Object.values(patterns)[0] })
-            }
-        }).catch(error => {
-            if (error.response && error.response.status === 401) {
-                window.location = "/login"; // api key has expired
-            } else {
-                console.log(error);
-            }
-        });
-
-        axios.get("/api/user/data", authConfig).then(response => {
-            const colors = response.data["colors"];
-            const colorLists = response.data["color_lists"];
-
-            this.setState({ colors: colors, colorLists: colorLists });
-
-            // set initial values
-            if (colors) {
-                this.setState({
-                    selectedColor: Object.keys(colors)[0],
-                    enteredColor: Object.values(colors)[0]
-                })
-            }
-            if (colorLists) {
-                this.setState({
-                    selectedColorList: Object.keys(colorLists)[0],
-                    enteredColorList: Object.values(colorLists)[0]
-                })
-            }
-        }).catch(error => {
-            if (error.response && error.response.status === 401) {
-                window.location = "/login"; // api key has expired
-            } else {
-                console.log(error);
-            }
-        });
+        this.updatePatterns();
+        this.updateSavedData();
     }
 
     // TODO: Make popover work when window width is smaller than expected
@@ -129,6 +84,7 @@ export default class LightConfigForm extends React.Component {
                     <Form.Group as={Col} controlId="colorSelect">
                         <Form.Control as="select"
                                       disabled={this.state.customColor}
+                                      value={this.state.selectedColor}
                                       onChange={this.handleColorSelect}>
                             {Object.keys(this.state.colors).map((name, idx) => {
                                 return <option
@@ -177,7 +133,7 @@ export default class LightConfigForm extends React.Component {
                         <Modal.Title>Save Color</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <Form>
+                        <Form onSubmit={this.handleSaveColor}>
                             <Form.Group controlId="name">
                                 <Form.Label>Enter a name for this color</Form.Label>
                                 <Form.Control type="text"
@@ -206,6 +162,7 @@ export default class LightConfigForm extends React.Component {
                 <Form.Group as={Col} controlId="colorListSelect">
                     <Form.Label>Color list entry</Form.Label>
                     <Form.Control as="select"
+                                  value={this.state.selectedColorList}
                                   onChange={this.handleColorListSelect}>
                         {Object.keys(this.state.colorLists).map((name, idx) => {
                             return <option
@@ -266,6 +223,63 @@ export default class LightConfigForm extends React.Component {
     }
 
     /**
+     * Get the latest patterns the client has access to and store them in state.
+     */
+    updatePatterns() {
+        const clientConfig = getAuthConfig();
+        clientConfig["params"] = { "client_id": this.props.clientId };
+
+        axios.get("/api/user/clients", clientConfig).then(response => {
+            const patterns = response.data.patterns;
+            this.setState({ patterns: patterns });
+
+            // set pattern initial value
+            if (patterns) {
+                this.setState({ pattern: Object.values(patterns)[0] })
+            }
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                window.location = "/login"; // api key has expired
+            } else {
+                console.log(error);
+            }
+        });
+
+    }
+
+    /**
+     * Get the latest saved data of the current user and store it in state.
+     */
+    updateSavedData() {
+        axios.get("/api/user/data", getAuthConfig()).then(response => {
+            const colors = response.data["colors"];
+            const colorLists = response.data["color_lists"];
+
+            this.setState({ colors: colors, colorLists: colorLists });
+
+            // set initial values
+            if (colors && !this.state.selectedColor) {
+                this.setState({
+                    selectedColor: Object.keys(colors)[0],
+                    enteredColor: Object.values(colors)[0]
+                })
+            }
+            if (colorLists && !this.state.selectedColorList) {
+                this.setState({
+                    selectedColorList: Object.keys(colorLists)[0],
+                    enteredColorList: Object.values(colorLists)[0]
+                })
+            }
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                window.location = "/login"; // api key has expired
+            } else {
+                console.log(error);
+            }
+        });
+    }
+
+    /**
      * Update the currently entered color based on a select change event.
      * @param event - The change event from the select
      */
@@ -307,16 +321,21 @@ export default class LightConfigForm extends React.Component {
     handleSaveColor = (event) => {
         event.preventDefault();
 
-        this.setState({ saveModalShow: false, saveModalName: "" });
-
+        const name = this.state.saveModalName;
         const data = {
             "colors": {
-                [this.state.saveModalName]: this.state.enteredColor
+                [name]: this.state.enteredColor
             }
         };
 
+        this.setState({ saveModalShow: false, saveModalName: "" });
+
         axios.put("/api/user/data", data, getAuthConfig())
-            .then(response => console.log(response))
+            .then(() => {
+                this.updateSavedData();
+                this.setState({ selectedColor: name })
+
+            })
             .catch(error => {
                 if (error.response.status === 401) {
                     window.location = "/login"; // unauthorized
