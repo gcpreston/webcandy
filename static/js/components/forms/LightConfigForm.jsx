@@ -307,12 +307,12 @@ export default class LightConfigForm extends React.Component {
     handleSaveColor = (event) => {
         event.preventDefault();
 
-        console.log("Saving color " + this.state.saveModalName + ": " + this.state.enteredColor);
         this.setState({ saveModalShow: false, saveModalName: "" });
 
-        /*
         const data = {
-            "colors": [this.state.currentColor]
+            "colors": {
+                [this.state.saveModalName]: this.state.enteredColor
+            }
         };
 
         axios.put("/api/user/data", data, getAuthConfig())
@@ -324,7 +324,6 @@ export default class LightConfigForm extends React.Component {
                     console.log(error);
                 }
             });
-         */
     };
 
     /**
