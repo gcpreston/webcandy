@@ -34,7 +34,8 @@ export default class LightConfigForm extends React.Component {
             enteredColorList: [],  // hex list
             selectedColorList: "",  // name of color list
             strobe: false,
-            saveModalShow: false
+            saveModalShow: false,
+            saveModalName: ""
         };
     }
 
@@ -154,7 +155,7 @@ export default class LightConfigForm extends React.Component {
                             <InputGroup.Append>
                                 <Button variant="success"
                                         disabled={!this.state.customColor}
-                                        onClick={this.handleSaveColor}>
+                                        onClick={() => this.setState({ saveModalShow: true })}>
                                     Save
                                 </Button>
                             </InputGroup.Append>
@@ -176,16 +177,24 @@ export default class LightConfigForm extends React.Component {
                         <Modal.Title>Save Color</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        Test
+                        <Form>
+                            <Form.Group controlId="name">
+                                <Form.Label>Enter a name for this color</Form.Label>
+                                <Form.Control type="text"
+                                              placeholder="Name"
+                                              value={this.state.saveModalName}
+                                              onChange={e => this.setState({ saveModalName: e.target.value })}/>
+                            </Form.Group>
+                        </Form>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="primary"
-                                onClick={() => this.setState({ saveModalShow: false })}>
-                            Save
-                        </Button>
                         <Button variant="secondary"
                                 onClick={() => this.setState({ saveModalShow: false })}>
-                            Camcel
+                            Cancel
+                        </Button>
+                        <Button variant="primary"
+                                onClick={this.handleSaveColor}>
+                            Save
                         </Button>
                     </Modal.Footer>
                 </Modal>
@@ -298,7 +307,8 @@ export default class LightConfigForm extends React.Component {
     handleSaveColor = (event) => {
         event.preventDefault();
 
-        this.setState({ saveModalShow: true });
+        console.log("Saving color " + this.state.saveModalName + ": " + this.state.enteredColor);
+        this.setState({ saveModalShow: false, saveModalName: "" });
 
         /*
         const data = {
