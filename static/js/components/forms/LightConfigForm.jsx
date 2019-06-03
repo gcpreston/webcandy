@@ -2,7 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import ChromePicker from 'react-color';
-import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
+import {
+    Button,
+    Col,
+    Form,
+    InputGroup,
+    Overlay,
+    Popover
+} from 'react-bootstrap';
 import { getAuthConfig } from '../../util.js';
 
 let colorPatterns = ["solid_color"];
@@ -19,11 +26,11 @@ export default class LightConfigForm extends React.Component {
             patterns: [],
             pattern: "",
             colors: {},
-            enteredColor: "",
+            enteredColor: "",  // hex
             selectedColor: "",  // name of color
             customColor: false,
             colorLists: {},
-            enteredColorList: [],
+            enteredColorList: [],  // hex list
             selectedColorList: "",  // name of color list
             strobe: false,
         };
@@ -62,7 +69,7 @@ export default class LightConfigForm extends React.Component {
         // make API calls
         const authConfig = getAuthConfig();
         const clientConfig = getAuthConfig();
-        clientConfig["params"] = {"client_id": this.props.clientId};
+        clientConfig["params"] = { "client_id": this.props.clientId };
 
         axios.get("/api/user/clients", clientConfig).then(response => {
             const patterns = response.data.patterns;
@@ -136,12 +143,20 @@ export default class LightConfigForm extends React.Component {
                                     onChange={e => this.setState({ enteredColor: e.hex })}/>
                             </Popover>
                         </Overlay>
-                        <Form.Control ref="colorField"
-                                      type="text"
-                                      placeholder="#RRGGBB"
-                                      value={this.state.enteredColor}
-                                      onChange={e => this.setState({ enteredColor: e.target.value })}
-                                      disabled={!this.state.customColor}/>
+                        <InputGroup ref="colorField">
+                            <Form.Control type="text"
+                                          placeholder="#RRGGBB"
+                                          value={this.state.enteredColor}
+                                          onChange={e => this.setState({ enteredColor: e.target.value })}
+                                          disabled={!this.state.customColor}/>
+                            <InputGroup.Append>
+                                <Button variant="success"
+                                        disabled={!this.state.customColor}
+                                        onClick={this.handleSaveColor}>
+                                    Save
+                                </Button>
+                            </InputGroup.Append>
+                        </InputGroup>
                     </Form.Group>
                 </Form.Row>
 
@@ -150,12 +165,6 @@ export default class LightConfigForm extends React.Component {
                         <Form.Check value={this.state.customColor}
                                     onChange={this.handleCustomColorCheck}
                                     label="Custom color"/>
-                    </Form.Group>
-
-                    <Form.Group controlId="saveButton">
-                        <Button variant="success" onClick={this.handleSaveColor}>
-                            Save
-                        </Button>
                     </Form.Group>
                 </Form.Row>
             </React.Fragment>
@@ -271,11 +280,11 @@ export default class LightConfigForm extends React.Component {
             "colors": [this.state.currentColor]
         };
 
-        axios.put("/api/user/data", data, getConfig())
+        axios.put("/api/user/data", data, getAuthConfig())
             .then(response => console.log(response))
             .catch(error => {
                 if (error.response.status === 401) {
-                    window.location = '/login'; // unauthorized
+                    window.location = "/login"; // unauthorized
                 } else {
                     console.log(error);
                 }
