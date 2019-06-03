@@ -138,6 +138,7 @@ export default class LightConfigForm extends React.Component {
                                 <Form.Label>Enter a name for this color</Form.Label>
                                 <Form.Control type="text"
                                               placeholder="Name"
+                                              autofocus="true"
                                               value={this.state.saveModalName}
                                               onChange={e => this.setState({ saveModalName: e.target.value })}/>
                             </Form.Group>
