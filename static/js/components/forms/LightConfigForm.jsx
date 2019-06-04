@@ -256,15 +256,52 @@ export default class LightConfigForm extends React.Component {
     }
 
     namePrompt = () => {
-        this.dialog.show({
-            title: "Save Color",
-            body: "Enter a name for this color",
-            prompt: Dialog.TextPrompt({ placeholder: "Name" }),
-            actions: [
-                Dialog.CancelAction(),
-                Dialog.OKAction(dialog => console.log(dialog.value))
-            ]
-        });
+        if (Object.values(this.state.colors).includes(this.state.enteredColor)) {
+            this.dialog.show({
+                title: "Error",
+                body: "The color " + this.state.enteredColor + " is already saved.",
+                actions: [
+                    Dialog.DefaultAction(
+                        "Ok",
+                        () => {
+                        },
+                        "btn-danger"
+                    )
+                ]
+            });
+        } else {
+            this.dialog.show({
+                title: "Save Color",
+                body: "Enter a name for this color",
+                prompt: Dialog.TextPrompt({ placeholder: "Name" }),
+                actions: [
+                    Dialog.CancelAction(),
+                    Dialog.OKAction(dialog => {
+                        const colorName = dialog.value;
+                        if (Object.keys(this.state.colors).includes(colorName)) {
+
+                            this.dialog.show({
+                                title: "Confirmation",
+                                body: 'Would you like to overwrite the existing "'
+                                    + colorName + '" color? ('
+                                    + this.state.colors[colorName] + ')',
+                                actions: [
+                                    Dialog.CancelAction(),
+                                    Dialog.DefaultAction(
+                                        "Ok",
+                                        () => this.saveColor(colorName, this.state.enteredColor),
+                                        "btn-warning"
+                                    )
+                                ]
+                            });
+
+                        } else {
+                            this.saveColor(dialog.value, this.state.enteredColor);
+                        }
+                    })
+                ]
+            });
+        }
     };
 
     /**
@@ -304,22 +341,19 @@ export default class LightConfigForm extends React.Component {
 
     /**
      * Save the current custom color for the logged-in user.
-     * @param event - The save event
+     * @param name - The name to save the color as
+     * @param color - The hex value to save
      */
-    handleSaveColor = (event) => {
-        event.preventDefault();
-
-        const name = this.state.saveModalName;
+    saveColor = (name, color) => {
         const data = {
             "colors": {
-                [name]: this.state.enteredColor
+                [name]: color
             }
         };
 
-        this.setState({ saveModalShow: false, saveModalName: "" });
-
         axios.put("/api/user/data", data, getAuthConfig())
-            .then(() => {
+            .then(response => {
+                console.log(response);
                 this.updateSavedData();
                 this.setState({ selectedColor: name })
 
