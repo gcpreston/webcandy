@@ -160,7 +160,8 @@ class UserData(Resource):
     def put():
         """
         Add or modify user data. Any field that is not populated is not returned
-        as part of the response. The 'modified' section
+        as part of the response. The 'modified' section includes both old and
+        new values of a modified field.
 
         Example:
             Say the user wanted to make a query to add two new colors, modify an
@@ -185,14 +186,14 @@ class UserData(Resource):
                     'added': {
                         'new_name': 'new_color',
                         'new_name2': 'new_color2'
-                    }
+                    },
                     'modified': {
                         'name': {
                             'old': 'old_color',
                             'new': 'color'
                         }
                     }
-                }
+                },
                 'color_lists: {
                     'added': {
                         'some_list': ['color1', 'color2', 'color3']
@@ -236,6 +237,57 @@ class UserData(Resource):
                         else:
                             retval['color_lists']['added'][name] = color_list
                         json_data['color_lists'][name] = color_list
+
+        # re-open to overwrite rather than append to using r+
+        with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
+            json.dump(json_data, data_file, indent=4)
+
+        return retval
+
+    @staticmethod
+    @auth.login_required
+    def delete():
+        """
+        Delete user data. Any field that is not populated is not returned as
+        part of the response.
+
+        Example:
+            Say the user wants to delete the existing color 'blue', non-existing
+            color 'red', and non-existing color list 'warm'. The request would
+            look like
+
+            {
+                'colors': ['blue', 'red'],
+                'color_lists': ['warm']
+            }
+
+            The response would look like
+
+            {
+                'colors': {
+                    'deleted': {
+                        'blue': '<blue's old hex>'
+                    }
+                }
+            }
+
+            Note that there is no mention of 'red' or 'warm' because no action
+            was taken regarding that data. There is also no 'color_lists'
+            section at all, as there was no data to return within that section.
+        """
+        retval = defaultdict(lambda: defaultdict(dict))
+
+        with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
+            json_data = json.load(data_file)
+
+        # section: str, data: List[str]
+        for section, data in request.get_json().items():
+
+            for name in data:
+                if name in json_data[section]:
+                    retval[section]['deleted'][name] =\
+                        json_data[section][name]
+                    del json_data[section][name]
 
         # re-open to overwrite rather than append to using r+
         with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
