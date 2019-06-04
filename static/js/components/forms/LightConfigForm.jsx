@@ -9,8 +9,9 @@ import {
     InputGroup,
     Overlay,
     Popover,
-    Modal
 } from 'react-bootstrap';
+import Dialog from 'react-bootstrap-dialog';
+
 import { getAuthConfig } from '../../util.js';
 
 let colorPatterns = ["solid_color"];
@@ -20,6 +21,9 @@ let colorListPatterns = ["fade", "scroll", "stripes"];
  * Form for building lighting configuration request.
  */
 export default class LightConfigForm extends React.Component {
+    // this.dialog will be set later for prompting the user
+    dialog = null;
+
     constructor(props) {
         super(props);
 
@@ -34,8 +38,6 @@ export default class LightConfigForm extends React.Component {
             enteredColorList: [],  // hex list
             selectedColorList: "",  // name of color list
             strobe: false,
-            saveModalShow: false,
-            saveModalName: ""
         };
     }
 
@@ -71,156 +73,6 @@ export default class LightConfigForm extends React.Component {
     componentWillMount() {
         this.updatePatterns();
         this.updateSavedData();
-    }
-
-    // TODO: Make popover work when window width is smaller than expected
-    render() {
-        // TODO: Speed entry
-
-        const colorEntry = (
-            <React.Fragment>
-                <Form.Label>Color entry</Form.Label>
-                <Form.Row>
-                    <Form.Group as={Col} controlId="colorSelect">
-                        <Form.Control as="select"
-                                      disabled={this.state.customColor}
-                                      value={this.state.selectedColor}
-                                      onChange={this.handleColorSelect}>
-                            {Object.keys(this.state.colors).map((name, idx) => {
-                                return <option
-                                    key={idx}>{name}</option>;
-                            })}
-                        </Form.Control>
-                    </Form.Group>
-                    <Form.Group as={Col} controlId="colorField">
-                        <Overlay target={this.refs.colorField}
-                                 show={this.state.customColor}
-                                 placement="right">
-                            <Popover>
-                                <ChromePicker
-                                    color={this.state.enteredColor}
-                                    onChange={e => this.setState({ enteredColor: e.hex })}/>
-                            </Popover>
-                        </Overlay>
-                        <InputGroup ref="colorField">
-                            <Form.Control type="text"
-                                          placeholder="#RRGGBB"
-                                          value={this.state.enteredColor}
-                                          onChange={e => this.setState({ enteredColor: e.target.value })}
-                                          disabled={!this.state.customColor}/>
-                            <InputGroup.Append>
-                                <Button variant="success"
-                                        disabled={!this.state.customColor}
-                                        onClick={() => this.setState({ saveModalShow: true })}>
-                                    Save
-                                </Button>
-                            </InputGroup.Append>
-                        </InputGroup>
-                    </Form.Group>
-                </Form.Row>
-
-                <Form.Group controlId="customColorCheck">
-                    <Form.Check value={this.state.customColor}
-                                onChange={this.handleCustomColorCheck}
-                                label="Custom color"/>
-                </Form.Group>
-
-                <Modal show={this.state.saveModalShow}
-                       size="sm"
-                       centered
-                       className="text-dark">
-                    <Modal.Header>
-                        <Modal.Title>Save Color</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form onSubmit={this.handleSaveColor}>
-                            <Form.Group controlId="name">
-                                <Form.Label>Enter a name for this color</Form.Label>
-                                <Form.Control type="text"
-                                              placeholder="Name"
-                                              autofocus="true"
-                                              value={this.state.saveModalName}
-                                              onChange={e => this.setState({ saveModalName: e.target.value })}/>
-                            </Form.Group>
-                        </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary"
-                                onClick={() => this.setState({ saveModalShow: false })}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary"
-                                onClick={this.handleSaveColor}>
-                            Save
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-            </React.Fragment>
-        );
-
-        let colorListEntry = (
-            <Form.Row>
-                <Form.Group as={Col} controlId="colorListSelect">
-                    <Form.Label>Color list entry</Form.Label>
-                    <Form.Control as="select"
-                                  value={this.state.selectedColorList}
-                                  onChange={this.handleColorListSelect}>
-                        {Object.keys(this.state.colorLists).map((name, idx) => {
-                            return <option
-                                key={idx}>{name}</option>;
-                        })}
-                    </Form.Control>
-                </Form.Group>
-            </Form.Row>
-        );
-
-        let config;
-        switch (this.state.pattern) {
-            case "fade":
-            case "scroll":
-            case "stripes":
-                config = colorListEntry;
-                // this.setState({ enteredColor: "" });
-                break;
-            case "solid_color":
-                config = colorEntry;
-                // this.setState({ enteredColorList: [] });
-                break;
-        }
-
-        return (
-            <Form onSubmit={this.handleSubmit}>
-                <Form.Group controlId="patternSelect">
-                    <Form.Label>Pattern</Form.Label>
-                    <Form.Control as="select"
-                                  onChange={e => this.setState({ pattern: e.target.value })}>
-                        {this.state.patterns.map((name, idx) => {
-                            return <option key={idx}>{name}</option>;
-                        })}
-                    </Form.Control>
-                </Form.Group>
-
-                <Form.Group controlId="strobeCheck">
-                    <Form.Check value={this.state.strobe}
-                                onChange={e => this.setState({ strobe: e.target.checked })}
-                                label="Strobe"/>
-                </Form.Group>
-
-                {config}
-
-                <Form.Group controlId="submitButton">
-                    <Button variant="primary" type="submit">
-                        Submit
-                    </Button>
-                </Form.Group>
-
-                <Form.Group controlId="offButton">
-                    <Button variant="danger" onClick={this.handleOff}>
-                        Turn off
-                    </Button>
-                </Form.Group>
-            </Form>
-        );
     }
 
     /**
@@ -279,6 +131,141 @@ export default class LightConfigForm extends React.Component {
             }
         });
     }
+
+    // TODO: Make popover work when window width is smaller than expected
+    render() {
+        // TODO: Speed entry
+
+        const colorEntry = (
+            <React.Fragment>
+                <Form.Label>Color entry</Form.Label>
+                <Form.Row>
+                    <Form.Group as={Col} controlId="colorSelect">
+                        <Form.Control as="select"
+                                      disabled={this.state.customColor}
+                                      value={this.state.selectedColor}
+                                      onChange={this.handleColorSelect}>
+                            {Object.keys(this.state.colors).map((name, idx) => {
+                                return <option
+                                    key={idx}>{name}</option>;
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Group as={Col} controlId="colorField">
+                        <Overlay target={this.refs.colorField}
+                                 show={this.state.customColor}
+                                 placement="right">
+                            <Popover>
+                                <ChromePicker
+                                    color={this.state.enteredColor}
+                                    onChange={e => this.setState({ enteredColor: e.hex })}/>
+                            </Popover>
+                        </Overlay>
+                        <InputGroup ref="colorField">
+                            <Form.Control type="text"
+                                          placeholder="#RRGGBB"
+                                          value={this.state.enteredColor}
+                                          onChange={e => this.setState({ enteredColor: e.target.value })}
+                                          disabled={!this.state.customColor}/>
+                            <InputGroup.Append>
+                                <Button variant="success"
+                                        disabled={!this.state.customColor}
+                                        onClick={this.namePrompt}>
+                                    Save
+                                </Button>
+                            </InputGroup.Append>
+                        </InputGroup>
+                    </Form.Group>
+                </Form.Row>
+
+                <Form.Group controlId="customColorCheck">
+                    <Form.Check value={this.state.customColor}
+                                onChange={this.handleCustomColorCheck}
+                                label="Custom color"/>
+                </Form.Group>
+            </React.Fragment>
+        );
+
+        let colorListEntry = (
+            <Form.Row>
+                <Form.Group as={Col} controlId="colorListSelect">
+                    <Form.Label>Color list entry</Form.Label>
+                    <Form.Control as="select"
+                                  value={this.state.selectedColorList}
+                                  onChange={this.handleColorListSelect}>
+                        {Object.keys(this.state.colorLists).map((name, idx) => {
+                            return <option
+                                key={idx}>{name}</option>;
+                        })}
+                    </Form.Control>
+                </Form.Group>
+            </Form.Row>
+        );
+
+        let config;
+        switch (this.state.pattern) {
+            case "fade":
+            case "scroll":
+            case "stripes":
+                config = colorListEntry;
+                // this.setState({ enteredColor: "" });
+                break;
+            case "solid_color":
+                config = colorEntry;
+                // this.setState({ enteredColorList: [] });
+                break;
+        }
+
+        return (
+            <React.Fragment>
+                <Dialog ref={component => this.dialog = component}/>
+
+                <Form onSubmit={this.handleSubmit}>
+                    <Form.Group controlId="patternSelect">
+                        <Form.Label>Pattern</Form.Label>
+                        <Form.Control as="select"
+                                      onChange={e => this.setState({ pattern: e.target.value })}>
+                            {this.state.patterns.map((name, idx) => {
+                                return <option key={idx}>{name}</option>;
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+
+                    <Form.Group controlId="strobeCheck">
+                        <Form.Check value={this.state.strobe}
+                                    onChange={e => this.setState({ strobe: e.target.checked })}
+                                    label="Strobe"/>
+                    </Form.Group>
+
+                    {config}
+
+                    <Form.Group controlId="submitButton">
+                        <Button variant="primary" type="submit">
+                            Submit
+                        </Button>
+                    </Form.Group>
+
+                    <Form.Group controlId="offButton">
+                        <Button variant="danger" onClick={this.handleOff}>
+                            Turn off
+                        </Button>
+                    </Form.Group>
+                </Form>
+            </React.Fragment>
+        );
+    }
+
+    namePrompt = () => {
+        this.dialog.show({
+            title: "Save Color",
+            body: "Enter a name for this color",
+            prompt: Dialog.TextPrompt({ placeholder: "Name" }),
+            actions: [
+                Dialog.CancelAction(),
+                Dialog.OKAction(dialog => console.log(dialog.value))
+            ]
+        });
+    };
 
     /**
      * Update the currently entered color based on a select change event.

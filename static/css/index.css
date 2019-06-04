@@ -23,3 +23,7 @@ body {
     text-align: center;
     color: #c75450;
 }
+
+.modal-dialog {
+    color: #212529;
+}
