@@ -1,45 +1,94 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios';
+import axios from 'axios/index';
 import ChromePicker from 'react-color';
-import { Button, Col, Form, Overlay, Popover } from 'react-bootstrap';
+import {
+    Button,
+    Col,
+    Form,
+    InputGroup,
+    Overlay,
+    Popover,
+} from 'react-bootstrap';
+import Dialog from 'react-bootstrap-dialog';
+
 import { getAuthConfig } from '../../util.js';
+
+let colorPatterns = ["solid_color"];
+let colorListPatterns = ["fade", "scroll", "stripes"];
 
 /**
  * Form for building lighting configuration request.
  */
 export default class LightConfigForm extends React.Component {
+    // this.dialog will be set later for prompting the user
+    dialog = null;
+
     constructor(props) {
         super(props);
 
         this.state = {
             patterns: [],
-            currentPattern: "",
+            pattern: "",
             colors: {},
+            enteredColor: "",  // hex
+            selectedColor: "",  // name of color
             customColor: false,
-            currentColor: "",
             colorLists: {},
-            currentColorList: "",
+            enteredColorList: [],  // hex list
+            selectedColorList: "",  // name of color list
             strobe: false,
         };
+    }
+
+    /**
+     * Get the current color based on if the current pattern utilizes the color
+     * field and if the "Custom color" checkbox is selected.
+     */
+    getCurrentColor() {
+        if (colorPatterns.includes(this.state.pattern)) {
+            if (this.state.customColor) {
+                return this.state.enteredColor;
+            }
+            return this.state.colors[this.state.selectedColor];
+        }
+        return null;
+    }
+
+    /**
+     * Get the current color list basedo n if the current pattern utilitzes
+     * the color_list field
+     */
+    getCurrentColorList() {
+        if (colorListPatterns.includes(this.state.pattern)) {
+            // TODO: Update this logic when color list entry is implemented
+            return this.state.colorLists[this.state.selectedColorList];
+        }
+        return null;
     }
 
     /**
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
-        // make API calls
-        const authConfig = getAuthConfig();
+        this.updatePatterns();
+        this.updateSavedData();
+    }
+
+    /**
+     * Get the latest patterns the client has access to and store them in state.
+     */
+    updatePatterns() {
         const clientConfig = getAuthConfig();
-        clientConfig["params"] = {"client_id": this.props.clientId};
+        clientConfig["params"] = { "client_id": this.props.clientId };
 
         axios.get("/api/user/clients", clientConfig).then(response => {
             const patterns = response.data.patterns;
             this.setState({ patterns: patterns });
 
-            // set currentPattern initial value
+            // set pattern initial value
             if (patterns) {
-                this.setState({ currentPattern: Object.values(patterns)[0] })
+                this.setState({ pattern: Object.values(patterns)[0] })
             }
         }).catch(error => {
             if (error.response && error.response.status === 401) {
@@ -49,18 +98,30 @@ export default class LightConfigForm extends React.Component {
             }
         });
 
-        axios.get("/api/user/data", authConfig).then(response => {
+    }
+
+    /**
+     * Get the latest saved data of the current user and store it in state.
+     */
+    updateSavedData() {
+        axios.get("/api/user/data", getAuthConfig()).then(response => {
             const colors = response.data["colors"];
             const colorLists = response.data["color_lists"];
 
             this.setState({ colors: colors, colorLists: colorLists });
 
             // set initial values
-            if (colors) {
-                this.setState({ currentColor: Object.values(colors)[0] })
+            if (colors && !this.state.selectedColor) {
+                this.setState({
+                    selectedColor: Object.keys(colors)[0],
+                    enteredColor: Object.values(colors)[0]
+                })
             }
-            if (colorLists) {
-                this.setState({ currentColorList: Object.values(colorLists)[0] })
+            if (colorLists && !this.state.selectedColorList) {
+                this.setState({
+                    selectedColorList: Object.keys(colorLists)[0],
+                    enteredColorList: Object.values(colorLists)[0]
+                })
             }
         }).catch(error => {
             if (error.response && error.response.status === 401) {
@@ -82,6 +143,7 @@ export default class LightConfigForm extends React.Component {
                     <Form.Group as={Col} controlId="colorSelect">
                         <Form.Control as="select"
                                       disabled={this.state.customColor}
+                                      value={this.state.selectedColor}
                                       onChange={this.handleColorSelect}>
                             {Object.keys(this.state.colors).map((name, idx) => {
                                 return <option
@@ -95,16 +157,24 @@ export default class LightConfigForm extends React.Component {
                                  placement="right">
                             <Popover>
                                 <ChromePicker
-                                    color={this.state.currentColor}
-                                    onChange={e => this.setState({ currentColor: e.hex })}/>
+                                    color={this.state.enteredColor}
+                                    onChange={e => this.setState({ enteredColor: e.hex })}/>
                             </Popover>
                         </Overlay>
-                        <Form.Control ref="colorField"
-                                      type="text"
-                                      placeholder="#RRGGBB"
-                                      value={this.state.currentColor}
-                                      onChange={e => this.setState({ currentColor: e.target.value })}
-                                      disabled={!this.state.customColor}/>
+                        <InputGroup ref="colorField">
+                            <Form.Control type="text"
+                                          placeholder="#RRGGBB"
+                                          value={this.state.enteredColor}
+                                          onChange={e => this.setState({ enteredColor: e.target.value })}
+                                          disabled={!this.state.customColor}/>
+                            <InputGroup.Append>
+                                <Button variant="success"
+                                        disabled={!this.state.customColor}
+                                        onClick={this.namePrompt}>
+                                    Save
+                                </Button>
+                            </InputGroup.Append>
+                        </InputGroup>
                     </Form.Group>
                 </Form.Row>
 
@@ -121,6 +191,7 @@ export default class LightConfigForm extends React.Component {
                 <Form.Group as={Col} controlId="colorListSelect">
                     <Form.Label>Color list entry</Form.Label>
                     <Form.Control as="select"
+                                  value={this.state.selectedColorList}
                                   onChange={this.handleColorListSelect}>
                         {Object.keys(this.state.colorLists).map((name, idx) => {
                             return <option
@@ -132,58 +203,116 @@ export default class LightConfigForm extends React.Component {
         );
 
         let config;
-        switch (this.state.currentPattern) {
+        switch (this.state.pattern) {
             case "fade":
             case "scroll":
             case "stripes":
                 config = colorListEntry;
+                // this.setState({ enteredColor: "" });
                 break;
             case "solid_color":
                 config = colorEntry;
+                // this.setState({ enteredColorList: [] });
                 break;
         }
 
         return (
-            <Form onSubmit={this.handleSubmit}>
-                <Form.Group controlId="patternSelect">
-                    <Form.Label>Pattern</Form.Label>
-                    <Form.Control as="select"
-                                  onChange={e => this.setState({ currentPattern: e.target.value })}>
-                        {this.state.patterns.map((name, idx) => {
-                            return <option key={idx}>{name}</option>;
-                        })}
-                    </Form.Control>
-                </Form.Group>
+            <React.Fragment>
+                <Dialog ref={component => this.dialog = component}/>
 
-                <Form.Group controlId="strobeCheck">
-                    <Form.Check value={this.state.strobe}
-                                onChange={e => this.setState({ strobe: e.target.checked })}
-                                label="Strobe"/>
-                </Form.Group>
+                <Form onSubmit={this.handleSubmit}>
+                    <Form.Group controlId="patternSelect">
+                        <Form.Label>Pattern</Form.Label>
+                        <Form.Control as="select"
+                                      onChange={e => this.setState({ pattern: e.target.value })}>
+                            {this.state.patterns.map((name, idx) => {
+                                return <option key={idx}>{name}</option>;
+                            })}
+                        </Form.Control>
+                    </Form.Group>
 
-                {config}
+                    <Form.Group controlId="strobeCheck">
+                        <Form.Check value={this.state.strobe}
+                                    onChange={e => this.setState({ strobe: e.target.checked })}
+                                    label="Strobe"/>
+                    </Form.Group>
 
-                <Form.Group controlId="submitButton">
-                    <Button variant="primary" type="submit">
-                        Submit
-                    </Button>
-                </Form.Group>
+                    {config}
 
-                <Form.Group controlId="offButton">
-                    <Button variant="danger" onClick={this.handleOff}>
-                        Turn off
-                    </Button>
-                </Form.Group>
-            </Form>
+                    <Form.Group controlId="submitButton">
+                        <Button variant="primary" type="submit">
+                            Submit
+                        </Button>
+                    </Form.Group>
+
+                    <Form.Group controlId="offButton">
+                        <Button variant="danger" onClick={this.handleOff}>
+                            Turn off
+                        </Button>
+                    </Form.Group>
+                </Form>
+            </React.Fragment>
         );
     }
+
+    namePrompt = () => {
+        if (Object.values(this.state.colors).includes(this.state.enteredColor)) {
+            this.dialog.show({
+                title: "Error",
+                body: "The color " + this.state.enteredColor + " is already saved.",
+                actions: [
+                    Dialog.DefaultAction(
+                        "Ok",
+                        () => {
+                        },
+                        "btn-danger"
+                    )
+                ]
+            });
+        } else {
+            this.dialog.show({
+                title: "Save Color",
+                body: "Enter a name for this color",
+                prompt: Dialog.TextPrompt({ placeholder: "Name" }),
+                actions: [
+                    Dialog.CancelAction(),
+                    Dialog.OKAction(dialog => {
+                        const colorName = dialog.value;
+                        if (Object.keys(this.state.colors).includes(colorName)) {
+
+                            this.dialog.show({
+                                title: "Confirmation",
+                                body: 'Would you like to overwrite the existing "'
+                                    + colorName + '" color? ('
+                                    + this.state.colors[colorName] + ')',
+                                actions: [
+                                    Dialog.CancelAction(),
+                                    Dialog.DefaultAction(
+                                        "Ok",
+                                        () => this.saveColor(colorName, this.state.enteredColor),
+                                        "btn-warning"
+                                    )
+                                ]
+                            });
+
+                        } else {
+                            this.saveColor(dialog.value, this.state.enteredColor);
+                        }
+                    })
+                ]
+            });
+        }
+    };
 
     /**
      * Update the currently entered color based on a select change event.
      * @param event - The change event from the select
      */
     handleColorSelect = (event) => {
-        this.setState({ currentColor: this.state.colors[event.target.value] });
+        this.setState({
+            selectedColor: event.target.value,
+            enteredColor: this.state.colors[event.target.value]
+        });
     };
 
     /**
@@ -191,7 +320,10 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the select
      */
     handleColorListSelect = (event) => {
-        this.setState({ currentColorList: this.state.colorLists[event.target.value] })
+        this.setState({
+            selectedColorList: event.target.value,
+            enteredColorList: this.state.colorLists[event.target.value]
+        });
     };
 
     /**
@@ -200,7 +332,39 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the checkbox
      */
     handleCustomColorCheck = (event) => {
-        this.setState({ customColor: event.target.checked })
+        this.setState({ customColor: event.target.checked });
+
+        if (!event.target.checked) {
+            this.setState({ enteredColor: this.state.colors[this.state.selectedColor] })
+        }
+    };
+
+    /**
+     * Save the current custom color for the logged-in user.
+     * @param name - The name to save the color as
+     * @param color - The hex value to save
+     */
+    saveColor = (name, color) => {
+        const data = {
+            "colors": {
+                [name]: color
+            }
+        };
+
+        axios.put("/api/user/data", data, getAuthConfig())
+            .then(response => {
+                console.log(response);
+                this.updateSavedData();
+                this.setState({ selectedColor: name })
+
+            })
+            .catch(error => {
+                if (error.response.status === 401) {
+                    window.location = "/login"; // unauthorized
+                } else {
+                    console.log(error);
+                }
+            });
     };
 
     /**
@@ -210,32 +374,11 @@ export default class LightConfigForm extends React.Component {
     handleSubmit = (event) => {
         event.preventDefault();
 
-        const target = event.currentTarget;  // TODO: Use only state if possible
-
-        // data fields
-        let pattern, strobe, color, colorList;
-
-        pattern = target["patternSelect"].value;
-        strobe = this.state.strobe;
-
-        // set color field
-        if (target["colorField"] && this.state.customColor) {
-            color = target["colorField"].value;
-        } else if (target["colorSelect"]) {
-            color = this.state.colors[target["colorSelect"].value];
-        }
-
-        // set color_list field
-        if (target["colorListSelect"]) {
-            colorList = this.state.colorLists[target["colorListSelect"].value];
-        }
-
         const data = {
-            "client_id": this.props.clientId,
-            "pattern": pattern,
-            "strobe": strobe,
-            "color": color,
-            "color_list": colorList
+            "pattern": this.state.pattern,
+            "strobe": this.state.strobe,
+            "color": this.getCurrentColor(),
+            "color_list": this.getCurrentColorList()
         };
 
         this.submit(data);

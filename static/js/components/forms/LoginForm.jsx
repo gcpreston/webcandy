@@ -58,9 +58,6 @@ export default class LoginForm extends React.Component {
             "password": this.state.password
         };
 
-        console.log("Posting /api/token with data:");
-        console.log(data);
-
         axios.post("/api/token", data).then(response => {
             const token = response.data["token"];
             sessionStorage.setItem("token", token);
