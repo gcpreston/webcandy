@@ -258,14 +258,14 @@ export default class LightConfigForm extends React.Component {
     namePrompt = () => {
         if (Object.values(this.state.colors).includes(this.state.enteredColor)) {
             this.dialog.show({
-                title: "Error",
+                title: "Info",
                 body: "The color " + this.state.enteredColor + " is already saved.",
                 actions: [
                     Dialog.DefaultAction(
                         "Ok",
                         () => {
                         },
-                        "btn-danger"
+                        "btn-info"
                     )
                 ]
             });

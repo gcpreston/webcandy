@@ -1,5 +1,6 @@
 import json
 
+from collections import defaultdict
 from flask import (
     g, Blueprint, render_template, jsonify, request, url_for, current_app as app
 )
@@ -157,17 +158,52 @@ class UserData(Resource):
     @staticmethod
     @auth.login_required
     def put():
-        # TODO: Use defaultdict
-        retval = {
-            'colors': {
-                'added': dict(),
-                'modified': dict()
-            },
-            'color_lists': {
-                'added': dict(),
-                'modified': dict()
+        """
+        Add or modify user data. Any field that is not populated is not returned
+        as part of the response. The 'modified' section
+
+        Example:
+            Say the user wanted to make a query to add two new colors, modify an
+            existing color, and add a new color list The request body would look
+            like
+
+            {
+                'colors': {
+                    'name': 'color',
+                    'new_name': 'new_color',
+                    'new_name2': 'new_color2'
+                }
+                'color_lists': {
+                    'some_list': ['color1', 'color2', 'color3']
+                }
             }
-        }
+
+            The response body would look like
+
+            {
+                'colors: {
+                    'added': {
+                        'new_name': 'new_color',
+                        'new_name2': 'new_color2'
+                    }
+                    'modified': {
+                        'name': {
+                            'old': 'old_color',
+                            'new': 'color'
+                        }
+                    }
+                }
+                'color_lists: {
+                    'added': {
+                        'some_list': ['color1', 'color2', 'color3']
+                    }
+                }
+            }
+
+            Since no color lists were modified, there is no 'modified' field in
+            the 'color_lists' section.
+        """
+        retval = defaultdict(lambda: defaultdict(dict))
 
         with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
             json_data = json.load(data_file)
@@ -180,7 +216,10 @@ class UserData(Resource):
                 for name, color in data.items():
                     if util.is_color(color):
                         if name in json_data['colors']:
-                            retval['colors']['modified'][name] = color
+                            retval['colors']['modified'][name] = {
+                                'old': json_data['colors'][name],
+                                'new': color
+                            }
                         else:
                             retval['colors']['added'][name] = color
                         json_data['colors'][name] = color
@@ -190,7 +229,10 @@ class UserData(Resource):
                 for name, color_list in data.items():
                     if all([util.is_color(color) for color in color_list]):
                         if name in json_data['color_lists']:
-                            retval['color_lists']['modified'][name] = color_list
+                            retval['color_lists']['modified'][name] = {
+                                'old': json_data['color_lists'][name],
+                                'new': color_list
+                            }
                         else:
                             retval['color_lists']['added'][name] = color_list
                         json_data['color_lists'][name] = color_list
