@@ -368,6 +368,7 @@ export default class LightConfigForm extends React.Component {
         event.preventDefault();
 
         const data = {
+            "client_id": this.props.clientId,
             "pattern": this.state.pattern,
             "strobe": this.state.strobe,
             "color": this.getCurrentColor(),
