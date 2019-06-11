@@ -159,17 +159,32 @@ class WebcandyServerProtocol(asyncio.Protocol):
 
         # TODO: Make this error log/send response to transport when incorrectly
         #   formatted data is received
-        try:
-            token = parsed['token']
-            client_id = parsed['client_id']
-            patterns = parsed['patterns']
+        token = parsed.get('token')
+        client_id = parsed.get('client_id')
+        patterns = parsed.get('patterns')
 
-            logger.debug(f'Received patterns: {patterns} '
-                         f'from {util.format_addr(self.peername)}')
-            clients.register(token, client_id, patterns, self)
-        except KeyError:
-            logger.debug(f'Received JSON: {json.loads(data)} '
-                         f'from {util.format_addr(self.peername)}')
+        if token is None:
+            logger.error('Missing token in data from '
+                         f'{util.format_addr(self.peername)}')
+            self.transport.write(b"[ERROR] Please provide an authentication "
+                                 b"token in a 'token' field.")
+            return
+        if client_id is None:
+            logger.error('Missing client_id in data from '
+                         f'{util.format_addr(self.peername)}')
+            self.transport.write(b"[ERROR] Please provide a client ID in a "
+                                 b"'client_id' field.")
+            return
+        if patterns is None:
+            logger.error('Missing patterns in data from '
+                         f'{util.format_addr(self.peername)}')
+            self.transport.write(b"[ERROR] Please provide the client's "
+                                 b"available patterns in a 'patterns' field.")
+            return
+
+        logger.debug(f'Received patterns: {patterns} '
+                     f'from {util.format_addr(self.peername)}')
+        clients.register(token, client_id, patterns, self)
 
     def send(self, data: dict) -> bool:
         """
