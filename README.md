@@ -1,6 +1,8 @@
 # Webcandy
 API and web interface for Fadecandy control.
 
+![](https://gfycat.com/tinyecstaticbluemorphobutterfly)
+
 ## Requirements
 - [Python 3.7+](https://www.python.org/downloads/)
 - [Node.js + npm](https://nodejs.org/en/download/)
