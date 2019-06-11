@@ -131,7 +131,7 @@ class WebcandyServerProtocol(asyncio.Protocol):
     def connection_made(self, transport: asyncio.Transport) -> None:
         """
         Handle an incoming connection. Do not register the client with a user
-        until token data is received.
+        until required data is recieved (token, client_id, and patterns).
         """
         self.peername = transport.get_extra_info('peername')
         logger.info(f'Connected client {util.format_addr(self.peername)}')
@@ -157,8 +157,6 @@ class WebcandyServerProtocol(asyncio.Protocol):
                          f'from {util.format_addr(self.peername)}')
             return
 
-        # TODO: Make this error log/send response to transport when incorrectly
-        #   formatted data is received
         token = parsed.get('token')
         client_id = parsed.get('client_id')
         patterns = parsed.get('patterns')
@@ -168,18 +166,21 @@ class WebcandyServerProtocol(asyncio.Protocol):
                          f'{util.format_addr(self.peername)}')
             self.transport.write(b"[ERROR] Please provide an authentication "
                                  b"token in a 'token' field.")
+            self.transport.close()
             return
         if client_id is None:
             logger.error('Missing client_id in data from '
                          f'{util.format_addr(self.peername)}')
             self.transport.write(b"[ERROR] Please provide a client ID in a "
                                  b"'client_id' field.")
+            self.transport.close()
             return
         if patterns is None:
             logger.error('Missing patterns in data from '
                          f'{util.format_addr(self.peername)}')
             self.transport.write(b"[ERROR] Please provide the client's "
                                  b"available patterns in a 'patterns' field.")
+            self.transport.close()
             return
 
         logger.debug(f'Received patterns: {patterns} '
