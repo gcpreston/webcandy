@@ -111,8 +111,11 @@ clients = ClientManager()  # make sure to call init_app on this
 
 class WebcandyServerProtocol(asyncio.Protocol):
     """
-    Protocol describing how data is sent and received with a client. Note that
-    each client connection creates a new Protocol instance.
+    Protocol describing how data is sent and received with a client. Any data
+    sent to a client will end with a newline, so reading one line will always
+    get the full message.
+
+    Please note that each client connection creates a new Protocol instance.
     """
 
     peername: Address = None
@@ -192,11 +195,12 @@ class WebcandyServerProtocol(asyncio.Protocol):
     def send(self, data: dict) -> bool:
         """
         Send dictionary data to a client.
+
         :param data: the data to send
         :return: ``True`` if the operation was successful; ``False`` otherwise
         """
         try:
-            self.transport.write(bytes(json.dumps(data), 'utf-8'))
+            self.transport.write(bytes(json.dumps(data) + '\n', 'utf-8'))
         except AttributeError:
             logger.error('No client connection established')
             return False
