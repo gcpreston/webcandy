@@ -66,6 +66,11 @@ class ClientManager:
                 logger.info(
                     f'Registered client {client_id!r} '
                     f'with user {user.user_id}')
+            else:
+                logger.error(f'No user could be associated with token {token!r}'
+                             f' from {util.format_addr(protocol.peername)}')
+                protocol.transport.write(b'Invalid authentication token.\n')
+                protocol.transport.close()
 
     def remove(self, user_id: int, client_id: str) -> None:
         """
@@ -152,8 +157,8 @@ class WebcandyServerProtocol(asyncio.Protocol):
         try:
             parsed = json.loads(data)
         except json.JSONDecodeError:
-            logger.debug(f'Received text: {data.decode()!r} '
-                         f'from {util.format_addr(self.peername)}')
+            logger.info(f'Received text: {data.decode()!r} '
+                        f'from {util.format_addr(self.peername)}')
             return
 
         token = parsed.get('token')
@@ -164,26 +169,24 @@ class WebcandyServerProtocol(asyncio.Protocol):
             logger.error('Missing token in data from '
                          f'{util.format_addr(self.peername)}')
             self.transport.write(b"[ERROR] Please provide an authentication "
-                                 b"token in a 'token' field.")
+                                 b"token in a 'token' field.\n")
             self.transport.close()
             return
         if client_id is None:
             logger.error('Missing client_id in data from '
                          f'{util.format_addr(self.peername)}')
             self.transport.write(b"[ERROR] Please provide a client ID in a "
-                                 b"'client_id' field.")
+                                 b"'client_id' field.\n")
             self.transport.close()
             return
         if patterns is None:
             logger.error('Missing patterns in data from '
                          f'{util.format_addr(self.peername)}')
             self.transport.write(b"[ERROR] Please provide the client's "
-                                 b"available patterns in a 'patterns' field.")
+                                 b"available patterns in a 'patterns' field.\n")
             self.transport.close()
             return
 
-        logger.debug(f'Received patterns: {patterns} '
-                     f'from {util.format_addr(self.peername)}')
         clients.register(token, client_id, patterns, self)
 
     def send(self, data: dict) -> bool:
