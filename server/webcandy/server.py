@@ -123,7 +123,6 @@ class WebcandyServerProtocol(asyncio.Protocol):
 
         :param user_id: the user owning the client this protocol represents
         :param client_id: the ID of the client this protocol represents
-        :return:
         """
         self.user_id = user_id
         self.client_id = client_id
