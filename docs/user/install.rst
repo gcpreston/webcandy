@@ -1,0 +1,4 @@
+Installation
+============
+
+Run setup.py.
