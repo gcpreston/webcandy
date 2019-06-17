@@ -80,8 +80,8 @@ class Token(Resource):
     def post():
         req_json = request.get_json()
 
-        user = User.query.filter_by(username=req_json["username"]).first()
-        if not user or not user.check_password(req_json["password"]):
+        user = User.query.filter_by(username=req_json['username']).first()
+        if not user or not user.check_password(req_json['password']):
             description = 'Invalid username and password combination'
             return util.format_error(401, description), 401
 
