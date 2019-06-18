@@ -3,10 +3,13 @@ import socket
 import threading
 import json
 import logging
+import websockets
 
 from collections import defaultdict
-from typing import NewType, Optional, Tuple, List, Dict
+from typing import NewType, Tuple, List, Dict
 from flask import Flask
+from websockets.server import WebSocketServerProtocol
+
 from . import util
 from .config import configure_logger
 from .models import User
@@ -68,9 +71,9 @@ class ClientManager:
                     f'with user {user.user_id}')
             else:
                 logger.error(f'No user could be associated with token {token!r}'
-                             f' from {util.format_addr(protocol.peername)}')
-                protocol.transport.write(b'Invalid authentication token.\n')
-                protocol.transport.close()
+                             f' from {util.format_addr(protocol.remote_address)}')
+                protocol.send('Invalid authentication token.\n')
+                protocol.close()
 
     def remove(self, user_id: int, client_id: str) -> None:
         """
@@ -84,7 +87,7 @@ class ClientManager:
             raise ValueError(f'User {user_id} has no associated client with ID '
                              f'{client_id!r}')
 
-        self.clients[user_id][client_id].protocol.transport.close()
+        self.clients[user_id][client_id].protocol.close()
         del self.clients[user_id][client_id]
 
     def available_clients(self, user_id: int) -> List[str]:
@@ -109,23 +112,12 @@ class ClientManager:
 clients = ClientManager()  # make sure to call init_app on this
 
 
-class WebcandyServerProtocol(asyncio.Protocol):
-    """
-    Protocol describing how data is sent and received with a client. Any data
-    sent to a client will end with a newline, so reading one line will always
-    get the full message.
-
-    Please note that each client connection creates a new Protocol instance.
-    """
-
-    peername: Address = None
-    transport: asyncio.Transport = None
-
+class WebcandyServerProtocol(WebSocketServerProtocol):
     # these must be set
-    user_id: int = None
-    client_id: str = None
+    user_id: int
+    client_id: str
 
-    def init(self, user_id: int, client_id: str):
+    def init(self, user_id: int, client_id: str) -> None:
         """
         Set required fields for this protocol.
 
@@ -135,33 +127,32 @@ class WebcandyServerProtocol(asyncio.Protocol):
         self.user_id = user_id
         self.client_id = client_id
 
-    def connection_made(self, transport: asyncio.Transport) -> None:
-        """
-        Handle an incoming connection. Do not register the client with a user
-        until required data is recieved (token, client_id, and patterns).
-        """
-        self.peername = transport.get_extra_info('peername')
-        logger.info(f'Connected client {util.format_addr(self.peername)}')
-        self.transport = transport
+    def connection_made(self, transport):
+        super().connection_made(transport)
+        logger.info(f'Connected client {self.remote_address}')
 
-    def connection_lost(self, exc: Optional[Exception]) -> None:
-        if self.user_id and clients.contains(self.user_id, self.client_id):
-            clients.remove(self.user_id, self.client_id)
+    def connection_lost(self, exc):
+        super().connection_lost(exc)
         logger.info(f'Disconnected user {self.user_id}, '
                     f'client {self.client_id!r} '
-                    f'({util.format_addr(self.peername)})')
+                    f'({util.format_addr(self.remote_address)})')
 
-    def data_received(self, data: bytes) -> None:
-        """
-        Attempt to parse access token and patterns out of received data. In
-        practice, this callback should only be invoked upon initial client
-        connection, though it should not error if this is not the case.
-        """
+
+class ProxyServer:
+    """
+    Manager for the proxy server allowing data to be sent to specific clients.
+    """
+    running: bool = False
+
+    @staticmethod
+    async def _handler(client, _):
+        addr = util.format_addr(client.remote_address)
+
+        data = await client.recv()
         try:
             parsed = json.loads(data)
         except json.JSONDecodeError:
-            logger.info(f'Received text: {data.decode()!r} '
-                        f'from {util.format_addr(self.peername)}')
+            logger.info(f'Received text from {addr}: {data!r}')
             return
 
         token = parsed.get('token')
@@ -169,54 +160,26 @@ class WebcandyServerProtocol(asyncio.Protocol):
         patterns = parsed.get('patterns')
 
         if token is None:
-            logger.error('Missing token in data from '
-                         f'{util.format_addr(self.peername)}')
-            self.transport.write(b"[ERROR] Please provide an authentication "
-                                 b"token in a 'token' field.\n")
-            self.transport.close()
+            logger.error(f'Missing token in data from {addr}')
+            client.send("[ERROR] Please provide an authentication "
+                        "token in a 'token' field.\n")
+            client.close()
             return
         if client_id is None:
-            logger.error('Missing client_id in data from '
-                         f'{util.format_addr(self.peername)}')
-            self.transport.write(b"[ERROR] Please provide a client ID in a "
-                                 b"'client_id' field.\n")
-            self.transport.close()
+            logger.error(f'Missing client_id in data from {addr}')
+            client.send("[ERROR] Please provide a client ID in a "
+                        "'client_id' field.\n")
+            client.close()
             return
         if patterns is None:
-            logger.error('Missing patterns in data from '
-                         f'{util.format_addr(self.peername)}')
-            self.transport.write(b"[ERROR] Please provide the client's "
-                                 b"available patterns in a 'patterns' field.\n")
-            self.transport.close()
+            logger.error(f'Missing patterns in data from {addr}')
+            client.send("[ERROR] Please provide the client's "
+                        "available patterns in a 'patterns' field.\n")
+            client.close()
             return
 
-        clients.register(token, client_id, patterns, self)
+        clients.register(token, client_id, patterns, client)
 
-    def send(self, data: dict) -> bool:
-        """
-        Send dictionary data to a client.
-
-        :param data: the data to send
-        :return: ``True`` if the operation was successful; ``False`` otherwise
-        """
-        try:
-            self.transport.write(bytes(json.dumps(data) + '\n', 'utf-8'))
-        except AttributeError:
-            logger.error('No client connection established')
-            return False
-        except OSError as e:
-            logger.error(e)
-            return False
-        return True
-
-
-class ProxyServer:
-    """
-    Manage running a server implementing ``WebcandyServerProtocol``.
-    """
-    _server_running: bool = False
-
-    # TODO: Make proxy server host/port configurable within app context
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
         Start the proxy server.
@@ -225,29 +188,32 @@ class ProxyServer:
         :param port: the port to serve on
         """
 
-        async def _go():
-            loop = asyncio.get_running_loop()
-            server = await loop.create_server(
-                WebcandyServerProtocol, host, port)
-            async with server:
-                addr = server.sockets[0].getsockname()
-                logger.info(f'Proxy server bound to {util.format_addr(addr)}')
-                await server.serve_forever()
+        def _go(handler):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
 
-        if not self._server_running:
+            start_server = websockets.serve(
+                handler, host, port, create_protocol=WebcandyServerProtocol)
+
+            asyncio.get_event_loop().run_until_complete(start_server)
+            asyncio.get_event_loop().run_forever()
+
+        if not self.running:
             # test if other instance is already running
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as test_sock:
                 status = test_sock.connect_ex((host, port))
 
-            if status in {10061, 111}:  # nothing running
-                server_thread = threading.Thread(
-                    target=lambda: asyncio.run(_go()))
-                server_thread.start()
-                self._server_running = True
-            else:
-                logger.warning(
-                    f'Proxy server connection test to {host}:{port} '
-                    f'returned status {status}')
+        # check for both Windows and Linux status codes
+        if status in {10061, 111}:  # nothing running
+            server_thread = threading.Thread(
+                target=_go, args=(ProxyServer._handler,))
+            server_thread.start()
+            self.running = True
+            logger.info(f'Proxy server bound to {host}:{port}')
+        else:
+            logger.warning(
+                f'Proxy server connection test to {host}:{port} '
+                f'returned status {status}')
 
     def send(self, user_id: int, client_id: str, data: dict) -> bool:
         """
@@ -258,7 +224,7 @@ class ProxyServer:
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
-        if not self._server_running:
+        if not self.running:
             logger.error('Proxy server is not running')
             return False
 

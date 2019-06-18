@@ -12,6 +12,7 @@ setup(
         'gunicorn',
         'itsdangerous',
         'python-dotenv',
+        'websockets',
         'werkzeug'
     ]
 )
