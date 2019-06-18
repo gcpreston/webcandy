@@ -180,6 +180,17 @@ class ProxyServer:
 
         clients.register(token, client_id, patterns, client)
 
+        # TODO: Here there will most likely be a loop which continuously gets
+        #   the next piece of data and user/client to send to and send it.
+        #   I don't especially like that, consider how clean sending used to be,
+        #   where registration happened and the protocol instance simply sat
+        #   there until it was told to send something (via the ClientManager).
+
+    async def _producer(self) -> dict:
+        """
+        Produce the next piece of data to send to a client.
+        """
+
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
         Start the proxy server.
