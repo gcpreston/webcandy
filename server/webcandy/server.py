@@ -144,7 +144,7 @@ class ProxyServer:
     running: bool = False
 
     @staticmethod
-    async def _handler(client: WebcandyServerProtocol, _):
+    async def _ws_handler(client: WebcandyServerProtocol, _):
         addr = util.format_addr(client.remote_address)
 
         data = await client.recv()
@@ -184,11 +184,8 @@ class ProxyServer:
         finally:
             clients.unregister(client.user_id, client.client_id)
 
-    async def _producer(self) -> dict:
-        """
-        Produce the next piece of data to send to a client.
-        """
-
+    # TODO: Get WebSocket server running on the same port as the Flask server,
+    #   so the only difference in connecting is the protocol (http:// vs. ws://)
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
         Start the proxy server.
@@ -215,14 +212,14 @@ class ProxyServer:
         # check for both Windows and Linux status codes
         if status in {10061, 111}:  # nothing running
             server_thread = threading.Thread(
-                target=_go, args=(ProxyServer._handler,))
+                target=_go, args=(ProxyServer._ws_handler,))
             server_thread.start()
             self.running = True
             logger.info(f'Proxy server bound to {host}:{port}')
         else:
             logger.warning(
-                f'Proxy server connection test to {host}:{port} '
-                f'returned status {status}')
+                f'Connection test to {host}:{port} returned status {status}, '
+                'proxy server not started')
 
     def send(self, user_id: int, client_id: str, data: dict) -> bool:
         """
