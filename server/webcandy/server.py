@@ -31,7 +31,6 @@ class ClientManager:
         """
         Data model for a connected client instance.
         """
-
         def __init__(self, patterns: List[str],
                      protocol: 'WebcandyServerProtocol'):
             self.patterns = patterns
@@ -43,7 +42,7 @@ class ClientManager:
     def __init__(self, app: Flask = None):
         self.app = app
 
-    def init_app(self, app: Flask):
+    def init_app(self, app: Flask) -> None:
         self.app = app
 
     def register(self, token: str, client_id: str, patterns: List[str],
@@ -70,17 +69,18 @@ class ClientManager:
                     f'Registered client {client_id!r} '
                     f'with user {user.user_id}')
             else:
-                logger.error(f'No user could be associated with token {token!r}'
-                             f' from {util.format_addr(protocol.remote_address)}')
+                logger.error(
+                    f'No user could be associated with token {token!r}'
+                    f'from {util.format_addr(protocol.remote_address)}')
                 protocol.send('Invalid authentication token.\n')
                 protocol.close()
 
-    def remove(self, user_id: int, client_id: str) -> None:
+    def unregister(self, user_id: int, client_id: str) -> None:
         """
-        Close a client's transport and remove it from the client manager.
+        Close a client's transport and unregister it from the client manager.
 
         :param user_id: the user who owns the client
-        :param client_id: the ID of the client to remove
+        :param client_id: the ID of the client to unregister
         :raises ValueError: if user has no associated clients
         """
         if not self.contains(user_id, client_id):
@@ -102,7 +102,7 @@ class ClientManager:
         """
         return self.clients[user_id][client_id]
 
-    def contains(self, user_id: int, client_id: str):
+    def contains(self, user_id: int, client_id: str) -> bool:
         """
         Check if a user has a client with the specified ID.
         """
@@ -145,7 +145,7 @@ class ProxyServer:
     running: bool = False
 
     @staticmethod
-    async def _handler(client, _):
+    async def _handler(client: WebcandyServerProtocol, _):
         addr = util.format_addr(client.remote_address)
 
         data = await client.recv()
@@ -180,11 +180,10 @@ class ProxyServer:
 
         clients.register(token, client_id, patterns, client)
 
-        # TODO: Here there will most likely be a loop which continuously gets
-        #   the next piece of data and user/client to send to and send it.
-        #   I don't especially like that, consider how clean sending used to be,
-        #   where registration happened and the protocol instance simply sat
-        #   there until it was told to send something (via the ClientManager).
+        try:
+            await client.wait_closed()
+        finally:
+            clients.unregister(client.user_id, client.client_id)
 
     async def _producer(self) -> dict:
         """
@@ -244,7 +243,8 @@ class ProxyServer:
                          f'{client_id!r}')
             return False
 
-        clients.get(user_id, client_id).protocol.send(data)
+        asyncio.run(
+            clients.get(user_id, client_id).protocol.send(json.dumps(data)))
         return True
 
 
