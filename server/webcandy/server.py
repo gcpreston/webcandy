@@ -8,7 +8,6 @@ import websockets
 from collections import defaultdict
 from typing import NewType, Tuple, List, Dict
 from flask import Flask
-from websockets.server import WebSocketServerProtocol
 
 from . import util
 from .config import configure_logger
@@ -112,7 +111,7 @@ class ClientManager:
 clients = ClientManager()  # make sure to call init_app on this
 
 
-class WebcandyServerProtocol(WebSocketServerProtocol):
+class WebcandyServerProtocol(websockets.WebSocketServerProtocol):
     # these must be set
     user_id: int
     client_id: str
