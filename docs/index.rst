@@ -4,27 +4,27 @@ Webcandy: API and Web Interface for Fadecandy
 **DOCUMENTATION IS HEAVILY WIP**
 
 Hello, and welcome to the Webcandy documentation! The goal of Webcandy is to
-create a high-level interface to interact with a Fadecandy LED controller from
+provide a high-level interface to interact with a Fadecandy LED controller from
 absolutely anywhere.
 
-User Guide
-----------
-To figure out how to use this project practically, start here.
+Client Guide
+------------
+Wondering how to go about using Webcandy to control your LEDs? Start here!
 
 .. toctree::
    :maxdepth: 2
 
-   user/quickstart
+   client/install
 
-Developer Guide
----------------
-This part of the documentation contains all you need to know about setting up
-Webcandy for development purposes.
+Server Guide
+------------
+Interested in running your own Webcandy server or setting up a development
+environment? This is the section for you!
 
 .. toctree::
     :maxdepth: 2
 
-    dev/setup
+    server/install
 
 API Reference
 -------------
@@ -34,4 +34,5 @@ found here.
 .. toctree::
    :maxdepth: 2
 
-   api
+   api/webcandy_api
+   api/opclib_api

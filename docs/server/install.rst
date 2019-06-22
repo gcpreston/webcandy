@@ -1,4 +1,3 @@
 Installation
 ============
-
-Run setup.py.
+TODO
