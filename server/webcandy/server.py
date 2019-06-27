@@ -128,7 +128,7 @@ class WebcandyServerProtocol(websockets.WebSocketServerProtocol):
 
     def connection_made(self, transport):
         super().connection_made(transport)
-        logger.info(f'Connected client {self.remote_address}')
+        logger.info(f'Connected client {util.format_addr(self.remote_address)}')
 
     def connection_lost(self, exc):
         super().connection_lost(exc)
@@ -214,8 +214,9 @@ class ProxyServer:
             server_thread = threading.Thread(
                 target=_go, args=(ProxyServer._ws_handler,))
             server_thread.start()
+
+            logger.info(f'Proxy server running on ws://{host}:{port}/')
             self.running = True
-            logger.info(f'Proxy server bound to {host}:{port}')
         else:
             logger.warning(
                 f'Connection test to {host}:{port} returned status {status}, '

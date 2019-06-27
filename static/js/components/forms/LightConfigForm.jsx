@@ -14,8 +14,9 @@ import Dialog from 'react-bootstrap-dialog';
 
 import { getAuthConfig } from '../../util.js';
 
-let colorPatterns = ["solid_color"];
-let colorListPatterns = ["fade", "scroll", "stripes"];
+// TODO: Allow this to be somehow defined in opclib
+let colorPatterns = ["SolidColor"];
+let colorListPatterns = ["Fade", "Scroll", "Stripes"];
 
 /**
  * Form for building lighting configuration request.
@@ -29,6 +30,7 @@ export default class LightConfigForm extends React.Component {
 
         this.state = {
             patterns: [],
+            offButton: false,  // display "Turn off" button if "Off" pattern exists
             pattern: "",
             colors: {},
             enteredColor: "",  // hex
@@ -83,7 +85,15 @@ export default class LightConfigForm extends React.Component {
         clientConfig["params"] = { "client_id": this.props.clientId };
 
         axios.get("/api/user/clients", clientConfig).then(response => {
-            const patterns = response.data.patterns;
+            let patterns = response.data.patterns;
+
+            // remove "Off" from patterns so it doesn't appear on the dropdown
+            const index = patterns.indexOf("Off");
+            if (index > -1) {
+                patterns.splice(index, 1);
+                this.setState({ offButton: true })
+            }
+
             this.setState({ patterns: patterns });
 
             // set pattern initial value
@@ -387,7 +397,7 @@ export default class LightConfigForm extends React.Component {
 
         const data = {
             "client_id": this.props.clientId,
-            "pattern": "off"
+            "pattern": "Off"
         };
 
         this.submit(data);
