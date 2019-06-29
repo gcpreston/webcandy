@@ -1,5 +1,3 @@
-from webcandy import util
-
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import (
     TimedJSONWebSignatureSerializer as Serializer,
@@ -8,7 +6,8 @@ from itsdangerous import (
 )
 from typing import Optional, Dict
 
-from webcandy.config import Config
+from . import util
+from .config import Config
 from .extensions import db
 
 
