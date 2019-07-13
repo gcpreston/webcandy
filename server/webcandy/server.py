@@ -6,15 +6,12 @@ import logging
 import websockets
 
 from collections import defaultdict
-from typing import NewType, Tuple, List, Dict
+from typing import Dict, List
 from flask import Flask
 
 from . import util
 from .config import configure_logger
 from .models import User
-
-# define Address to be 2-tuple of (host, port)
-Address = NewType('Address', Tuple[str, int])
 
 # define module logger since app isn't initialized when this is run
 logger = logging.getLogger(__name__)
@@ -30,12 +27,16 @@ class ClientManager:
         """
         Data model for a connected client instance.
         """
-        def __init__(self, patterns: List[str],
+
+        def __init__(self, user_id: int, client_id: str, patterns: List[str],
                      protocol: 'WebcandyServerProtocol'):
+            # store user_id and client_id as backward reference
+            self.user_id = user_id
+            self.client_id = client_id
             self.patterns = patterns
             self.protocol = protocol
 
-    # map user_id to map of client ID to Client instance
+    # map user_id to map of client_id to Client instance
     clients: Dict[int, Dict[str, Client]] = defaultdict(dict)
 
     def __init__(self, app: Flask = None):
@@ -45,7 +46,7 @@ class ClientManager:
         self.app = app
 
     def register(self, token: str, client_id: str, patterns: List[str],
-                 protocol: 'WebcandyServerProtocol') -> None:
+                 protocol: 'WebcandyServerProtocol') -> int:
         """
         Register a new client.
 
@@ -53,6 +54,7 @@ class ClientManager:
         :param client_id: the client ID to use; must be unique for this user
         :param patterns: available patterns provided by the client
         :param protocol: ``WebcandyServerProtocol`` instance for the client
+        :return: the user_id the token is associated with
         :raises RuntimeError: if called before app is initialized
         """
         if not self.app:
@@ -61,12 +63,12 @@ class ClientManager:
         with self.app.app_context():
             user: User = User.get_user(token)
             if user:
-                protocol.init(user.user_id, client_id)
-                self.clients[user.user_id][client_id] = self.Client(patterns,
-                                                                    protocol)
+                self.clients[user.user_id][client_id] = self.Client(
+                    user.user_id, client_id, patterns, protocol)
                 logger.info(
-                    f'Registered client {client_id!r} '
-                    f'with user {user.user_id}')
+                    f'Registered client {client_id!r} with user {user.user_id} '
+                    f'({util.format_addr(protocol.remote_address)})')
+                return user.user_id
             else:
                 logger.error(
                     f'No user could be associated with token {token!r}'
@@ -86,8 +88,11 @@ class ClientManager:
             raise ValueError(f'User {user_id} has no associated client with ID '
                              f'{client_id!r}')
 
+        remote_addr = self.clients[user_id][client_id].protocol.remote_address
         self.clients[user_id][client_id].protocol.close()
         del self.clients[user_id][client_id]
+        logger.info(f'Unregistered client {client_id!r} of user {user_id} '
+                    f'({util.format_addr(remote_addr)})')
 
     def available_clients(self, user_id: int) -> List[str]:
         """
@@ -95,7 +100,7 @@ class ClientManager:
         """
         return list(self.clients[user_id])
 
-    def get(self, user_id: int, client_id: str) -> Client:
+    def get_client(self, user_id: int, client_id: str) -> Client:
         """
         Get a currently registered client.
         """
@@ -112,29 +117,20 @@ clients = ClientManager()  # make sure to call init_app on this
 
 
 class WebcandyServerProtocol(websockets.WebSocketServerProtocol):
-    # these must be set
-    user_id: int
-    client_id: str
-
-    def init(self, user_id: int, client_id: str) -> None:
-        """
-        Set required fields for this protocol.
-
-        :param user_id: the user owning the client this protocol represents
-        :param client_id: the ID of the client this protocol represents
-        """
-        self.user_id = user_id
-        self.client_id = client_id
+    """
+    Subclass of WebSocketProtocol for logging purposes. I prefer to use this
+    over `websockets` logging because minimal logging messages are needed.
+    """
 
     def connection_made(self, transport):
         super().connection_made(transport)
-        logger.info(f'Connected client {util.format_addr(self.remote_address)}')
+        logger.debug(
+            f'Connected client {util.format_addr(self.remote_address)}')
 
     def connection_lost(self, exc):
         super().connection_lost(exc)
-        logger.info(f'Disconnected user {self.user_id}, '
-                    f'client {self.client_id!r} '
-                    f'({util.format_addr(self.remote_address)})')
+        logger.debug(
+            f'Disconnected client {util.format_addr(self.remote_address)}')
 
 
 class ProxyServer:
@@ -177,12 +173,12 @@ class ProxyServer:
             client.close()
             return
 
-        clients.register(token, client_id, patterns, client)
+        user_id = clients.register(token, client_id, patterns, client)
 
         try:
             await client.wait_closed()
         finally:
-            clients.unregister(client.user_id, client.client_id)
+            clients.unregister(user_id, client_id)
 
     # TODO: Get WebSocket server running on the same port as the Flask server,
     #   so the only difference in connecting is the protocol (http:// vs. ws://)
@@ -241,7 +237,8 @@ class ProxyServer:
             return False
 
         asyncio.run(
-            clients.get(user_id, client_id).protocol.send(json.dumps(data)))
+            clients.get_client(user_id, client_id).protocol.send(
+                json.dumps(data)))
         return True
 
 

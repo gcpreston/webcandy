@@ -285,7 +285,7 @@ class UserData(Resource):
 
             for name in data:
                 if name in json_data[section]:
-                    retval[section]['deleted'][name] =\
+                    retval[section]['deleted'][name] = \
                         json_data[section][name]
                     del json_data[section][name]
 
@@ -319,7 +319,9 @@ class UserClients(Resource):
                 400
             )
 
-        return {'patterns': clients.get(g.user.user_id, client_id).patterns}
+        return {
+            'patterns': clients.get_client(g.user.user_id, client_id).patterns
+        }
 
 
 class Submit(Resource):

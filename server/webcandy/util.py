@@ -2,9 +2,8 @@ import os
 import re
 import json
 
-from typing import Optional, Dict, Tuple
-
-from .definitions import DATA_DIR
+from typing import Optional, Dict
+from .definitions import DATA_DIR, Address
 
 
 def is_color(s: str) -> bool:
@@ -74,10 +73,10 @@ def format_error(status: int, description: str) -> Dict[str, str]:
             'error_description': description}
 
 
-def format_addr(addr: Tuple[str, int]) -> str:
+def format_addr(addr: Address) -> str:
     """
     Format an address from a (host, port) tuple
     :param addr: the address tuple to format
     :return: a string representing address as "host:port"
     """
-    return ":".join(map(str, addr))
+    return ':'.join(map(str, addr))
