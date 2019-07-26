@@ -5,16 +5,17 @@ Webcandy: API and Web Interface for Fadecandy
 
 Hello, and welcome to the Webcandy documentation! The goal of Webcandy is to
 provide a high-level interface to interact with a Fadecandy LED controller from
-absolutely anywhere.
+any device.
 
 Client Guide
 ------------
-Wondering how to go about using Webcandy to control your LEDs? Start here!
+Wondering how to go about using Webcandy to control your LEDs locally or
+remotely? Start here!
 
 .. toctree::
    :maxdepth: 2
 
-   client/install
+   client/quickstart
 
 Server Guide
 ------------
