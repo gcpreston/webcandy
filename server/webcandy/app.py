@@ -2,6 +2,7 @@ import signal
 
 from flask import Flask
 from flask.logging import default_handler
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from . import routes
 from .config import Config, configure_logger
@@ -18,6 +19,7 @@ def create_app(start_proxy: bool = True):
     app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
                 template_folder=f'{ROOT_DIR}/static')
     app.config.from_object(Config)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
     configure_logger(app.logger)
     app.logger.removeHandler(default_handler)

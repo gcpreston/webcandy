@@ -11,3 +11,4 @@ server/venv
 server/migrations
 server/.env
 server/.flaskenv
+server/*.pem
