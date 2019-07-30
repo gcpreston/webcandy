@@ -1,6 +1,8 @@
 # Webcandy
 API and web interface for Fadecandy control. For the client-side code responsible for receiving requests from the Webcandy server and running lighting configurations on the Fadecandy itself, see [webcandy-client](https://github.com/gcpreston/webcandy-client).
 
+Documentation can be found at https://webcandy.readthedocs.io/. (WIP)
+
 ![](https://s3.gifyu.com/images/webcandy_demo1.gif)
 ![](https://s3.gifyu.com/images/webcandy_demo2.gif)
 
