@@ -5,7 +5,6 @@ from flask.logging import default_handler
 
 from . import routes
 from .config import Config, configure_logger
-from .definitions import ROOT_DIR
 from .extensions import db, migrate, api
 from .server import clients, proxy_server
 
@@ -15,8 +14,7 @@ def create_app(start_proxy: bool = True):
     Build the Flask app and start the client manager.
     :param start_proxy: whether to start the proxy server
     """
-    app = Flask(__name__, static_folder=f'{ROOT_DIR}/static/dist',
-                template_folder=f'{ROOT_DIR}/static')
+    app = Flask(__name__)
     app.config.from_object(Config)
 
     configure_logger(app.logger)
