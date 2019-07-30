@@ -16,7 +16,6 @@ from .server import proxy_server, clients
 views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
                   template_folder=f'{ROOT_DIR}/static')
 
-
 # -------------------------------
 # Login functions
 # -------------------------------
@@ -43,7 +42,6 @@ def verify_auth_token(token: str) -> bool:
 # -------------------------------
 # TODO: Allow loading of favicon.ico
 
-
 @views.route('/', defaults={'path': ''}, methods=['GET'])
 @views.route('/<path:path>')
 def index(path: str):
@@ -56,7 +54,6 @@ def index(path: str):
 # -------------------------------
 # API routes
 # -------------------------------
-
 
 class CatchAll(Resource):
     """
@@ -359,7 +356,6 @@ class Submit(Resource):
 # -------------------------------
 # Error handlers
 # -------------------------------
-
 
 def not_found(error):
     return jsonify(util.format_error(404, error.description)), 404
