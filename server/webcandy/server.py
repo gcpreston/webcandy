@@ -8,6 +8,7 @@ import websockets
 from collections import defaultdict
 from typing import Dict, List
 from flask import Flask
+from marshmallow import Schema, fields
 
 from . import util
 from .config import configure_logger
@@ -28,15 +29,15 @@ class ClientManager:
         Data model for a connected client instance.
         """
 
-        def __init__(self, user_id: int, client_id: str, patterns: List[str],
+        def __init__(self, user_id: int, client_name: str, patterns: List[str],
                      protocol: 'WebcandyServerProtocol'):
-            # store user_id and client_id as backward reference
+            # store user_id and client_name as backward reference
             self.user_id = user_id
-            self.client_id = client_id
+            self.client_name = client_name
             self.patterns = patterns
             self.protocol = protocol
 
-    # map user_id to map of client_id to Client instance
+    # map user_id to map of client_name to Client instance
     clients: Dict[int, Dict[str, Client]] = defaultdict(dict)
 
     def __init__(self, app: Flask = None):
@@ -45,13 +46,13 @@ class ClientManager:
     def init_app(self, app: Flask) -> None:
         self.app = app
 
-    def register(self, token: str, client_id: str, patterns: List[str],
+    def register(self, token: str, client_name: str, patterns: List[str],
                  protocol: 'WebcandyServerProtocol') -> int:
         """
         Register a new client.
 
         :param token: authorization token provided by the client
-        :param client_id: the client ID to use; must be unique for this user
+        :param client_name: the client name to use; must be unique for this user
         :param patterns: available patterns provided by the client
         :param protocol: ``WebcandyServerProtocol`` instance for the client
         :return: the user_id the token is associated with
@@ -63,11 +64,15 @@ class ClientManager:
         with self.app.app_context():
             user: User = User.get_user(token)
             if user:
-                self.clients[user.user_id][client_id] = self.Client(
-                    user.user_id, client_id, patterns, protocol)
+                self.clients[user.user_id][client_name] = self.Client(
+                    user.user_id, client_name, patterns, protocol)
                 logger.info(
-                    f'Registered client {client_id!r} with user {user.user_id} '
+                    f'Registered client {client_name!r} '
+                    f'with user {user.username!r} '
                     f'({util.format_addr(protocol.remote_address)})')
+                # TODO: Fix protocol.send calls
+                protocol.send(f'Registered client {client_name!r} '
+                              f'with user {user.username!r}.')
                 return user.user_id
             else:
                 logger.error(
@@ -76,22 +81,22 @@ class ClientManager:
                 protocol.send('Invalid authentication token.\n')
                 protocol.close()
 
-    def unregister(self, user_id: int, client_id: str) -> None:
+    def unregister(self, user_id: int, client_name: str) -> None:
         """
         Close a client's transport and unregister it from the client manager.
 
         :param user_id: the user who owns the client
-        :param client_id: the ID of the client to unregister
+        :param client_name: the name of the client to unregister
         :raises ValueError: if user has no associated clients
         """
-        if not self.contains(user_id, client_id):
+        if not self.contains(user_id, client_name):
             raise ValueError(f'User {user_id} has no associated client with ID '
-                             f'{client_id!r}')
+                             f'{client_name!r}')
 
-        remote_addr = self.clients[user_id][client_id].protocol.remote_address
-        self.clients[user_id][client_id].protocol.close()
-        del self.clients[user_id][client_id]
-        logger.info(f'Unregistered client {client_id!r} of user {user_id} '
+        remote_addr = self.clients[user_id][client_name].protocol.remote_address
+        self.clients[user_id][client_name].protocol.close()
+        del self.clients[user_id][client_name]
+        logger.info(f'Unregistered client {client_name!r} of user {user_id} '
                     f'({util.format_addr(remote_addr)})')
 
     def available_clients(self, user_id: int) -> List[str]:
@@ -100,17 +105,17 @@ class ClientManager:
         """
         return list(self.clients[user_id])
 
-    def get_client(self, user_id: int, client_id: str) -> Client:
+    def get_client(self, user_id: int, client_name: str) -> Client:
         """
         Get a currently registered client.
         """
-        return self.clients[user_id][client_id]
+        return self.clients[user_id][client_name]
 
-    def contains(self, user_id: int, client_id: str) -> bool:
+    def contains(self, user_id: int, client_name: str) -> bool:
         """
         Check if a user has a client with the specified ID.
         """
-        return client_id in self.clients[user_id]
+        return client_name in self.clients[user_id]
 
 
 clients = ClientManager()  # make sure to call init_app on this
@@ -133,6 +138,15 @@ class WebcandyServerProtocol(websockets.WebSocketServerProtocol):
             f'Disconnected client {util.format_addr(self.remote_address)}')
 
 
+class ClientDataSchema(Schema):
+    """
+    Schema for data that a client must send to get registered.
+    """
+    token = fields.Str(required=True)
+    client_name = fields.Str(required=True)
+    patterns = fields.List(fields.Str(), required=True)
+
+
 class ProxyServer:
     """
     Manager for the proxy server allowing data to be sent to specific clients.
@@ -143,42 +157,42 @@ class ProxyServer:
     async def _ws_handler(client: WebcandyServerProtocol, _):
         addr = util.format_addr(client.remote_address)
 
-        data = await client.recv()
-        try:
-            parsed = json.loads(data)
-        except json.JSONDecodeError:
-            logger.info(f'Received text from {addr}: {data!r}')
-            return
+        # TODO: Update marshmallow code when 3.0 comes out
+        schema = ClientDataSchema()
+        await client.send(
+            '[Webcandy] To register a client, please send: ' + schema.dumps(
+                dict(token='api-token', client_name='UniqueName',
+                     patterns=['List', 'Of', 'Patterns'])).data)
 
-        token = parsed.get('token')
-        client_id = parsed.get('client_id')
-        patterns = parsed.get('patterns')
+        # loop until schema has been loaded without  errors
+        result = None
+        while not result or result.errors:
+            data = await client.recv()
 
-        if token is None:
-            logger.error(f'Missing token in data from {addr}')
-            client.send("[ERROR] Please provide an authentication "
-                        "token in a 'token' field.\n")
-            client.close()
-            return
-        if client_id is None:
-            logger.error(f'Missing client_id in data from {addr}')
-            client.send("[ERROR] Please provide a client ID in a "
-                        "'client_id' field.\n")
-            client.close()
-            return
-        if patterns is None:
-            logger.error(f'Missing patterns in data from {addr}')
-            client.send("[ERROR] Please provide the client's "
-                        "available patterns in a 'patterns' field.\n")
-            client.close()
-            return
+            try:
+                parsed = json.loads(data)
+            except json.JSONDecodeError:
+                logger.debug(
+                    f'Data from {addr} could not be decoded to JSON: {data!r}')
+                continue
 
-        user_id = clients.register(token, client_id, patterns, client)
+            result = schema.load(parsed)
+
+            if result.errors:
+                logger.error(f'{result.errors} (from {addr})')
+                await client.send(f'[Error] {result.errors}')
+                continue
+
+        token = result.data['token']
+        client_name = result.data['client_name']
+        patterns = result.data['patterns']
+
+        user_id = clients.register(token, client_name, patterns, client)
 
         try:
             await client.wait_closed()
         finally:
-            clients.unregister(user_id, client_id)
+            clients.unregister(user_id, client_name)
 
     # TODO: Get WebSocket server running on the same port as the Flask server,
     #   so the only difference in connecting is the protocol (http:// vs. ws://)
@@ -218,12 +232,12 @@ class ProxyServer:
                 f'Connection test to {host}:{port} returned status {status}, '
                 'proxy server not started')
 
-    def send(self, user_id: int, client_id: str, data: dict) -> bool:
+    def send(self, user_id: int, client_name: str, data: dict) -> bool:
         """
         Send dictionary data to a client associated with the specified user.
 
         :param user_id: ID of the user whose client to send data to
-        :param client_id: ID of the client belonging to the user to send data to
+        :param client_name: ID of the client belonging to the user to send data to
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
@@ -231,13 +245,13 @@ class ProxyServer:
             logger.error('Proxy server is not running')
             return False
 
-        if not clients.contains(user_id, client_id):
+        if not clients.contains(user_id, client_name):
             logger.error(f'user {user_id} has no associated client with ID '
-                         f'{client_id!r}')
+                         f'{client_name!r}')
             return False
 
         asyncio.run(
-            clients.get_client(user_id, client_id).protocol.send(
+            clients.get_client(user_id, client_name).protocol.send(
                 json.dumps(data)))
         return True
 
