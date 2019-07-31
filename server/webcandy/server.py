@@ -46,10 +46,11 @@ class ClientManager:
     def init_app(self, app: Flask) -> None:
         self.app = app
 
-    def register(self, token: str, client_name: str, patterns: List[str],
-                 protocol: 'WebcandyServerProtocol') -> int:
+    async def register(self, token: str, client_name: str, patterns: List[str],
+                       protocol: 'WebcandyServerProtocol') -> int:
         """
-        Register a new client.
+        Register a new client. This method is async in order to be able to send
+        messages to `protocol`.
 
         :param token: authorization token provided by the client
         :param client_name: the client name to use; must be unique for this user
@@ -70,15 +71,14 @@ class ClientManager:
                     f'Registered client {client_name!r} '
                     f'with user {user.username!r} '
                     f'({util.format_addr(protocol.remote_address)})')
-                # TODO: Fix protocol.send calls
-                protocol.send(f'Registered client {client_name!r} '
-                              f'with user {user.username!r}.')
+                await protocol.send(f'Registered client {client_name!r} '
+                                    f'with user {user.username!r}.')
                 return user.user_id
             else:
                 logger.error(
                     f'No user could be associated with token {token!r}'
                     f'from {util.format_addr(protocol.remote_address)}')
-                protocol.send('Invalid authentication token.\n')
+                await protocol.send('Invalid authentication token.\n')
                 protocol.close()
 
     def unregister(self, user_id: int, client_name: str) -> None:
@@ -90,7 +90,7 @@ class ClientManager:
         :raises ValueError: if user has no associated clients
         """
         if not self.contains(user_id, client_name):
-            raise ValueError(f'User {user_id} has no associated client with ID '
+            raise ValueError(f'User {user_id} has no associated client named '
                              f'{client_name!r}')
 
         remote_addr = self.clients[user_id][client_name].protocol.remote_address
@@ -101,7 +101,7 @@ class ClientManager:
 
     def available_clients(self, user_id: int) -> List[str]:
         """
-        Get a list of IDs of currently connected clients.
+        Get a list of names of currently connected clients.
         """
         return list(self.clients[user_id])
 
@@ -113,7 +113,7 @@ class ClientManager:
 
     def contains(self, user_id: int, client_name: str) -> bool:
         """
-        Check if a user has a client with the specified ID.
+        Check if a user has a client with the specified name.
         """
         return client_name in self.clients[user_id]
 
@@ -187,7 +187,7 @@ class ProxyServer:
         client_name = result.data['client_name']
         patterns = result.data['patterns']
 
-        user_id = clients.register(token, client_name, patterns, client)
+        user_id = await clients.register(token, client_name, patterns, client)
 
         try:
             await client.wait_closed()
@@ -237,7 +237,7 @@ class ProxyServer:
         Send dictionary data to a client associated with the specified user.
 
         :param user_id: ID of the user whose client to send data to
-        :param client_name: ID of the client belonging to the user to send data to
+        :param client_name: name of client to send to
         :param data: the data to send
         :return: ``True`` if sending was successful; ``False`` otherwise
         """
@@ -246,7 +246,7 @@ class ProxyServer:
             return False
 
         if not clients.contains(user_id, client_name):
-            logger.error(f'user {user_id} has no associated client with ID '
+            logger.error(f'user {user_id} has no associated client named '
                          f'{client_name!r}')
             return False
 
