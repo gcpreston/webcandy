@@ -9,6 +9,7 @@
     "react": "^16.8.3",
     "react-bootstrap": "^1.0.0-beta.5",
     "react-bootstrap-dialog": "^0.11.0",
+    "react-bootstrap-slider": "^2.2.2",
     "react-color": "^2.17.0",
     "react-dom": "^16.8.3",
     "react-router": "^5.0.0",

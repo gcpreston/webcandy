@@ -1,8 +1,9 @@
 import React from 'react';
-import { Form, Button } from 'react-bootstrap';
 import axios from 'axios';
+import { Form, Button } from 'react-bootstrap';
 
 import LightConfigForm from './forms/LightConfigForm';
+import logo from "../../img/webcandy_logo.png";
 
 /**
  * Webcandy main app page.
@@ -42,8 +43,8 @@ export default class App extends React.Component {
     render() {
         return (
             <React.Fragment>
+                <img className="centerImage" src={logo} alt="Webcandy logo"/>
                 <div className="title">
-                    <h1>Webcandy</h1>
                     <p>Logged in as {this.state.username}</p>
                 </div>
 
