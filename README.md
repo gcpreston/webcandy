@@ -61,3 +61,6 @@ To control LEDs, you will need to connect a client. Do do so, clone [webcandy-cl
 
 ###  Login
 The default login is username "testuser1" and password "Webcandy1".
+
+## Acknowledgements
+* Thanks to Maksim Surguy ([msurguy](https://github.com/msurguy)) for the awesome logo!
