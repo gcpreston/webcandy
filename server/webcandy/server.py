@@ -121,6 +121,7 @@ class ClientManager:
 clients = ClientManager()  # make sure to call init_app on this
 
 
+# TODO: Figure out why clients are being connected and disconnected
 class WebcandyServerProtocol(websockets.WebSocketServerProtocol):
     """
     Subclass of WebSocketProtocol for logging purposes. I prefer to use this
@@ -148,12 +149,14 @@ class ClientDataSchema(Schema):
         Schema for necessary information about a lighting pattern.
         """
         name = fields.Str(required=True)
-        type = fields.Str(required=True)  # 'static' or 'dynamic'
-        # TODO: Define Pattern type field more rigidly
+        type = fields.Str(required=True,
+                          validate=lambda v: v in {'static', 'dynamic'})
+        takes = fields.Str(
+            allow_none=True, required=True,
+            validate=lambda v: v in {'color', 'color_list', None})
 
     token = fields.Str(required=True)
     client_name = fields.Str(required=True)
-    # patterns = fields.List(fields.Nested(PatternSchema()), required=True)
     patterns = fields.List(fields.Nested(PatternSchema()), required=True)
 
 

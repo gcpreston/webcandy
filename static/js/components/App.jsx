@@ -105,7 +105,7 @@ export default class App extends React.Component {
                 // clear clientId if no clients are connected
                 this.setState({ clientId: "" });
             }
-        }).catch(error => console.log(error.response));
+        }).catch(error => console.log(error));
     };
 
     handleLogout = () => {

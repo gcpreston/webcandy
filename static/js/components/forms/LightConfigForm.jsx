@@ -12,11 +12,11 @@ import {
 } from 'react-bootstrap';
 import Dialog from 'react-bootstrap-dialog';
 
-import { getAuthConfig } from '../../util.js';
-
-// TODO: Allow this to be somehow defined in opclib
-let colorPatterns = ["SolidColor"];
-let colorListPatterns = ["Fade", "Scroll", "Stripes"];
+import {
+    getAuthConfig,
+    getMatchingObject,
+    getMatchingIndex,
+} from '../../util.js';
 
 /**
  * Form for building lighting configuration request.
@@ -28,10 +28,12 @@ export default class LightConfigForm extends React.Component {
     constructor(props) {
         super(props);
 
+        // TODO: Add some kind of loading flag so "No clients connected" does
+        //   not pop up momentarily before loading data
         this.state = {
             patterns: [],
             offButton: false,  // display "Turn off" button if "Off" pattern exists
-            pattern: "",
+            pattern: null,
             colors: {},
             enteredColor: "",  // hex
             selectedColor: "",  // name of color
@@ -48,7 +50,7 @@ export default class LightConfigForm extends React.Component {
      * field and if the "Custom color" checkbox is selected.
      */
     getCurrentColor() {
-        if (colorPatterns.includes(this.state.pattern)) {
+        if (this.state.pattern["takes"] === "color") {
             if (this.state.customColor) {
                 return this.state.enteredColor;
             }
@@ -62,7 +64,7 @@ export default class LightConfigForm extends React.Component {
      * the color_list field
      */
     getCurrentColorList() {
-        if (colorListPatterns.includes(this.state.pattern)) {
+        if (this.state.pattern["takes"] === "color_list") {
             // TODO: Update this logic when color list entry is implemented
             return this.state.colorLists[this.state.selectedColorList];
         }
@@ -88,7 +90,7 @@ export default class LightConfigForm extends React.Component {
             let patterns = response.data.patterns;
 
             // remove "Off" from patterns so it doesn't appear on the dropdown
-            const index = patterns.indexOf({ name: "Off", type: "static" });
+            const index = getMatchingIndex(patterns, "name", "Off");
             let offButtonVal = false;
             if (index > -1) {
                 patterns.splice(index, 1);
@@ -97,7 +99,7 @@ export default class LightConfigForm extends React.Component {
 
             this.setState({
                 patterns: patterns,
-                pattern: patterns ? patterns[0].name : "",
+                pattern: patterns ? patterns[0] : "",
                 offButton: offButtonVal,
             });
         }).catch(error => {
@@ -212,10 +214,12 @@ export default class LightConfigForm extends React.Component {
         );
 
         let config;
-        if (colorListPatterns.includes(this.state.pattern)) {
-            config = colorListEntry;
-        } else {
-            config = colorEntry;
+        if (this.state.pattern) {
+            if (this.state.pattern["takes"] === "color") {
+                config = colorEntry;
+            } else if (this.state.pattern["takes"] === "color_list") {
+                config = colorListEntry;
+            }
         }
 
         return (
@@ -226,7 +230,10 @@ export default class LightConfigForm extends React.Component {
                     <Form.Group controlId="patternSelect">
                         <Form.Label>Pattern</Form.Label>
                         <Form.Control as="select"
-                                      onChange={e => this.setState({ pattern: e.target.value })}>
+                                      onChange={e => this.setState({
+                                          pattern: getMatchingObject(
+                                              this.state.patterns,"name", e.target.value)
+                                      })}>
                             {this.state.patterns.map((p, idx) => {
                                 return <option key={idx}>{p.name}</option>;
                             })}
@@ -378,7 +385,7 @@ export default class LightConfigForm extends React.Component {
 
         const data = {
             "client_id": this.props.clientId,
-            "pattern": this.state.pattern,
+            "pattern": this.state.pattern.name,
             "strobe": this.state.strobe,
             "color": this.getCurrentColor(),
             "color_list": this.getCurrentColorList()
