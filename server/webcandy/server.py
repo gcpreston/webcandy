@@ -29,7 +29,7 @@ class ClientManager:
         Data model for a connected client instance.
         """
 
-        def __init__(self, user_id: int, client_name: str, patterns: List[str],
+        def __init__(self, user_id: int, client_name: str, patterns: List[Dict],
                      protocol: 'WebcandyServerProtocol'):
             # store user_id and client_name as backward reference
             self.user_id = user_id
@@ -46,7 +46,7 @@ class ClientManager:
     def init_app(self, app: Flask) -> None:
         self.app = app
 
-    async def register(self, token: str, client_name: str, patterns: List[str],
+    async def register(self, token: str, client_name: str, patterns: List[Dict],
                        protocol: 'WebcandyServerProtocol') -> int:
         """
         Register a new client. This method is async in order to be able to send
@@ -78,7 +78,7 @@ class ClientManager:
                 logger.error(
                     f'No user could be associated with token {token!r}'
                     f'from {util.format_addr(protocol.remote_address)}')
-                await protocol.send('Invalid authentication token.\n')
+                await protocol.send('[Error] Invalid authentication token\n')
                 protocol.close()
 
     def unregister(self, user_id: int, client_name: str) -> None:
@@ -142,9 +142,19 @@ class ClientDataSchema(Schema):
     """
     Schema for data that a client must send to get registered.
     """
+
+    class PatternSchema(Schema):
+        """
+        Schema for necessary information about a lighting pattern.
+        """
+        name = fields.Str(required=True)
+        type = fields.Str(required=True)  # 'static' or 'dynamic'
+        # TODO: Define Pattern type field more rigidly
+
     token = fields.Str(required=True)
     client_name = fields.Str(required=True)
-    patterns = fields.List(fields.Str(), required=True)
+    # patterns = fields.List(fields.Nested(PatternSchema()), required=True)
+    patterns = fields.List(fields.Nested(PatternSchema()), required=True)
 
 
 class ProxyServer:

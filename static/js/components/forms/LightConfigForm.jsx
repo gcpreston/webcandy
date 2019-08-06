@@ -88,18 +88,18 @@ export default class LightConfigForm extends React.Component {
             let patterns = response.data.patterns;
 
             // remove "Off" from patterns so it doesn't appear on the dropdown
-            const index = patterns.indexOf("Off");
+            const index = patterns.indexOf({ name: "Off", type: "static" });
+            let offButtonVal = false;
             if (index > -1) {
                 patterns.splice(index, 1);
-                this.setState({ offButton: true })
+                offButtonVal = true;
             }
 
-            this.setState({ patterns: patterns });
-
-            // set pattern initial value
-            if (patterns) {
-                this.setState({ pattern: Object.values(patterns)[0] })
-            }
+            this.setState({
+                patterns: patterns,
+                pattern: patterns ? patterns[0].name : "",
+                offButton: offButtonVal,
+            });
         }).catch(error => {
             if (error.response && error.response.status === 401) {
                 window.location = "/login"; // api key has expired
@@ -107,7 +107,6 @@ export default class LightConfigForm extends React.Component {
                 console.log(error);
             }
         });
-
     }
 
     /**
@@ -118,7 +117,7 @@ export default class LightConfigForm extends React.Component {
             const colors = response.data["colors"];
             const colorLists = response.data["color_lists"];
 
-            this.setState({ colors: colors, colorLists: colorLists });
+            this.setState({ colors: colors, colorLists: colorLists, });
 
             // set initial values
             if (colors && !this.state.selectedColor) {
@@ -228,8 +227,8 @@ export default class LightConfigForm extends React.Component {
                         <Form.Label>Pattern</Form.Label>
                         <Form.Control as="select"
                                       onChange={e => this.setState({ pattern: e.target.value })}>
-                            {this.state.patterns.map((name, idx) => {
-                                return <option key={idx}>{name}</option>;
+                            {this.state.patterns.map((p, idx) => {
+                                return <option key={idx}>{p.name}</option>;
                             })}
                         </Form.Control>
                     </Form.Group>
