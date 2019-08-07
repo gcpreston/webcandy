@@ -30,7 +30,7 @@ class ClientManager:
         """
 
         def __init__(self, user_id: int, client_name: str, patterns: List[Dict],
-                     protocol: 'WebcandyServerProtocol'):
+                     protocol: websockets.WebSocketServerProtocol):
             # store user_id and client_name as backward reference
             self.user_id = user_id
             self.client_name = client_name
@@ -47,7 +47,7 @@ class ClientManager:
         self.app = app
 
     async def register(self, token: str, client_name: str, patterns: List[Dict],
-                       protocol: 'WebcandyServerProtocol') -> int:
+                       protocol: websockets.WebSocketServerProtocol) -> int:
         """
         Register a new client. This method is async in order to be able to send
         messages to `protocol`.
@@ -89,15 +89,18 @@ class ClientManager:
         :param client_name: the name of the client to unregister
         :raises ValueError: if user has no associated clients
         """
+        with self.app.app_context():
+            user: User = User.query.get(user_id)
+
         if not self.contains(user_id, client_name):
-            raise ValueError(f'User {user_id} has no associated client named '
-                             f'{client_name!r}')
+            raise ValueError(f'User {user.username!r} has no associated client '
+                             f'named {client_name!r}')
 
         remote_addr = self.clients[user_id][client_name].protocol.remote_address
         self.clients[user_id][client_name].protocol.close()
         del self.clients[user_id][client_name]
-        logger.info(f'Unregistered client {client_name!r} of user {user_id} '
-                    f'({util.format_addr(remote_addr)})')
+        logger.info(f'Unregistered client {client_name!r} of user '
+                    f'{user.username!r} ({util.format_addr(remote_addr)})')
 
     def available_clients(self, user_id: int) -> List[str]:
         """
@@ -121,24 +124,6 @@ class ClientManager:
 clients = ClientManager()  # make sure to call init_app on this
 
 
-# TODO: Figure out why clients are being connected and disconnected
-class WebcandyServerProtocol(websockets.WebSocketServerProtocol):
-    """
-    Subclass of WebSocketProtocol for logging purposes. I prefer to use this
-    over `websockets` logging because minimal logging messages are needed.
-    """
-
-    def connection_made(self, transport):
-        super().connection_made(transport)
-        logger.debug(
-            f'Connected client {util.format_addr(self.remote_address)}')
-
-    def connection_lost(self, exc):
-        super().connection_lost(exc)
-        logger.debug(
-            f'Disconnected client {util.format_addr(self.remote_address)}')
-
-
 class ClientDataSchema(Schema):
     """
     Schema for data that a client must send to get registered.
@@ -148,12 +133,15 @@ class ClientDataSchema(Schema):
         """
         Schema for necessary information about a lighting pattern.
         """
+
+        def one_of(*args):
+            return lambda v: v in set(args)
+
         name = fields.Str(required=True)
         type = fields.Str(required=True,
-                          validate=lambda v: v in {'static', 'dynamic'})
-        takes = fields.Str(
-            allow_none=True, required=True,
-            validate=lambda v: v in {'color', 'color_list', None})
+                          validate=one_of('static', 'dynamic'))
+        takes = fields.Str(allow_none=True, required=True,
+                           validate=one_of('color', 'color_list', None))
 
     token = fields.Str(required=True)
     client_name = fields.Str(required=True)
@@ -167,15 +155,15 @@ class ProxyServer:
     running: bool = False
 
     @staticmethod
-    async def _ws_handler(client: WebcandyServerProtocol, _):
+    async def _ws_handler(client: websockets.WebSocketServerProtocol, _):
         addr = util.format_addr(client.remote_address)
+        logger.debug(f'Connected client {addr}')
 
         # TODO: Update marshmallow code when 3.0 comes out
         schema = ClientDataSchema()
         await client.send(
-            '[Webcandy] To register a client, please send: ' + schema.dumps(
-                dict(token='api-token', client_name='UniqueName',
-                     patterns=['List', 'Of', 'Patterns'])).data)
+            '[Webcandy] To register a client, please send serialized JSON data '
+            'fitting the schema described in the documentation.')
 
         # loop until schema has been loaded without  errors
         result = None
@@ -204,11 +192,10 @@ class ProxyServer:
 
         try:
             await client.wait_closed()
+            logger.debug(f'Disconnected client {addr}')
         finally:
             clients.unregister(user_id, client_name)
 
-    # TODO: Get WebSocket server running on the same port as the Flask server,
-    #   so the only difference in connecting is the protocol (http:// vs. ws://)
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
         Start the proxy server.
@@ -221,8 +208,7 @@ class ProxyServer:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            start_server = websockets.serve(
-                handler, host, port, create_protocol=WebcandyServerProtocol)
+            start_server = websockets.serve(handler, host, port)
 
             asyncio.get_event_loop().run_until_complete(start_server)
             asyncio.get_event_loop().run_forever()
