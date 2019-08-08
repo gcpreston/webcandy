@@ -11,12 +11,15 @@ import {
     Popover,
 } from 'react-bootstrap';
 import Dialog from 'react-bootstrap-dialog';
+import ReactBootstrapSlider from 'react-bootstrap-slider';
 
 import {
     getAuthConfig,
     getMatchingObject,
     getMatchingIndex,
 } from '../../util.js';
+
+import "bootstrap-slider/dist/css/bootstrap-slider.css"
 
 /**
  * Form for building lighting configuration request.
@@ -42,6 +45,7 @@ export default class LightConfigForm extends React.Component {
             enteredColorList: [],  // hex list
             selectedColorList: "",  // name of color list
             strobe: false,
+            speed: 5.0
         };
     }
 
@@ -222,6 +226,27 @@ export default class LightConfigForm extends React.Component {
             }
         }
 
+        if (this.state.pattern && this.state.pattern["type"] === "dynamic") {
+            config = (
+                <React.Fragment>
+                    {config}
+
+                    <Form.Row>
+                        <Form.Group as={Col} controlId="speedSlider">
+                            <Form.Label>Speed: {Number(this.state.speed).toFixed(1)}</Form.Label>
+                            <br/>
+                            <ReactBootstrapSlider
+                                value={this.state.speed}
+                                change={e => this.setState({ speed: e.target.value })}
+                                step={0.1}
+                                max={20}
+                                min={0}/>
+                        </Form.Group>
+                    </Form.Row>
+                </React.Fragment>
+            )
+        }
+
         return (
             <React.Fragment>
                 <Dialog ref={component => this.dialog = component}/>
@@ -232,7 +257,7 @@ export default class LightConfigForm extends React.Component {
                         <Form.Control as="select"
                                       onChange={e => this.setState({
                                           pattern: getMatchingObject(
-                                              this.state.patterns,"name", e.target.value)
+                                              this.state.patterns, "name", e.target.value)
                                       })}>
                             {this.state.patterns.map((p, idx) => {
                                 return <option key={idx}>{p.name}</option>;
