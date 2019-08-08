@@ -50,32 +50,6 @@ export default class LightConfigForm extends React.Component {
     }
 
     /**
-     * Get the current color based on if the current pattern utilizes the color
-     * field and if the "Custom color" checkbox is selected.
-     */
-    getCurrentColor() {
-        if (this.state.pattern["takes"] === "color") {
-            if (this.state.customColor) {
-                return this.state.enteredColor;
-            }
-            return this.state.colors[this.state.selectedColor];
-        }
-        return null;
-    }
-
-    /**
-     * Get the current color list basedo n if the current pattern utilitzes
-     * the color_list field
-     */
-    getCurrentColorList() {
-        if (this.state.pattern["takes"] === "color_list") {
-            // TODO: Update this logic when color list entry is implemented
-            return this.state.colorLists[this.state.selectedColorList];
-        }
-        return null;
-    }
-
-    /**
      * Get values from Webcandy API and set state before app renders.
      */
     componentWillMount() {
@@ -339,6 +313,34 @@ export default class LightConfigForm extends React.Component {
     };
 
     /**
+     * Save the current custom color for the logged-in user.
+     * @param name - The name to save the color as
+     * @param color - The hex value to save
+     */
+    saveColor = (name, color) => {
+        const data = {
+            "colors": {
+                [name]: color
+            }
+        };
+
+        axios.put("/api/user/data", data, getAuthConfig())
+            .then(response => {
+                console.log(response);
+                this.updateSavedData();
+                this.setState({ selectedColor: name })
+
+            })
+            .catch(error => {
+                if (error.response.status === 401) {
+                    window.location = "/login"; // unauthorized
+                } else {
+                    console.log(error);
+                }
+            });
+    };
+
+    /**
      * Update the currently entered color based on a select change event.
      * @param event - The change event from the select
      */
@@ -374,34 +376,6 @@ export default class LightConfigForm extends React.Component {
     };
 
     /**
-     * Save the current custom color for the logged-in user.
-     * @param name - The name to save the color as
-     * @param color - The hex value to save
-     */
-    saveColor = (name, color) => {
-        const data = {
-            "colors": {
-                [name]: color
-            }
-        };
-
-        axios.put("/api/user/data", data, getAuthConfig())
-            .then(response => {
-                console.log(response);
-                this.updateSavedData();
-                this.setState({ selectedColor: name })
-
-            })
-            .catch(error => {
-                if (error.response.status === 401) {
-                    window.location = "/login"; // unauthorized
-                } else {
-                    console.log(error);
-                }
-            });
-    };
-
-    /**
      * Submit the form data.
      * @param event - The submit event
      */
@@ -412,9 +386,22 @@ export default class LightConfigForm extends React.Component {
             "client_id": this.props.clientId,
             "pattern": this.state.pattern.name,
             "strobe": this.state.strobe,
-            "color": this.getCurrentColor(),
-            "color_list": this.getCurrentColorList()
         };
+
+        const currentColor = this.getCurrentColor();
+        if (currentColor) {
+            data["color"] = currentColor;
+        }
+
+        const currentColorList = this.getCurrentColorList();
+        if (currentColorList) {
+            data["color_list"] = currentColorList;
+        }
+
+        const currentSpeed = this.getCurrentSpeed();
+        if (currentSpeed) {
+            data["speed"] = currentSpeed;
+        }
 
         this.submit(data);
     };
@@ -435,6 +422,43 @@ export default class LightConfigForm extends React.Component {
     };
 
     /**
+     * Get the current color based on if the current pattern utilizes the color
+     * field and if the "Custom color" checkbox is selected.
+     */
+    getCurrentColor() {
+        if (this.state.pattern["takes"] === "color") {
+            if (this.state.customColor) {
+                return this.state.enteredColor;
+            }
+            return this.state.colors[this.state.selectedColor];
+        }
+        return null;
+    }
+
+    /**
+     * Get the current color list based on if the current pattern utilitzes
+     * the color_list field.
+     */
+    getCurrentColorList() {
+        if (this.state.pattern["takes"] === "color_list") {
+            // TODO: Update this logic when color list entry is implemented
+            return this.state.colorLists[this.state.selectedColorList];
+        }
+        return null;
+    }
+
+    /**
+     * Get the current speed based on if the current pattern is static or
+     * dynamic.
+     */
+    getCurrentSpeed() {
+        if (this.state.pattern["type"] === "dynamic") {
+            return this.state.speed;
+        }
+        return null;
+    }
+
+    /**
      * Submit data to the Webcandy API to run a lighting configuration. Valid
      * fields for data are described in the submit route documentation
      * (submit method in routes.py).
@@ -442,7 +466,6 @@ export default class LightConfigForm extends React.Component {
      */
     submit(data) {
         axios.post("/api/submit", data, getAuthConfig())
-            .then(response => console.log(response))
             .catch(error => {
                 if (error.response.status === 401) {
                     window.location = "/login"; // unauthorized
