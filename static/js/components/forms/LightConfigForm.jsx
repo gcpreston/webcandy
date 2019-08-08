@@ -131,7 +131,6 @@ export default class LightConfigForm extends React.Component {
                 <Form.Row>
                     <Form.Group as={Col} controlId="colorSelect">
                         <Form.Control as="select"
-                                      disabled={this.state.customColor}
                                       value={this.state.selectedColor}
                                       onChange={this.handleColorSelect}>
                             {Object.keys(this.state.colors).map((name, idx) => {
@@ -155,10 +154,10 @@ export default class LightConfigForm extends React.Component {
                                           placeholder="#RRGGBB"
                                           value={this.state.enteredColor}
                                           onChange={e => this.setState({ enteredColor: e.target.value })}
-                                          disabled={!this.state.customColor}/>
+                                          onFocus={() => this.setState({ customColor: true })}
+                                          onBlur={() => this.setState({ customColor: false })}/>
                             <InputGroup.Append>
                                 <Button variant="success"
-                                        disabled={!this.state.customColor}
                                         onClick={this.namePrompt}>
                                     Save
                                 </Button>
@@ -166,12 +165,6 @@ export default class LightConfigForm extends React.Component {
                         </InputGroup>
                     </Form.Group>
                 </Form.Row>
-
-                <Form.Group controlId="customColorCheck">
-                    <Form.Check value={this.state.customColor}
-                                onChange={this.handleCustomColorCheck}
-                                label="Custom color"/>
-                </Form.Group>
             </React.Fragment>
         );
 
@@ -363,19 +356,6 @@ export default class LightConfigForm extends React.Component {
     };
 
     /**
-     * Change whether the user can type the hex of a custom color or select from
-     * the list of saved colors.
-     * @param event - The change event from the checkbox
-     */
-    handleCustomColorCheck = (event) => {
-        this.setState({ customColor: event.target.checked });
-
-        if (!event.target.checked) {
-            this.setState({ enteredColor: this.state.colors[this.state.selectedColor] })
-        }
-    };
-
-    /**
      * Submit the form data.
      * @param event - The submit event
      */
@@ -423,14 +403,15 @@ export default class LightConfigForm extends React.Component {
 
     /**
      * Get the current color based on if the current pattern utilizes the color
-     * field and if the "Custom color" checkbox is selected.
+     * field and if a custom color is entered.
      */
     getCurrentColor() {
         if (this.state.pattern["takes"] === "color") {
-            if (this.state.customColor) {
+            const selected = this.state.colors[this.state.selectedColor];
+            if (this.state.enteredColor !== selected) {
                 return this.state.enteredColor;
             }
-            return this.state.colors[this.state.selectedColor];
+            return selected;
         }
         return null;
     }
