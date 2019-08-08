@@ -11,6 +11,8 @@ import App from './components/App';
 import Login from './components/Login';
 import CreateAccount from './components/CreateAccount';
 import NotFound from './components/NotFound';
+
+import "bootstrap/dist/css/bootstrap.css";
 import '../css/index.css';
 
 // TODO: Going to /hello tries to load /hello/dist/bundle.js??
