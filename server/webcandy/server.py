@@ -8,7 +8,7 @@ import websockets
 from collections import defaultdict
 from typing import Dict, List
 from flask import Flask
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, INCLUDE, ValidationError
 
 from . import util
 from .config import configure_logger
@@ -133,6 +133,8 @@ class ClientDataSchema(Schema):
         """
         Schema for necessary information about a lighting pattern.
         """
+        class Meta:
+            unknown = INCLUDE
 
         def one_of(*args):
             return lambda v: v in set(args)
@@ -140,6 +142,7 @@ class ClientDataSchema(Schema):
         name = fields.Str(required=True)
         type = fields.Str(required=True,
                           validate=one_of('static', 'dynamic'))
+        default_speed = fields.Int(validate=lambda v: v >= 0)
         takes = fields.Str(allow_none=True, required=True,
                            validate=one_of('color', 'color_list', None))
 
@@ -159,7 +162,6 @@ class ProxyServer:
         addr = util.format_addr(client.remote_address)
         logger.debug(f'Connected client {addr}')
 
-        # TODO: Update marshmallow code when 3.0 comes out
         schema = ClientDataSchema()
         await client.send(
             '[Webcandy] To register a client, please send serialized JSON data '
@@ -167,7 +169,7 @@ class ProxyServer:
 
         # loop until schema has been loaded without  errors
         result = None
-        while not result or result.errors:
+        while not result:
             data = await client.recv()
 
             try:
@@ -177,16 +179,16 @@ class ProxyServer:
                     f'Data from {addr} could not be decoded to JSON: {data!r}')
                 continue
 
-            result = schema.load(parsed)
-
-            if result.errors:
-                logger.error(f'{result.errors} (from {addr})')
-                await client.send(f'[Error] {result.errors}')
+            try:
+                result = schema.load(parsed)
+            except ValidationError as err:
+                logger.error(f'{err.messages} (from {addr})')
+                await client.send(f'[Error] {err.messages}')
                 continue
 
-        token = result.data['token']
-        client_name = result.data['client_name']
-        patterns = result.data['patterns']
+        token = result['token']
+        client_name = result['client_name']
+        patterns = result['patterns']
 
         user_id = await clients.register(token, client_name, patterns, client)
 

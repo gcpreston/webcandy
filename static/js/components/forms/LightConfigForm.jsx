@@ -204,7 +204,7 @@ export default class LightConfigForm extends React.Component {
                             <br/>
                             <ReactBootstrapSlider
                                 value={this.state.speed}
-                                change={e => this.setState({ speed: e.target.value })}
+                                change={e => this.setState({ speed: Number(e.target.value) })}
                                 step={0.1}
                                 max={20}
                                 min={0}/>
@@ -222,10 +222,7 @@ export default class LightConfigForm extends React.Component {
                     <Form.Group controlId="patternSelect">
                         <Form.Label>Pattern</Form.Label>
                         <Form.Control as="select"
-                                      onChange={e => this.setState({
-                                          pattern: getMatchingObject(
-                                              this.state.patterns, "name", e.target.value)
-                                      })}>
+                                      onChange={this.handlePatternSelect}>
                             {this.state.patterns.map((p, idx) => {
                                 return <option key={idx}>{p.name}</option>;
                             })}
@@ -331,6 +328,20 @@ export default class LightConfigForm extends React.Component {
                     console.log(error);
                 }
             });
+    };
+
+    handlePatternSelect = (event) => {
+        const pattern = getMatchingObject(
+            this.state.patterns, "name", event.target.value);
+
+        let speed = this.state.speed;
+        if (pattern.hasOwnProperty("default_speed"))
+            speed = pattern["default_speed"];
+
+        this.setState({
+            pattern: pattern,
+            speed: speed
+        })
     };
 
     /**
