@@ -4,7 +4,7 @@ from itsdangerous import (
     SignatureExpired,
     BadSignature
 )
-from typing import Optional, Dict
+from typing import Union, Optional, Dict
 
 from . import util
 from .config import Config
@@ -20,27 +20,31 @@ class User(db.Model):
     password_hash = db.Column(db.String(128))
 
     @classmethod
-    def get_user(cls, token: str) -> Optional['User']:
+    def get_user(cls, user_id_or_token: Union[str, int]) -> Optional['User']:
         """
-        Get the user represented by a given authentication token. Must be called
+        Get the user associated with a user_id or access token. Must be called
         from within Flask application context.
 
-        :param token: the token to process
+        :param user_id_or_token: the user_id or token to process
         :return: the user associated with the token; ``None`` if token is
             invalid or no user could be identified
         """
-        s = Serializer(Config.SECRET_KEY)
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None  # valid token, but expired
-        except BadSignature:
-            return None  # invalid token
+        user_id = None
+        if isinstance(user_id_or_token, int):
+            user_id = user_id_or_token
+        elif isinstance(user_id_or_token, str):
+            s = Serializer(Config.SECRET_KEY)
+            try:
+                data = s.loads(user_id_or_token)
+            except SignatureExpired:
+                return None  # valid token, but expired
+            except BadSignature:
+                return None  # invalid token
 
-        try:
-            user_id = data['id']
-        except KeyError:
-            raise ValueError('Improperly formatted data in token')
+            try:
+                user_id = data['id']
+            except KeyError:
+                raise ValueError('Improperly formatted data in token')
 
         return cls.query.get(user_id)
 

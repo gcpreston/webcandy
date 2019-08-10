@@ -6,7 +6,7 @@ import logging
 import websockets
 
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Optional
 from flask import Flask
 from marshmallow import Schema, fields, INCLUDE, ValidationError
 
@@ -46,8 +46,9 @@ class ClientManager:
     def init_app(self, app: Flask) -> None:
         self.app = app
 
-    async def register(self, token: str, client_name: str, patterns: List[Dict],
-                       protocol: websockets.WebSocketServerProtocol) -> int:
+    def register(self, token: str, client_name: str, patterns: List[Dict],
+                 protocol: websockets.WebSocketServerProtocol) \
+            -> Optional[User]:
         """
         Register a new client. This method is async in order to be able to send
         messages to `protocol`.
@@ -56,7 +57,7 @@ class ClientManager:
         :param client_name: the client name to use; must be unique for this user
         :param patterns: available patterns provided by the client
         :param protocol: ``WebcandyServerProtocol`` instance for the client
-        :return: the user_id the token is associated with
+        :return: the user the token is associated with; None if invalid
         :raises RuntimeError: if called before app is initialized
         """
         if not self.app:
@@ -71,14 +72,11 @@ class ClientManager:
                     f'Registered client {client_name!r} '
                     f'with user {user.username!r} '
                     f'({util.format_addr(protocol.remote_address)})')
-                await protocol.send(f'Registered client {client_name!r} '
-                                    f'with user {user.username!r}.')
-                return user.user_id
+                return user
             else:
                 logger.error(
                     f'No user could be associated with token {token!r}'
                     f'from {util.format_addr(protocol.remote_address)}')
-                await protocol.send('[Error] Invalid authentication token\n')
                 protocol.close()
 
     def unregister(self, user_id: int, client_name: str) -> None:
@@ -133,6 +131,7 @@ class ClientDataSchema(Schema):
         """
         Schema for necessary information about a lighting pattern.
         """
+
         class Meta:
             unknown = INCLUDE
 
@@ -142,9 +141,9 @@ class ClientDataSchema(Schema):
         name = fields.Str(required=True)
         type = fields.Str(required=True,
                           validate=one_of('static', 'dynamic'))
-        default_speed = fields.Int(validate=lambda v: v >= 0)
         takes = fields.Str(allow_none=True, required=True,
                            validate=one_of('color', 'color_list', None))
+        default_speed = fields.Int(validate=lambda v: v >= 0)
 
     token = fields.Str(required=True)
     client_name = fields.Str(required=True)
@@ -190,7 +189,14 @@ class ProxyServer:
         client_name = result['client_name']
         patterns = result['patterns']
 
-        user_id = await clients.register(token, client_name, patterns, client)
+        user = clients.register(token, client_name, patterns, client)
+        if user:
+            await clients.get_client(user.user_id, client_name).protocol.send(
+                f'Registered client {client_name!r} '
+                f'with user {user.username!r}.')
+        else:
+            await clients.get_client(user.user_id, client_name).protocol.send(
+                '[Error] Invalid authentication token\n')
 
         try:
             await client.wait_closed()

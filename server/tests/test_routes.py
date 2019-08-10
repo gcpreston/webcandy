@@ -4,21 +4,18 @@ import json
 from webcandy.app import create_app
 
 
-# TODO: Fix issue of process not terminating after tests finish
 class TestAPI(unittest.TestCase):
     """
     Test API routes.
     """
+    app = create_app(False).test_client()
+    token: str
 
     def setUp(self) -> None:
-        """
-        Initialize API tests by retrieving an access token.
-        """
-        self.app = create_app(False).test_client()
         # this tests the /api/token route
-        self.token = self.login('testuser1', 'Webcandy1')
+        self.token = self.retrieve_token('testuser1', 'Webcandy1')
 
-    def login(self, username: str, password: str) -> str:
+    def retrieve_token(self, username: str, password: str) -> str:
         """
         Log in to Webcandy and retrieve an access token.
 
@@ -28,7 +25,9 @@ class TestAPI(unittest.TestCase):
         """
         response = self.app.post('/api/token', json={'username': username,
                                                      'password': password})
-        return json.loads(response.get_data())['token']
+        data = response.get_data()
+        data_json = json.loads(data)
+        return data_json['token']
 
     def get(self, route: str, token: str = None):
         """
@@ -43,36 +42,52 @@ class TestAPI(unittest.TestCase):
             headers['Authorization'] = f'Bearer {token}'
         return self.app.get(route, headers=headers)
 
-    # TODO: Create /api/patterns tests now that it requires a client
     # TODO: Test PUT on colors and color_lists
 
-    def test_colors(self):
+    def test_user_clients(self):
         """
-        Test the /colors URI.
+        Test the /api/user/clients URI.
         """
-        response = self.get('/api/colors', self.token)
-        self.assertEqual(json.loads(response.get_data()),
-                         {
-                             "blue": "#4169e1",
-                             "green": "#00ff80",
-                             "pink": "#ff69b4",
-                             "purple": "#8a2be2",
-                             "yellow": "#ffff99"
-                         })
+        # test no connected clients
+        response = self.get('/api/user/clients', self.token)
+        self.assertListEqual(json.loads(response.get_data()), [])
+        # TODO: Simulate clients and finish /api/user/clients test
 
-    def test_color_lists(self):
+    def test_user_info(self):
+        """
+        Test the /api/user/info URI.
+        """
+        response = self.get('/api/user/info', self.token)
+        self.assertDictEqual(json.loads(response.get_data()),
+                             {
+                                 'user_id': 1,
+                                 'username': 'testuser1',
+                                 'email': 'testuser1@email.com'
+
+                             })
+
+    def test_user_data(self):
         """
         Test the /color_lists URI.
         """
-        response = self.get('/api/color_lists', self.token)
+        response = self.get('/api/user/data', self.token)
         self.assertEqual(json.loads(response.get_data()),
                          {
-                             "rainbow": [
-                                 "#ff0000",
-                                 "#ff7f00",
-                                 "#ffff00",
-                                 "#00ff00",
-                                 "#0000ff",
-                                 "#8b00ff"
-                             ]
+                             'colors': {
+                                 "blue": "#4169e1",
+                                 "green": "#00ff80",
+                                 "pink": "#ff69b4",
+                                 "purple": "#8a2be2",
+                                 "yellow": "#ffff99"
+                             },
+                             'color_lists': {
+                                 "rainbow": [
+                                     "#ff0000",
+                                     "#ff7f00",
+                                     "#ffff00",
+                                     "#00ff00",
+                                     "#0000ff",
+                                     "#8b00ff"
+                                 ]
+                             }
                          })

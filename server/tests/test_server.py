@@ -12,4 +12,4 @@ class TestClientManager(unittest.TestCase):
         manager = ClientManager()
         # assert that RuntimeError is raised when app isn't initialized
         self.assertRaises(RuntimeError, manager.register,
-                          'some-token', [], None)
+                          'some-token', 'MyClient', [], None)
