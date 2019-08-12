@@ -25,7 +25,7 @@ environment? This is the section for you!
 .. toctree::
     :maxdepth: 2
 
-    server/install
+    server/local_server
 
 API Reference
 -------------
