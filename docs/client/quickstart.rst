@@ -2,12 +2,9 @@
 Quickstart
 **********
 The Webcandy Client is responsible for receiving lighting configurations and
-running them on a Fadecandy. The source code can be found on
+running them on a Fadecandy. It must be run from the a computer with a Fadecandy
+plugged in.The source code can be found on
 `Github <https://github.com/gcpreston/webcandy-client>`_.
-
-**NOTE:** Webcandy Client is responsible for interacting with the physical
-Fadecandy. This means any client code must be run from the computer with the
-Fadecandy plugged in.
 
 Installation
 ============
