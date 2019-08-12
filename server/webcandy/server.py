@@ -202,7 +202,7 @@ class ProxyServer:
             await client.wait_closed()
             logger.debug(f'Disconnected client {addr}')
         finally:
-            clients.unregister(user_id, client_name)
+            clients.unregister(user.user_id, client_name)
 
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
