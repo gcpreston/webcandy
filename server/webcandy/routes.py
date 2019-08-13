@@ -1,8 +1,10 @@
+import os
 import json
 
 from collections import defaultdict
 from flask import (
-    g, Blueprint, render_template, jsonify, request, url_for, current_app as app
+    g, Blueprint, render_template, jsonify, request, url_for,
+    send_from_directory, current_app as app
 )
 from flask_restful import Resource
 from werkzeug.exceptions import NotFound
@@ -40,7 +42,13 @@ def verify_auth_token(token: str) -> bool:
 # -------------------------------
 # React routes
 # -------------------------------
-# TODO: Allow loading of favicon.ico
+
+@views.route('/favicon.ico', methods=['GET'])
+def favicon():
+    return send_from_directory(os.path.join(ROOT_DIR, 'static', 'img'),
+                               'favicon.ico',
+                               mimetype='image/vnd.microsoft.icon')
+
 
 @views.route('/', defaults={'path': ''}, methods=['GET'])
 @views.route('/<path:path>')
