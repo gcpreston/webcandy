@@ -4,7 +4,7 @@ import {
     Button,
     Form,
     InputGroup,
-    OverlayTrigger,
+    Overlay,
     Popover
 } from "react-bootstrap";
 import ChromePicker from "react-color";
@@ -15,39 +15,58 @@ import ChromePicker from "react-color";
 export default class ColorEntry extends React.Component {
     static propTypes = {
         color: PropTypes.string, // format #RRGGBB
+        buttonVariant: PropTypes.string,
         buttonText: PropTypes.string,
-        overlayTrigger: PropTypes.string, // OverlayTrigger "trigger" prop
-        overlayPlacement: PropTypes.string, // OverlayTrigger "placement" prop
+        overlayPlacement: PropTypes.string, // Overlay "placement" prop
         onChange: PropTypes.func, // on color change
         onButtonClick: PropTypes.func
     };
 
-    // TODO: Don't show color entry when button is clicked
+    static defaultProps = {
+        buttonVariant: "success"
+    };
+
+    constructor(props) {
+        super(props);
+
+        // use state to determine whether a custom color is entered to avoid
+        // OverlayTrigger showing the popup when the button is focused and
+        // not the text field
+        this.state = {
+            customColor: false
+        };
+    }
+
     render() {
         return (
-            <OverlayTrigger
-                trigger={this.props.overlayTrigger}
-                placement={this.props.overlayPlacement}
-                overlay={
+            <React.Fragment>
+                <Overlay target={this.refs.colorField}
+                         show={this.state.customColor}
+                         placement={this.props.overlayPlacement}>
                     <Popover>
                         <ChromePicker
                             color={this.props.color}
-                            onChange={this.handlePickerChange}/>
+                            onChange={this.handlePickerChange}
+                        />
                     </Popover>
-                }>
+                </Overlay>
                 <InputGroup ref="colorField">
-                    <Form.Control type="text"
-                                  placeholder="#RRGGBB"
-                                  value={this.props.color}
-                                  onChange={this.handleFieldChange}/>
+                    <Form.Control
+                        type="text"
+                        placeholder="#RRGGBB"
+                        value={this.props.color}
+                        onChange={this.handleFieldChange}
+                        onFocus={() => this.setState({ customColor: true })}
+                        onBlur={() => this.setState({ customColor: false })}
+                    />
                     <InputGroup.Append>
-                        <Button variant="success"
+                        <Button variant={this.props.buttonVariant}
                                 onClick={this.props.onButtonClick}>
                             {this.props.buttonText}
                         </Button>
                     </InputGroup.Append>
                 </InputGroup>
-            </OverlayTrigger>
+            </React.Fragment>
         );
     }
 

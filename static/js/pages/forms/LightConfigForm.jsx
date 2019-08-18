@@ -144,7 +144,6 @@ export default class LightConfigForm extends React.Component {
                     <Form.Group as={Col} controlId="colorField">
                         <ColorEntry color={this.state.enteredColor}
                                     buttonText="Save"
-                                    overlayTrigger="focus"
                                     onChange={color => this.setState({ enteredColor: color })}
                                     onButtonClick={this.colorNamePrompt}/>
                     </Form.Group>
