@@ -7,10 +7,10 @@ import {
     Redirect
 } from 'react-router-dom';
 
-import App from './components/App';
-import Login from './components/Login';
-import CreateAccount from './components/CreateAccount';
-import NotFound from './components/NotFound';
+import App from './pages/App';
+import Login from './pages/Login';
+import CreateAccount from './pages/CreateAccount';
+import NotFound from './pages/NotFound';
 
 import "bootstrap/dist/css/bootstrap.css";
 import '../css/index.css';
