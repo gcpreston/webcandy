@@ -6,15 +6,11 @@ import { Button, Form } from 'react-bootstrap';
  * Login form.
  */
 export default class LoginForm extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            username: "",
-            password: "",
-            errors: [],
-        };
-    }
+    state = {
+        username: "",
+        password: "",
+        errors: [],
+    };
 
     // TODO: Remember me
     render() {
@@ -22,7 +18,8 @@ export default class LoginForm extends React.Component {
             <React.Fragment>
                 {this.state.errors ?
                     <ul className="errors">
-                        {this.state.errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
+                        {this.state.errors.map((msg, idx) => <li
+                            key={idx}>{msg}</li>)}
                     </ul> : null}
 
                 <Form onSubmit={this.handleSubmit}>

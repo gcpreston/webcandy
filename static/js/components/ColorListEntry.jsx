@@ -8,19 +8,13 @@ import ColorEntry from "./ColorEntry";
  */
 export default class ColorListEntry extends React.Component {
     static propTypes = {
-        buttonText: PropTypes.string, // color entry button text
         colors: PropTypes.arrayOf(PropTypes.string), // array of hexes
-        selectedColor: PropTypes.string, // hex
-        editingColor: PropTypes.string, // hex
-        onColorSelectChange: PropTypes.func,
-        onColorEdit: PropTypes.func,
+        onChange: PropTypes.func,
         onButtonClick: PropTypes.func // color entry button action
     };
 
-    static defaultProps = {
-        buttonText: "",
-        selectedColorList: "",
-        selectedColor: "",
+    state = {
+        selectedIndex: -1,
         editingColor: ""
     };
 
@@ -29,21 +23,43 @@ export default class ColorListEntry extends React.Component {
             <Form.Row>
                 <Form.Group as={Col} controlId="colorListValueDisplay">
                     <Form.Control as="select" multiple
-                                  value={[this.props.selectedColor]}
-                                  onChange={this.props.onColorSelectChange}>
+                                  value={[this.state.selectedIndex]}
+                                  onChange={this.handleColorSelect}>
                         {this.props.colors.map((color, idx) => {
-                            return <option key={idx}>{color}</option>;
+                            return <option key={idx}
+                                           value={idx}>{color}</option>;
                         })}
                     </Form.Control>
                 </Form.Group>
                 <Form.Group as={Col} controlId="colorListEditField">
-                    <ColorEntry color={this.props.editingColor}
-                                buttonText={this.props.buttonText}
-                                overlayTrigger="focus"
-                                onChange={this.props.onColorEdit}
-                                onButtonClick={this.props.onButtonClick}/>
+                    <ColorEntry
+                        color={this.state.editingColor}
+                        buttonText="Save"
+                        onChange={this.handleColorEdit}
+                        onButtonClick={this.props.onButtonClick}
+                    />
                 </Form.Group>
             </Form.Row>
         );
     }
+
+    handleColorSelect = (event) => {
+        const idx = Number(event.target.value);
+        this.setState({
+            selectedIndex: idx,
+            editingColor: this.props.colors[idx]
+        });
+    };
+
+    /**
+     * Handle ColorEntry's onChange event. Send the edited color list to the
+     * given onChange function.
+     */
+    handleColorEdit = (color) => {
+        this.setState({ editingColor: color });
+
+        let newColors = this.props.colors.slice();
+        newColors[this.state.selectedIndex] = color;
+        this.props.onChange(newColors);
+    };
 }

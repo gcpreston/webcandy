@@ -9,15 +9,11 @@ import logo from "../../img/webcandy_logo.png";
  * Webcandy main app page.
  */
 export default class App extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            username: "",
-            connectedClients: [],
-            clientId: ""
-        };
-    }
+    state = {
+        username: "",
+        connectedClients: [],
+        clientId: ""
+    };
 
     componentWillMount() {
         // TODO: Figure out better way to handle errors for production

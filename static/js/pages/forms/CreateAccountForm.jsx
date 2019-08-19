@@ -6,16 +6,12 @@ import axios from "axios";
  * Account creation form.
  */
 export default class CreateAccountForm extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            username: "",
-            email: "",
-            password: "",
-            errors: [],  // TODO: Implement account creation form validation
-        };
-    }
+    state = {
+        username: "",
+        email: "",
+        password: "",
+        errors: [],  // TODO: Implement account creation form validation
+    };
 
     render() {
         return (

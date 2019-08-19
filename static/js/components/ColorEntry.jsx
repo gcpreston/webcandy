@@ -26,16 +26,12 @@ export default class ColorEntry extends React.Component {
         buttonVariant: "success"
     };
 
-    constructor(props) {
-        super(props);
-
-        // use state to determine whether a custom color is entered to avoid
-        // OverlayTrigger showing the popup when the button is focused and
-        // not the text field
-        this.state = {
-            customColor: false
-        };
-    }
+    // use state to determine whether a custom color is entered to avoid
+    // OverlayTrigger showing the popup when the button is focused and
+    // not the text field
+    state = {
+        customColor: false
+    };
 
     render() {
         return (

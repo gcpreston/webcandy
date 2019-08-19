@@ -15,6 +15,7 @@ import {
     getAuthConfig,
     getMatchingObject,
     getMatchingIndex,
+    array2dIncludes
 } from '../../util.js';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css"
@@ -26,30 +27,26 @@ export default class LightConfigForm extends React.Component {
     // this.dialog will be set later for prompting the user
     dialog = null;
 
-    constructor(props) {
-        super(props);
-
-        // TODO: Add some kind of loading flag so "No clients connected" does
-        //   not pop up momentarily before loading data
-        this.state = {
-            patterns: [],
-            offButton: false,  // display "Turn off" button if "Off" pattern exists
-            pattern: null,
-            // color select/entry
-            colors: {},
-            enteredColor: "",  // hex
-            selectedColor: "",  // name of color
-            // color list select/entry
-            colorLists: {},
-            selectedColorList: "",  // name of color list
-            enteredColorList: [],  // hex list
-            selectedColorListValue: "", // hex
-            editingColor: "",  // hex
-            // extra params for submission
-            strobe: false,
-            speed: 5.0
-        };
-    }
+    // TODO: Add some kind of loading flag so "No clients connected" does
+    //   not pop up momentarily before loading data
+    state = {
+        patterns: [],
+        offButton: false,  // display "Turn off" button if "Off" pattern exists
+        pattern: null,
+        // color select/entry
+        colors: {},
+        enteredColor: "",  // hex
+        selectedColor: "",  // name of color
+        // color list select/entry
+        colorLists: {},
+        selectedColorList: "",  // name of color list
+        enteredColorList: [],  // hex list
+        selectedColorListValue: "", // hex
+        editingColor: "",  // hex
+        // extra params for submission
+        strobe: false,
+        speed: 5.0
+    };
 
     /**
      * Get values from Webcandy API and set state before app renders.
@@ -164,15 +161,8 @@ export default class LightConfigForm extends React.Component {
                     </Form.Control>
                 </Form.Group>
                 <ColorListEntry
-                    buttonText="Save"
                     colors={this.state.enteredColorList}
-                    selectedColor={this.state.selectedColorListValue}
-                    editingColor={this.state.editingColor}
-                    onColorSelectChange={e => this.setState({
-                        selectedColorListValue: e.target.value,
-                        editingColor: e.target.value
-                    })}
-                    onColorEdit={color => this.setState({ editingColor: color })}
+                    onChange={colorList => this.setState({ enteredColorList: colorList })}
                     onButtonClick={this.colorListNamePrompt /* this will most likely be some kind of "apply" button actually */}
                 />
             </React.Fragment>
@@ -256,7 +246,7 @@ export default class LightConfigForm extends React.Component {
                 body: "The color " + this.state.enteredColor + " is already saved.",
                 actions: [
                     Dialog.DefaultAction(
-                        "Ok",
+                        "OK",
                         () => {
                         },
                         "btn-info"
@@ -266,7 +256,7 @@ export default class LightConfigForm extends React.Component {
         } else {
             this.dialog.show({
                 title: "Save Color",
-                body: "Enter a name for this color",
+                body: "Enter a name for this color:",
                 prompt: Dialog.TextPrompt({ placeholder: "Name" }),
                 actions: [
                     Dialog.CancelAction(),
@@ -282,7 +272,7 @@ export default class LightConfigForm extends React.Component {
                                 actions: [
                                     Dialog.CancelAction(),
                                     Dialog.DefaultAction(
-                                        "Ok",
+                                        "Overwrite",
                                         () => this.saveColor(colorName, this.state.enteredColor),
                                         "btn-warning"
                                     )
@@ -291,6 +281,55 @@ export default class LightConfigForm extends React.Component {
 
                         } else {
                             this.saveColor(dialog.value, this.state.enteredColor);
+                        }
+                    })
+                ]
+            });
+        }
+    };
+
+    colorListNamePrompt = () => {
+        if (array2dIncludes(Object.values(this.state.colorLists), this.state.enteredColorList)) {
+            this.dialog.show({
+                title: "Info",
+                body: "This color list is already saved.",
+                actions: [
+                    Dialog.DefaultAction(
+                        "OK",
+                        () => {
+                        },
+                        "btn-info"
+                    )
+                ]
+            });
+        } else {
+            this.dialog.show({
+                title: "Save Color List",
+                body: "Enter a name for this color list:",
+                prompt: Dialog.TextPrompt({ placeholder: "Name" }),
+                actions: [
+                    Dialog.CancelAction(),
+                    Dialog.OKAction(dialog => {
+                    const colorListName = dialog.value;
+                        if (Object.keys(this.state.colorLists).includes(colorListName)) {
+
+                            this.dialog.show({
+                                title: "Confirmation",
+                                body: 'Would you like to overwrite the existing "'
+                                    + colorListName + '" color list? ('
+                                    + this.state.colorLists[colorListName] + ')',
+                                actions: [
+                                    Dialog.CancelAction(),
+                                    Dialog.DefaultAction(
+                                        "Overwrite",
+                                        () => this.saveColorList(colorListName, this.state.enteredColorList),
+                                        "btn-warning"
+                                    )
+                                ]
+                            });
+
+                        } else {
+                            this.saveColorList(dialog.value, this.state.enteredColorList);
                         }
                     })
                 ]
@@ -309,7 +348,27 @@ export default class LightConfigForm extends React.Component {
                 [name]: color
             }
         };
+        this.saveData(data);
+    };
 
+    /**
+     * Save the current custom color list for the logged-in user.
+     * @param name - The name to save the color list as
+     * @param colorList - The list of hex values to save
+     */
+    saveColorList = (name, colorList) => {
+        const data = {
+            "color_lists": {
+                [name]: colorList
+            }
+        };
+        this.saveData(data);
+    };
+
+    /**
+     * Save data for the logged-in user.
+     */
+    saveData(data) {
         axios.put("/api/user/data", data, getAuthConfig())
             .then(response => {
                 console.log(response);
@@ -324,7 +383,7 @@ export default class LightConfigForm extends React.Component {
                     console.log(error);
                 }
             });
-    };
+    }
 
     handlePatternSelect = (event) => {
         const pattern = getMatchingObject(
