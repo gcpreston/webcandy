@@ -21,7 +21,7 @@ setup(
         'Flask-SQLAlchemy',
         'gunicorn',
         'itsdangerous',
-        'marshmallow>=3.0.0rc9',
+        'marshmallow',
         'python-dotenv',
         'websockets',
         'werkzeug'
