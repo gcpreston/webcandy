@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Col, Form } from "react-bootstrap";
+import { Col, Form, Button } from "react-bootstrap";
 import ColorEntry from "./ColorEntry";
 
 /**
@@ -10,7 +10,8 @@ export default class ColorListEntry extends React.Component {
     static propTypes = {
         colors: PropTypes.arrayOf(PropTypes.string), // array of hexes
         onChange: PropTypes.func,
-        onButtonClick: PropTypes.func // color entry button action
+        onButtonClick: PropTypes.func, // color entry button action
+        className: PropTypes.string
     };
 
     state = {
@@ -19,8 +20,13 @@ export default class ColorListEntry extends React.Component {
     };
 
     render() {
+        let className = "color-list-entry";
+        if (this.props.className) {
+            className += ` ${this.props.className}`;
+        }
+
         return (
-            <Form.Row>
+            <Form.Row className={className}>
                 <Form.Group as={Col} controlId="colorListValueDisplay">
                     <Form.Control as="select" multiple
                                   value={[this.state.selectedIndex]}
@@ -38,11 +44,20 @@ export default class ColorListEntry extends React.Component {
                         onChange={this.handleColorEdit}
                         onButtonClick={this.props.onButtonClick}
                     />
+                    <Button variant="link" onClick={this.handleNewColor}>
+                        New color
+                    </Button>
+                    <Button variant="link" onClick={this.handleDeleteColor}>
+                        Delete color
+                    </Button>
                 </Form.Group>
             </Form.Row>
         );
     }
 
+    /**
+     * Handle a different color being selected from the list of entered colors.
+     */
     handleColorSelect = (event) => {
         const idx = Number(event.target.value);
         this.setState({
@@ -51,6 +66,7 @@ export default class ColorListEntry extends React.Component {
         });
     };
 
+    // TODO: Send change event with "colorList" property
     /**
      * Handle ColorEntry's onChange event. Send the edited color list to the
      * given onChange function.
@@ -60,6 +76,58 @@ export default class ColorListEntry extends React.Component {
 
         let newColors = this.props.colors.slice();
         newColors[this.state.selectedIndex] = color;
+        this.props.onChange(newColors);
+    };
+
+    /**
+     * Handle the "New color" button being pressed. Add an empty string to the
+     * color list and invoke props.onChange.
+     */
+    handleNewColor = () => {
+        const newColors = this.props.colors.slice();
+        let newSelectedIndex = this.state.selectedIndex;
+
+        if (this.state.selectedIndex >= 0 &&
+            this.state.selectedIndex < this.props.colors.length) {
+            newSelectedIndex = this.state.selectedIndex + 1;
+            newColors.splice(newSelectedIndex, 0, "");
+        } else {
+            newColors.push("");
+            newSelectedIndex = this.props.colors.length - 1;
+        }
+
+        this.setState({
+            selectedIndex: newSelectedIndex,
+            editingColor: ""
+        });
+
+        this.props.onChange(newColors);
+    };
+
+    /**
+     * Handle the "Delete color" button being pressed. Remove the currently
+     * selected color from the color list and invoke props.onChange.
+     */
+    handleDeleteColor = () => {
+        const newColors = this.props.colors.slice();
+        let newSelectedIndex = this.state.selectedIndex;
+        let newEditingColor = this.state.editingColor;
+
+        if (this.state.selectedIndex >= 0 &&
+            this.state.selectedIndex < this.props.colors.length) {
+            newColors.splice(this.state.selectedIndex, 1);
+
+            if (this.state.selectedIndex === this.props.colors.length - 1) {
+                newSelectedIndex -= 1;
+            }
+            newEditingColor = newColors[newSelectedIndex];
+        }
+
+        this.setState({
+            selectedIndex: newSelectedIndex,
+            editingColor: newEditingColor
+        });
+
         this.props.onChange(newColors);
     };
 }

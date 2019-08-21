@@ -19,7 +19,8 @@ export default class ColorEntry extends React.Component {
         buttonText: PropTypes.string,
         overlayPlacement: PropTypes.string, // Overlay "placement" prop
         onChange: PropTypes.func, // on color change
-        onButtonClick: PropTypes.func
+        onButtonClick: PropTypes.func,
+        className: PropTypes.string
     };
 
     static defaultProps = {
@@ -34,8 +35,13 @@ export default class ColorEntry extends React.Component {
     };
 
     render() {
+        let className = "color-entry";
+        if (this.props.className) {
+            className = ` ${this.props.className}`;
+        }
+
         return (
-            <React.Fragment>
+            <div className={className}>
                 <Overlay target={this.refs.colorField}
                          show={this.state.customColor}
                          placement={this.props.overlayPlacement}>
@@ -62,10 +68,12 @@ export default class ColorEntry extends React.Component {
                         </Button>
                     </InputGroup.Append>
                 </InputGroup>
-            </React.Fragment>
+            </div>
         );
     }
 
+    // TODO: Pass an event object with a "color" field rather than just the
+    //   color variable to props.onChange
     handlePickerChange = (event) => {
         return this.props.onChange(event.hex);
     };
