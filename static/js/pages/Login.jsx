@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
 
-import LoginForm from './forms/LoginForm';
+import LoginForm from '../forms/LoginForm';
 import logo from '../../img/webcandy_logo.png';
 
 /**

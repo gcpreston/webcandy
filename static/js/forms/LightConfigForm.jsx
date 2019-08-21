@@ -9,14 +9,14 @@ import {
 import Dialog from 'react-bootstrap-dialog';
 import ReactBootstrapSlider from 'react-bootstrap-slider';
 
-import ColorEntry from "../../components/ColorEntry";
-import ColorListEntry from "../../components/ColorListEntry";
+import ColorEntry from "../components/ColorEntry";
+import ColorListEntry from "../components/ColorListEntry";
 import {
     getAuthConfig,
     getMatchingObject,
     getMatchingIndex,
     array2dIncludes
-} from '../../util.js';
+} from '../util.js';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css"
 
@@ -142,7 +142,7 @@ export default class LightConfigForm extends React.Component {
                         <ColorEntry color={this.state.enteredColor}
                                     buttonText="Save"
                                     onChange={e => this.setState({ enteredColor: e.color })}
-                                    onButtonClick={this.colorNamePrompt}/>
+                                    onButtonClick={this.colorSavePrompt}/>
                     </Form.Group>
                 </Form.Row>
             </React.Fragment>
@@ -151,6 +151,9 @@ export default class LightConfigForm extends React.Component {
         const colorListEntry = (
             <React.Fragment>
                 <Form.Label>Color list entry</Form.Label>
+                <Button variant="link" onClick={this.newColorListPrompt}>
+                    New color list
+                </Button>
                 <Form.Group controlId="colorListSelect">
                     <Form.Control as="select"
                                   value={this.state.selectedColorList}
@@ -163,7 +166,7 @@ export default class LightConfigForm extends React.Component {
                 <ColorListEntry
                     colors={this.state.enteredColorList}
                     onChange={e => this.setState({ enteredColorList: e.colorList })}
-                    onButtonClick={this.colorListNamePrompt /* this will most likely be some kind of "apply" button actually */}
+                    onButtonClick={this.colorListSavePrompt}
                 />
             </React.Fragment>
         );
@@ -239,7 +242,7 @@ export default class LightConfigForm extends React.Component {
         );
     }
 
-    colorNamePrompt = () => {
+    colorSavePrompt = () => {
         if (Object.values(this.state.colors).includes(this.state.enteredColor)) {
             this.dialog.show({
                 title: "Info",
@@ -288,7 +291,7 @@ export default class LightConfigForm extends React.Component {
         }
     };
 
-    colorListNamePrompt = () => {
+    colorListSavePrompt = () => {
         if (array2dIncludes(Object.values(this.state.colorLists), this.state.enteredColorList)) {
             this.dialog.show({
                 title: "Info",
@@ -310,7 +313,7 @@ export default class LightConfigForm extends React.Component {
                 actions: [
                     Dialog.CancelAction(),
                     Dialog.OKAction(dialog => {
-                    const colorListName = dialog.value;
+                        const colorListName = dialog.value;
                         if (Object.keys(this.state.colorLists).includes(colorListName)) {
 
                             this.dialog.show({
@@ -335,6 +338,42 @@ export default class LightConfigForm extends React.Component {
                 ]
             });
         }
+    };
+
+    newColorListPrompt = () => {
+        this.dialog.show({
+            title: "New Color List",
+            body: "Enter a name for this color list:",
+            prompt: Dialog.TextPrompt({ placeholder: "Name" }),
+            actions: [
+                Dialog.CancelAction(),
+                Dialog.OKAction(dialog => {
+                    const colorListName = dialog.value;
+                    if (Object.keys(this.state.colorLists).includes(colorListName)) {
+
+                        this.dialog.show({
+                            title: "Error",
+                            body: 'A color list named "' + colorListName +
+                                '" already exists. Delete this color list ' +
+                                'if you would like to overwrite it.',
+                            actions: [
+                                Dialog.OKAction()
+                            ]
+                        });
+
+                    } else {
+                        const newColorLists = Object.assign(this.state.colorLists);
+                        newColorLists[colorListName] = [];
+                        this.setState({
+                            colorLists: newColorLists,
+                            selectedColorList: colorListName,
+                            enteredColorList: newColorLists[colorListName],
+                            editingColor: ""
+                        });
+                    }
+                })
+            ]
+        });
     };
 
     /**

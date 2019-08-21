@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import { Form, Button } from 'react-bootstrap';
 
-import LightConfigForm from './forms/LightConfigForm';
+import LightConfigForm from '../forms/LightConfigForm';
 import logo from "../../img/webcandy_logo.png";
 
 /**

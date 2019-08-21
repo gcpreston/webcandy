@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
 
-import CreateAccountForm from './forms/CreateAccountForm';
+import CreateAccountForm from '../forms/CreateAccountForm';
 
 /**
  * Account creation page.

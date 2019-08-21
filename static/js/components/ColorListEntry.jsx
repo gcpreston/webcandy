@@ -8,6 +8,8 @@ import ColorEntry from "./ColorEntry";
  */
 export default class ColorListEntry extends React.Component {
     static propTypes = {
+        buttonText: PropTypes.string,
+        buttonVariant: PropTypes.string,
         colors: PropTypes.arrayOf(PropTypes.string), // array of hexes
         onChange: PropTypes.func,
         onButtonClick: PropTypes.func, // color entry button action
@@ -16,8 +18,17 @@ export default class ColorListEntry extends React.Component {
 
     state = {
         selectedIndex: -1,
-        editingColor: ""
+        editingColor: "",
     };
+
+    /**
+     * INVARIANT: Logic to determine whether or not color entry is disabled
+     * based on state.
+     */
+    entryIsDisabled() {
+        return this.props.colors.length === 0
+            || this.state.selectedIndex === -1;
+    }
 
     render() {
         let className = "color-list-entry";
@@ -41,7 +52,9 @@ export default class ColorListEntry extends React.Component {
                 <Form.Group as={Col} controlId="colorListEditField">
                     <ColorEntry
                         color={this.state.editingColor}
-                        buttonText="Save"
+                        disabled={this.entryIsDisabled()}
+                        buttonText={this.props.buttonText}
+                        buttonVariant={this.props.buttonVariant}
                         onChange={this.handleColorEdit}
                         onButtonClick={this.props.onButtonClick}
                     />
@@ -60,20 +73,17 @@ export default class ColorListEntry extends React.Component {
      * Handle a different color being selected from the list of entered colors.
      */
     handleColorSelect = (event) => {
-        let newSelectedIndex;
-        let newEditingColor;
+        let newSelectedIndex = Number(event.target.value);
+        let newEditingColor = this.props.colors[newSelectedIndex];
 
         if (event.target.value === "") {
             newSelectedIndex = -1;
-            newEditingColor = "";
-        } else {
-            newSelectedIndex = Number(event.target.value);
-            newEditingColor = this.props.colors[newSelectedIndex];
+            newEditingColor = ""
         }
 
         this.setState({
             selectedIndex: newSelectedIndex,
-            editingColor: newEditingColor
+            editingColor: newEditingColor,
         });
     };
 
@@ -108,7 +118,8 @@ export default class ColorListEntry extends React.Component {
 
         this.setState({
             selectedIndex: newSelectedIndex,
-            editingColor: ""
+            editingColor: "",
+            entryDisabled: false
         });
 
         this.props.onChange({ colorList: newColors });
@@ -125,12 +136,21 @@ export default class ColorListEntry extends React.Component {
 
         if (this.state.selectedIndex >= 0 &&
             this.state.selectedIndex < this.props.colors.length) {
+            // delete element at selected index
             newColors.splice(this.state.selectedIndex, 1);
 
-            if (this.state.selectedIndex === this.props.colors.length - 1) {
+            // Keep same selected index, unless it was the last one, in which
+            // case make it the new last index.
+            // newColors.length = 0 -> newSelectedIndex = -1, which is correct
+            if (this.state.selectedIndex === newColors.length) {
                 newSelectedIndex -= 1;
             }
-            newEditingColor = newColors[newSelectedIndex];
+
+            if (newColors.length === 0) {
+                newEditingColor = "";
+            } else {
+                newEditingColor = newColors[newSelectedIndex];
+            }
         }
 
         this.setState({
