@@ -59,10 +59,20 @@ export default class ColorListEntry extends React.Component {
      * Handle a different color being selected from the list of entered colors.
      */
     handleColorSelect = (event) => {
-        const idx = Number(event.target.value);
+        let newSelectedIndex;
+        let newEditingColor;
+
+        if (event.target.value === "") {
+            newSelectedIndex = -1;
+            newEditingColor = "";
+        } else {
+            newSelectedIndex = Number(event.target.value);
+            newEditingColor = this.props.colors[newSelectedIndex];
+        }
+
         this.setState({
-            selectedIndex: idx,
-            editingColor: this.props.colors[idx]
+            selectedIndex: newSelectedIndex,
+            editingColor: newEditingColor
         });
     };
 
@@ -92,7 +102,7 @@ export default class ColorListEntry extends React.Component {
             newColors.splice(newSelectedIndex, 0, "");
         } else {
             newColors.push("");
-            newSelectedIndex = this.props.colors.length - 1;
+            newSelectedIndex = this.props.colors.length;
         }
 
         this.setState({
