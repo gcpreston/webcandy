@@ -1,8 +1,6 @@
 # Webcandy
 API and web interface for Fadecandy control. For the client-side code responsible for receiving requests from the Webcandy server and running lighting configurations on the Fadecandy itself, see [webcandy-client](https://github.com/gcpreston/webcandy-client).
 
-Documentation can be found at https://webcandy.readthedocs.io/. (WIP)
-
 ![](https://s3.gifyu.com/images/webcandy_demo1.gif)
 ![](https://s3.gifyu.com/images/webcandy_demo2.gif)
 
@@ -60,7 +58,11 @@ To control LEDs, you will need to connect a client. Do do so, clone [webcandy-cl
 * If you are connecting to a remote host or using non-default ports, pass `--help` to see how to configure what you need.
 
 ###  Login
-The default login is username "testuser1" and password "Webcandy1".
+On an independant server, if you want a user with some example data saved you
+can log in as "testuser1" or "testuser2", each with password "Webcandy1".
+
+## Documentation
+Documentation can be found at https://webcandy.readthedocs.io/. (WIP)
 
 ## Acknowledgements
 * Thanks to Maksim Surguy ([msurguy](https://github.com/msurguy)) for the awesome logo!
