@@ -66,17 +66,16 @@ export default class ColorListEntry extends React.Component {
         });
     };
 
-    // TODO: Send change event with "colorList" property
     /**
      * Handle ColorEntry's onChange event. Send the edited color list to the
      * given onChange function.
      */
-    handleColorEdit = (color) => {
-        this.setState({ editingColor: color });
+    handleColorEdit = (event) => {
+        this.setState({ editingColor: event.color });
 
         let newColors = this.props.colors.slice();
-        newColors[this.state.selectedIndex] = color;
-        this.props.onChange(newColors);
+        newColors[this.state.selectedIndex] = event.color;
+        this.props.onChange({ colorList: newColors });
     };
 
     /**
@@ -101,7 +100,7 @@ export default class ColorListEntry extends React.Component {
             editingColor: ""
         });
 
-        this.props.onChange(newColors);
+        this.props.onChange({ colorList: newColors });
     };
 
     /**
@@ -128,6 +127,6 @@ export default class ColorListEntry extends React.Component {
             editingColor: newEditingColor
         });
 
-        this.props.onChange(newColors);
+        this.props.onChange({ colorList: newColors });
     };
 }

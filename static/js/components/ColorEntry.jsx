@@ -72,13 +72,11 @@ export default class ColorEntry extends React.Component {
         );
     }
 
-    // TODO: Pass an event object with a "color" field rather than just the
-    //   color variable to props.onChange
     handlePickerChange = (event) => {
-        return this.props.onChange(event.hex);
+        return this.props.onChange({ color: event.hex });
     };
 
     handleFieldChange = (event) => {
-        return this.props.onChange(event.target.value);
+        return this.props.onChange({ color: event.target.value });
     };
 }

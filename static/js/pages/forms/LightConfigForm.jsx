@@ -141,7 +141,7 @@ export default class LightConfigForm extends React.Component {
                     <Form.Group as={Col} controlId="colorField">
                         <ColorEntry color={this.state.enteredColor}
                                     buttonText="Save"
-                                    onChange={color => this.setState({ enteredColor: color })}
+                                    onChange={e => this.setState({ enteredColor: e.color })}
                                     onButtonClick={this.colorNamePrompt}/>
                     </Form.Group>
                 </Form.Row>
@@ -162,7 +162,7 @@ export default class LightConfigForm extends React.Component {
                 </Form.Group>
                 <ColorListEntry
                     colors={this.state.enteredColorList}
-                    onChange={colorList => this.setState({ enteredColorList: colorList })}
+                    onChange={e => this.setState({ enteredColorList: e.colorList })}
                     onButtonClick={this.colorListNamePrompt /* this will most likely be some kind of "apply" button actually */}
                 />
             </React.Fragment>
