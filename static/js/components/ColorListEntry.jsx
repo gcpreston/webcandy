@@ -25,6 +25,7 @@ export default class ColorListEntry extends React.Component {
             className += ` ${this.props.className}`;
         }
 
+        // TODO: Add ability to change color order
         return (
             <Form.Row className={className}>
                 <Form.Group as={Col} controlId="colorListValueDisplay">
