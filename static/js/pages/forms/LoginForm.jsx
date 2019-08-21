@@ -1,30 +1,25 @@
 import React from 'react';
+import axios from 'axios';
 import { Button, Form } from 'react-bootstrap';
-import axios from "axios";
 
 /**
- * Account creation form.
+ * Login form.
  */
-export default class CreateAccountForm extends React.Component {
-    constructor(props) {
-        super(props);
+export default class LoginForm extends React.Component {
+    state = {
+        username: "",
+        password: "",
+        errors: [],
+    };
 
-        this.state = {
-            username: "",
-            email: "",
-            password: "",
-            errors: [],  // TODO: Implement account creation form validation
-        };
-    }
-
+    // TODO: Remember me
     render() {
         return (
             <React.Fragment>
                 {this.state.errors ?
                     <ul className="errors">
-                        {this.state.errors.map((msg, idx) => {
-                            return <li key={idx}>{msg}</li>
-                        })}
+                        {this.state.errors.map((msg, idx) => <li
+                            key={idx}>{msg}</li>)}
                     </ul> : null}
 
                 <Form onSubmit={this.handleSubmit}>
@@ -33,13 +28,6 @@ export default class CreateAccountForm extends React.Component {
                         <Form.Control type="text"
                                       value={this.state.username}
                                       onChange={e => this.setState({ username: e.target.value })}/>
-                    </Form.Group>
-
-                    <Form.Group controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control type="email"
-                                      value={this.state.email}
-                                      onChange={e => this.setState({ email: e.target.value })}/>
                     </Form.Group>
 
                     <Form.Group controlId="password">
@@ -64,15 +52,19 @@ export default class CreateAccountForm extends React.Component {
 
         const data = {
             "username": this.state.username,
-            "email": this.state.email,
             "password": this.state.password
         };
 
-        axios.post("/api/new_user", data).then(() => {
+        axios.post("/api/token", data).then(response => {
+            const token = response.data["token"];
+            sessionStorage.setItem("token", token);
             window.location = "/";
         }).catch(error => {
-            console.log(error);
-            this.setState({ errors: [error.response.data["error_description"]] })
+            if (error.response.status === 401) {
+                this.setState({ errors: [error.response.data["error_description"]] })
+            } else {
+                console.log(error.response);
+            }
         });
     }
 }

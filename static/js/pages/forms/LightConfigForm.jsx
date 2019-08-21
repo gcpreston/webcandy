@@ -1,22 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios/index';
-import ChromePicker from 'react-color';
 import {
     Button,
     Col,
     Form,
-    InputGroup,
-    Overlay,
-    Popover,
 } from 'react-bootstrap';
 import Dialog from 'react-bootstrap-dialog';
 import ReactBootstrapSlider from 'react-bootstrap-slider';
 
+import ColorEntry from "../../components/ColorEntry";
+import ColorListEntry from "../../components/ColorListEntry";
 import {
     getAuthConfig,
     getMatchingObject,
     getMatchingIndex,
+    array2dIncludes
 } from '../../util.js';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css"
@@ -28,26 +27,26 @@ export default class LightConfigForm extends React.Component {
     // this.dialog will be set later for prompting the user
     dialog = null;
 
-    constructor(props) {
-        super(props);
-
-        // TODO: Add some kind of loading flag so "No clients connected" does
-        //   not pop up momentarily before loading data
-        this.state = {
-            patterns: [],
-            offButton: false,  // display "Turn off" button if "Off" pattern exists
-            pattern: null,
-            colors: {},
-            enteredColor: "",  // hex
-            selectedColor: "",  // name of color
-            customColor: false,
-            colorLists: {},
-            enteredColorList: [],  // hex list
-            selectedColorList: "",  // name of color list
-            strobe: false,
-            speed: 5.0
-        };
-    }
+    // TODO: Add some kind of loading flag so "No clients connected" does
+    //   not pop up momentarily before loading data
+    state = {
+        patterns: [],
+        offButton: false,  // display "Turn off" button if "Off" pattern exists
+        pattern: null,
+        // color select/entry
+        colors: {},
+        enteredColor: "",  // hex
+        selectedColor: "",  // name of color
+        // color list select/entry
+        colorLists: {},
+        selectedColorList: "",  // name of color list
+        enteredColorList: [],  // hex list
+        selectedColorListValue: "", // hex
+        editingColor: "",  // hex
+        // extra params for submission
+        strobe: false,
+        speed: 5.0
+    };
 
     /**
      * Get values from Webcandy API and set state before app renders.
@@ -82,7 +81,8 @@ export default class LightConfigForm extends React.Component {
             });
         }).catch(error => {
             if (error.response && error.response.status === 401) {
-                window.location = "/login"; // api key has expired
+                // api key has expired; redirect to login page
+                window.location = "/login";
             } else {
                 console.log(error);
             }
@@ -109,7 +109,9 @@ export default class LightConfigForm extends React.Component {
             if (colorLists && !this.state.selectedColorList) {
                 this.setState({
                     selectedColorList: Object.keys(colorLists)[0],
-                    enteredColorList: Object.values(colorLists)[0]
+                    enteredColorList: Object.values(colorLists)[0],
+                    selectedColorListValue: Object.values(colorLists)[0][0],
+                    editingColor: Object.values(colorLists)[0][0]
                 })
             }
         }).catch(error => {
@@ -121,10 +123,7 @@ export default class LightConfigForm extends React.Component {
         });
     }
 
-    // TODO: Make popover work when window width is smaller than expected
     render() {
-        // TODO: Speed entry
-
         const colorEntry = (
             <React.Fragment>
                 <Form.Label>Color entry</Form.Label>
@@ -140,50 +139,36 @@ export default class LightConfigForm extends React.Component {
                         </Form.Control>
                     </Form.Group>
                     <Form.Group as={Col} controlId="colorField">
-                        <Overlay target={this.refs.colorField}
-                                 show={this.state.customColor}
-                                 placement="right">
-                            <Popover>
-                                <ChromePicker
-                                    color={this.state.enteredColor}
-                                    onChange={e => this.setState({ enteredColor: e.hex })}/>
-                            </Popover>
-                        </Overlay>
-                        <InputGroup ref="colorField">
-                            <Form.Control type="text"
-                                          placeholder="#RRGGBB"
-                                          value={this.state.enteredColor}
-                                          onChange={e => this.setState({ enteredColor: e.target.value })}
-                                          onFocus={() => this.setState({ customColor: true })}
-                                          onBlur={() => this.setState({ customColor: false })}/>
-                            <InputGroup.Append>
-                                <Button variant="success"
-                                        onClick={this.namePrompt}>
-                                    Save
-                                </Button>
-                            </InputGroup.Append>
-                        </InputGroup>
+                        <ColorEntry color={this.state.enteredColor}
+                                    buttonText="Save"
+                                    onChange={e => this.setState({ enteredColor: e.color })}
+                                    onButtonClick={this.colorNamePrompt}/>
                     </Form.Group>
                 </Form.Row>
             </React.Fragment>
         );
 
-        let colorListEntry = (
-            <Form.Row>
-                <Form.Group as={Col} controlId="colorListSelect">
-                    <Form.Label>Color list entry</Form.Label>
+        const colorListEntry = (
+            <React.Fragment>
+                <Form.Label>Color list entry</Form.Label>
+                <Form.Group controlId="colorListSelect">
                     <Form.Control as="select"
                                   value={this.state.selectedColorList}
                                   onChange={this.handleColorListSelect}>
                         {Object.keys(this.state.colorLists).map((name, idx) => {
-                            return <option
-                                key={idx}>{name}</option>;
+                            return <option key={idx}>{name}</option>;
                         })}
                     </Form.Control>
                 </Form.Group>
-            </Form.Row>
+                <ColorListEntry
+                    colors={this.state.enteredColorList}
+                    onChange={e => this.setState({ enteredColorList: e.colorList })}
+                    onButtonClick={this.colorListNamePrompt /* this will most likely be some kind of "apply" button actually */}
+                />
+            </React.Fragment>
         );
 
+        // Set config based on if color or color_list needs to be entered
         let config;
         if (this.state.pattern) {
             if (this.state.pattern["takes"] === "color") {
@@ -193,6 +178,7 @@ export default class LightConfigForm extends React.Component {
             }
         }
 
+        // Add speed slider if dynamic pattern
         if (this.state.pattern && this.state.pattern["type"] === "dynamic") {
             config = (
                 <React.Fragment>
@@ -253,14 +239,14 @@ export default class LightConfigForm extends React.Component {
         );
     }
 
-    namePrompt = () => {
+    colorNamePrompt = () => {
         if (Object.values(this.state.colors).includes(this.state.enteredColor)) {
             this.dialog.show({
                 title: "Info",
                 body: "The color " + this.state.enteredColor + " is already saved.",
                 actions: [
                     Dialog.DefaultAction(
-                        "Ok",
+                        "OK",
                         () => {
                         },
                         "btn-info"
@@ -270,7 +256,7 @@ export default class LightConfigForm extends React.Component {
         } else {
             this.dialog.show({
                 title: "Save Color",
-                body: "Enter a name for this color",
+                body: "Enter a name for this color:",
                 prompt: Dialog.TextPrompt({ placeholder: "Name" }),
                 actions: [
                     Dialog.CancelAction(),
@@ -286,7 +272,7 @@ export default class LightConfigForm extends React.Component {
                                 actions: [
                                     Dialog.CancelAction(),
                                     Dialog.DefaultAction(
-                                        "Ok",
+                                        "Overwrite",
                                         () => this.saveColor(colorName, this.state.enteredColor),
                                         "btn-warning"
                                     )
@@ -295,6 +281,55 @@ export default class LightConfigForm extends React.Component {
 
                         } else {
                             this.saveColor(dialog.value, this.state.enteredColor);
+                        }
+                    })
+                ]
+            });
+        }
+    };
+
+    colorListNamePrompt = () => {
+        if (array2dIncludes(Object.values(this.state.colorLists), this.state.enteredColorList)) {
+            this.dialog.show({
+                title: "Info",
+                body: "This color list is already saved.",
+                actions: [
+                    Dialog.DefaultAction(
+                        "OK",
+                        () => {
+                        },
+                        "btn-info"
+                    )
+                ]
+            });
+        } else {
+            this.dialog.show({
+                title: "Save Color List",
+                body: "Enter a name for this color list:",
+                prompt: Dialog.TextPrompt({ placeholder: "Name" }),
+                actions: [
+                    Dialog.CancelAction(),
+                    Dialog.OKAction(dialog => {
+                    const colorListName = dialog.value;
+                        if (Object.keys(this.state.colorLists).includes(colorListName)) {
+
+                            this.dialog.show({
+                                title: "Confirmation",
+                                body: 'Would you like to overwrite the existing "'
+                                    + colorListName + '" color list? ('
+                                    + this.state.colorLists[colorListName] + ')',
+                                actions: [
+                                    Dialog.CancelAction(),
+                                    Dialog.DefaultAction(
+                                        "Overwrite",
+                                        () => this.saveColorList(colorListName, this.state.enteredColorList),
+                                        "btn-warning"
+                                    )
+                                ]
+                            });
+
+                        } else {
+                            this.saveColorList(dialog.value, this.state.enteredColorList);
                         }
                     })
                 ]
@@ -313,7 +348,27 @@ export default class LightConfigForm extends React.Component {
                 [name]: color
             }
         };
+        this.saveData(data);
+    };
 
+    /**
+     * Save the current custom color list for the logged-in user.
+     * @param name - The name to save the color list as
+     * @param colorList - The list of hex values to save
+     */
+    saveColorList = (name, colorList) => {
+        const data = {
+            "color_lists": {
+                [name]: colorList
+            }
+        };
+        this.saveData(data);
+    };
+
+    /**
+     * Save data for the logged-in user.
+     */
+    saveData(data) {
         axios.put("/api/user/data", data, getAuthConfig())
             .then(response => {
                 console.log(response);
@@ -328,7 +383,7 @@ export default class LightConfigForm extends React.Component {
                     console.log(error);
                 }
             });
-    };
+    }
 
     handlePatternSelect = (event) => {
         const pattern = getMatchingObject(
@@ -360,9 +415,12 @@ export default class LightConfigForm extends React.Component {
      * @param event - The change event from the select
      */
     handleColorListSelect = (event) => {
+        const colorList = this.state.colorLists[event.target.value];
         this.setState({
             selectedColorList: event.target.value,
-            enteredColorList: this.state.colorLists[event.target.value]
+            enteredColorList: colorList,
+            selectedColorListValue: colorList[0],
+            editingColor: colorList[0]
         });
     };
 

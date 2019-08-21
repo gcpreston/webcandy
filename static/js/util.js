@@ -33,8 +33,37 @@ function getMatchingIndex(arr, key, value) {
     return null;
 }
 
+/**
+ * Check if two arrays have matching contents.
+ */
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+/**
+ * Check if a 2D array includes another given array.
+ * @param arr - The 2D array to use
+ * @param e - The inner array to check for
+ */
+function array2dIncludes(arr, e) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arraysEqual(arr[i], e))
+            return true;
+    }
+    return false;
+}
+
 export {
     getAuthConfig,
     getMatchingObject,
-    getMatchingIndex
+    getMatchingIndex,
+    arraysEqual,
+    array2dIncludes
 };

@@ -19,7 +19,7 @@ itsdangerous==1.1.0
 Jinja2==2.10.1
 Mako==1.0.8
 MarkupSafe==1.1.1
-marshmallow==2.19.5
+marshmallow==3.0.0
 packaging==19.0
 Pygments==2.4.2
 pyparsing==2.4.0
