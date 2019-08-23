@@ -152,7 +152,10 @@ export default class LightConfigForm extends React.Component {
             <React.Fragment>
                 <Form.Label>Color list entry</Form.Label>
                 <Button variant="link" onClick={this.newColorListPrompt}>
-                    New color list
+                    New
+                </Button>
+                <Button variant="link" onClick={this.deleteColorListPrompt}>
+                    Delete
                 </Button>
                 <Form.Group controlId="colorListSelect">
                     <Form.Control as="select"
@@ -297,12 +300,7 @@ export default class LightConfigForm extends React.Component {
                 title: "Info",
                 body: "This color list is already saved.",
                 actions: [
-                    Dialog.DefaultAction(
-                        "OK",
-                        () => {
-                        },
-                        "btn-info"
-                    )
+                    Dialog.OKAction()
                 ]
             });
         } else {
@@ -343,35 +341,53 @@ export default class LightConfigForm extends React.Component {
     newColorListPrompt = () => {
         this.dialog.show({
             title: "New Color List",
-            body: "Enter a name for this color list:",
             prompt: Dialog.TextPrompt({ placeholder: "Name" }),
             actions: [
                 Dialog.CancelAction(),
-                Dialog.OKAction(dialog => {
-                    const colorListName = dialog.value;
-                    if (Object.keys(this.state.colorLists).includes(colorListName)) {
+                Dialog.DefaultAction(
+                    "Create",
+                    dialog => {
+                        const colorListName = dialog.value;
+                        if (Object.keys(this.state.colorLists).includes(colorListName)) {
 
-                        this.dialog.show({
-                            title: "Error",
-                            body: 'A color list named "' + colorListName +
-                                '" already exists. Delete this color list ' +
-                                'if you would like to overwrite it.',
-                            actions: [
-                                Dialog.OKAction()
-                            ]
-                        });
+                            this.dialog.show({
+                                title: "Error",
+                                body: 'A color list named "' + colorListName +
+                                    '" already exists. Delete this color list ' +
+                                    'if you would like to overwrite it.',
+                                actions: [
+                                    Dialog.OKAction()
+                                ]
+                            });
 
-                    } else {
-                        const newColorLists = Object.assign(this.state.colorLists);
-                        newColorLists[colorListName] = [];
-                        this.setState({
-                            colorLists: newColorLists,
-                            selectedColorList: colorListName,
-                            enteredColorList: newColorLists[colorListName],
-                            editingColor: ""
-                        });
-                    }
-                })
+                        } else {
+                            const newColorLists = Object.assign(this.state.colorLists);
+                            newColorLists[colorListName] = [];
+                            this.setState({
+                                colorLists: newColorLists,
+                                selectedColorList: colorListName,
+                                enteredColorList: newColorLists[colorListName],
+                                editingColor: ""
+                            });
+                        }
+                    },
+                    "btn-success")
+            ]
+        });
+    };
+
+    deleteColorListPrompt = () => {
+        this.dialog.show({
+            title: "Delete Color List",
+            body: 'Are you sure you want to delete the "' +
+                this.state.selectedColorList + '" color list?',
+            actions: [
+                Dialog.CancelAction(),
+                Dialog.DefaultAction(
+                    "Delete",
+                    () => console.log("TODO: Implement color list deletion"),
+                    "btn-danger"
+                )
             ]
         });
     };
