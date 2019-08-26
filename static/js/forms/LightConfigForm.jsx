@@ -380,12 +380,22 @@ export default class LightConfigForm extends React.Component {
         this.dialog.show({
             title: "Delete Color List",
             body: 'Are you sure you want to delete the "' +
-                this.state.selectedColorList + '" color list?',
+                this.state.selectedColorList + '" color list? This action ' +
+                'cannot be undone.',
             actions: [
                 Dialog.CancelAction(),
                 Dialog.DefaultAction(
                     "Delete",
-                    () => console.log("TODO: Implement color list deletion"),
+                    () => {
+                        const config = getAuthConfig();
+                        config.data = { "color_lists": [this.state.selectedColorList] };
+                        axios.delete("/api/user/data", config)
+                            .then(response => {
+                                console.log(response.data);
+                                this.updateSavedData();
+                            })
+                            .catch(error => console.log(error));
+                    },
                     "btn-danger"
                 )
             ]

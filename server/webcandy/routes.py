@@ -150,6 +150,7 @@ class UserInfo(Resource):
                 'email': g.user.email}
 
 
+# TODO: Schema validation would be useful for methods here that accept data
 class UserData(Resource):
     """
     Get or modify saved user data for the current user.
