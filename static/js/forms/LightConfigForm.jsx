@@ -456,7 +456,7 @@ export default class LightConfigForm extends React.Component {
     saveData(data) {
         axios.put("/api/user/data", data, getAuthConfig())
             .then(response => {
-                console.log(response);
+                console.log(response.data);
                 this.updateSavedData();
                 this.setState({ selectedColor: name })
 
