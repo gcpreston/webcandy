@@ -1,7 +1,10 @@
 .idea/
 */__pycache__/
 *.pyc
+*.egg-info/
+*/dist/
 
+*.pem
 webcandy.log
 
 static/node_modules
@@ -11,4 +14,3 @@ server/venv
 server/migrations
 server/.env
 server/.flaskenv
-server/*.pem
