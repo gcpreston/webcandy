@@ -10,13 +10,14 @@ from flask_restful import Resource
 from werkzeug.exceptions import NotFound
 
 from . import util
-from .definitions import ROOT_DIR, DATA_DIR
+from .definitions import DATA_DIR, STATIC_DIR
 from .models import User
 from .extensions import auth, db
 from .server import proxy_server, clients
 
-views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
-                  template_folder=f'{ROOT_DIR}/static')
+views = Blueprint('views', __name__,
+                  static_folder=f'{STATIC_DIR}/dist',
+                  template_folder=STATIC_DIR)
 
 # -------------------------------
 # Login functions
@@ -45,7 +46,7 @@ def verify_auth_token(token: str) -> bool:
 
 @views.route('/favicon.ico', methods=['GET'])
 def favicon():
-    return send_from_directory(os.path.join(ROOT_DIR, 'static', 'img'),
+    return send_from_directory(os.path.join(STATIC_DIR, 'img'),
                                'favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
 
@@ -128,7 +129,7 @@ class NewUser(Resource):
         app.logger.debug(f'Created new user {user.username} <{user.email}>')
 
         # create data file
-        with open(f'{ROOT_DIR}/server/data/{user.user_id}.json', 'w+') as file:
+        with open(f'{DATA_DIR}/{user.user_id}.json', 'w+') as file:
             json.dump({'colors': dict(), 'color_lists': dict()}, file)
 
         return (

@@ -27,7 +27,7 @@ class Config:
             SECRET_KEY = 'dev-secret'
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL') or f'sqlite:///{ROOT_DIR}/server/webcandy.db'
+        'DATABASE_URL') or f'sqlite:///{ROOT_DIR}/webcandy.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     LOG_LEVEL = util.get_level(os.getenv('LOG_LEVEL')) or logging.INFO

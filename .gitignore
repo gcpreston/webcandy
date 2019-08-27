@@ -6,11 +6,9 @@
 
 *.pem
 webcandy.log
+venv/
+migrations/
+.env
+.flaskenv
 
-static/node_modules
-static/dist
-
-server/venv
-server/migrations
-server/.env
-server/.flaskenv
+webcandy/static/node_modules
