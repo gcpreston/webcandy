@@ -8,26 +8,26 @@ import ColorEntry from "./ColorEntry";
  */
 export default class ColorListEntry extends React.Component {
     static propTypes = {
+        colors: PropTypes.arrayOf(PropTypes.string), // array of hexes
+        selectedIndex: PropTypes.number,
+        editingColor: PropTypes.string,
+        buttonDisabled: PropTypes.bool,
         buttonText: PropTypes.string,
         buttonVariant: PropTypes.string,
-        colors: PropTypes.arrayOf(PropTypes.string), // array of hexes
-        onChange: PropTypes.func,
+        onChange: PropTypes.func, // on color edit
+        onSelect: PropTypes.func,
         onButtonClick: PropTypes.func, // color entry button action
+        onNewColor: PropTypes.func,
+        onDeleteColor: PropTypes.func,
         className: PropTypes.string
     };
 
-    state = {
-        selectedIndex: -1,
-        editingColor: "",
-    };
-
     /**
-     * INVARIANT: Logic to determine whether or not color entry is disabled
-     * based on state.
+     * INVARIANT: Color entry is disabled if there is no color selected.
      */
     entryIsDisabled() {
         return this.props.colors.length === 0
-            || this.state.selectedIndex === -1;
+            || this.props.selectedIndex === -1;
     }
 
     render() {
@@ -41,8 +41,8 @@ export default class ColorListEntry extends React.Component {
             <Form.Row className={className}>
                 <Form.Group as={Col} controlId="colorListValueDisplay">
                     <Form.Control as="select" multiple
-                                  value={[this.state.selectedIndex]}
-                                  onChange={this.handleColorSelect}>
+                                  value={[this.props.selectedIndex]}
+                                  onChange={this.props.onSelect}>
                         {this.props.colors.map((color, idx) => {
                             return <option key={idx}
                                            value={idx}>{color}</option>;
@@ -51,113 +51,22 @@ export default class ColorListEntry extends React.Component {
                 </Form.Group>
                 <Form.Group as={Col} controlId="colorListEditField">
                     <ColorEntry
-                        color={this.state.editingColor}
-                        disabled={this.entryIsDisabled()}
+                        color={this.props.editingColor}
+                        textDisabled={this.entryIsDisabled()}
+                        buttonDisabled={this.props.buttonDisabled}
                         buttonText={this.props.buttonText}
                         buttonVariant={this.props.buttonVariant}
-                        onChange={this.handleColorEdit}
+                        onChange={this.props.onChange}
                         onButtonClick={this.props.onButtonClick}
                     />
-                    <Button variant="link" onClick={this.handleNewColor}>
+                    <Button variant="link" onClick={this.props.onNewColor}>
                         New color
                     </Button>
-                    <Button variant="link" onClick={this.handleDeleteColor}>
+                    <Button variant="link" onClick={this.props.onDeleteColor}>
                         Delete color
                     </Button>
                 </Form.Group>
             </Form.Row>
         );
     }
-
-    /**
-     * Handle a different color being selected from the list of entered colors.
-     */
-    handleColorSelect = (event) => {
-        let newSelectedIndex = Number(event.target.value);
-        let newEditingColor = this.props.colors[newSelectedIndex];
-
-        if (event.target.value === "") {
-            newSelectedIndex = -1;
-            newEditingColor = ""
-        }
-
-        this.setState({
-            selectedIndex: newSelectedIndex,
-            editingColor: newEditingColor,
-        });
-    };
-
-    /**
-     * Handle ColorEntry's onChange event. Send the edited color list to the
-     * given onChange function.
-     */
-    handleColorEdit = (event) => {
-        this.setState({ editingColor: event.color });
-
-        let newColors = this.props.colors.slice();
-        newColors[this.state.selectedIndex] = event.color;
-        this.props.onChange({ colorList: newColors });
-    };
-
-    /**
-     * Handle the "New color" button being pressed. Add an empty string to the
-     * color list and invoke props.onChange.
-     */
-    handleNewColor = () => {
-        const newColors = this.props.colors.slice();
-        let newSelectedIndex = this.state.selectedIndex;
-
-        if (this.state.selectedIndex >= 0 &&
-            this.state.selectedIndex < this.props.colors.length) {
-            newSelectedIndex = this.state.selectedIndex + 1;
-            newColors.splice(newSelectedIndex, 0, "");
-        } else {
-            newColors.push("");
-            newSelectedIndex = this.props.colors.length;
-        }
-
-        this.setState({
-            selectedIndex: newSelectedIndex,
-            editingColor: "",
-            entryDisabled: false
-        });
-
-        this.props.onChange({ colorList: newColors });
-    };
-
-    /**
-     * Handle the "Delete color" button being pressed. Remove the currently
-     * selected color from the color list and invoke props.onChange.
-     */
-    handleDeleteColor = () => {
-        const newColors = this.props.colors.slice();
-        let newSelectedIndex = this.state.selectedIndex;
-        let newEditingColor = this.state.editingColor;
-
-        if (this.state.selectedIndex >= 0 &&
-            this.state.selectedIndex < this.props.colors.length) {
-            // delete element at selected index
-            newColors.splice(this.state.selectedIndex, 1);
-
-            // Keep same selected index, unless it was the last one, in which
-            // case make it the new last index.
-            // newColors.length = 0 -> newSelectedIndex = -1, which is correct
-            if (this.state.selectedIndex === newColors.length) {
-                newSelectedIndex -= 1;
-            }
-
-            if (newColors.length === 0) {
-                newEditingColor = "";
-            } else {
-                newEditingColor = newColors[newSelectedIndex];
-            }
-        }
-
-        this.setState({
-            selectedIndex: newSelectedIndex,
-            editingColor: newEditingColor
-        });
-
-        this.props.onChange({ colorList: newColors });
-    };
 }

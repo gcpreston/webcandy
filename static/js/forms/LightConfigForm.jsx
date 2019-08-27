@@ -15,10 +15,10 @@ import {
     getAuthConfig,
     getMatchingObject,
     getMatchingIndex,
-    array2dIncludes
 } from '../util.js';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css"
+import { arraysEqual } from "../util";
 
 /**
  * Form for building lighting configuration request.
@@ -41,12 +41,66 @@ export default class LightConfigForm extends React.Component {
         colorLists: {},
         selectedColorList: "",  // name of color list
         enteredColorList: [],  // hex list
-        selectedColorListValue: "", // hex
+        selectedColorListIndex: -1, // nothing selected by default
         editingColor: "",  // hex
         // extra params for submission
         strobe: false,
         speed: 5.0
     };
+
+    // ------------------------------
+    // Invariants computed from state
+    // ------------------------------
+
+    /**
+     * Get the current color based on if the current pattern utilizes the color
+     * field and if a custom color is entered.
+     */
+    getCurrentColor() {
+        if (this.state.pattern["takes"] === "color") {
+            const selected = this.state.colors[this.state.selectedColor];
+            if (this.state.enteredColor !== selected) {
+                return this.state.enteredColor;
+            }
+            return selected;
+        }
+        return null;
+    }
+
+    /**
+     * Get the current color list based on if the current pattern utilitzes
+     * the color_list field.
+     */
+    getCurrentColorList() {
+        if (this.state.pattern["takes"] === "color_list") {
+            return this.state.enteredColorList;
+        }
+        return null;
+    }
+
+    /**
+     * Get the current speed based on if the current pattern is static or
+     * dynamic.
+     */
+    getCurrentSpeed() {
+        if (this.state.pattern["type"] === "dynamic") {
+            return this.state.speed;
+        }
+        return null;
+    }
+
+    /**
+     * Determine whether the current color list has been edited from the latest
+     * saved version.
+     */
+    colorListHasBeenEdited() {
+        return !arraysEqual(this.state.enteredColorList,
+            this.state.colorLists[this.state.selectedColorList])
+    }
+
+    // ---------------
+    // Component logic
+    // ---------------
 
     /**
      * Get values from Webcandy API and set state before app renders.
@@ -92,26 +146,26 @@ export default class LightConfigForm extends React.Component {
     /**
      * Get the latest saved data of the current user and store it in state.
      */
-    updateSavedData() {
+    updateSavedData(reset = false) {
         axios.get("/api/user/data", getAuthConfig()).then(response => {
             const colors = response.data["colors"];
             const colorLists = response.data["color_lists"];
 
-            this.setState({ colors: colors, colorLists: colorLists, });
+            this.setState({ colors: colors, colorLists: colorLists });
 
-            // set initial values
-            if (colors && !this.state.selectedColor) {
+            // set or reset initial values
+            if (colors && (reset || !this.state.selectedColor)) {
                 this.setState({
                     selectedColor: Object.keys(colors)[0],
                     enteredColor: Object.values(colors)[0]
                 })
             }
-            if (colorLists && !this.state.selectedColorList) {
+            if (colorLists && (reset || !this.state.selectedColorList)) {
                 this.setState({
                     selectedColorList: Object.keys(colorLists)[0],
                     enteredColorList: Object.values(colorLists)[0],
-                    selectedColorListValue: Object.values(colorLists)[0][0],
-                    editingColor: Object.values(colorLists)[0][0]
+                    selectedColorListIndex: -1,
+                    editingColor: ""
                 })
             }
         }).catch(error => {
@@ -168,8 +222,17 @@ export default class LightConfigForm extends React.Component {
                 </Form.Group>
                 <ColorListEntry
                     colors={this.state.enteredColorList}
-                    onChange={e => this.setState({ enteredColorList: e.colorList })}
-                    onButtonClick={this.colorListSavePrompt}
+                    editingColor={this.state.editingColor}
+                    selectedIndex={this.state.selectedColorListIndex}
+                    buttonDisabled={!this.colorListHasBeenEdited()}
+                    onSelect={this.handleColorListValueSelect}
+                    onChange={this.handleColorListChange}
+                    onButtonClick={() => {
+                            this.saveColorList(this.state.selectedColorList,
+                                this.state.enteredColorList)
+                        }}
+                    onNewColor={this.handleNewColor}
+                    onDeleteColor={this.handleDeleteColor}
                 />
             </React.Fragment>
         );
@@ -294,50 +357,6 @@ export default class LightConfigForm extends React.Component {
         }
     };
 
-    colorListSavePrompt = () => {
-        if (array2dIncludes(Object.values(this.state.colorLists), this.state.enteredColorList)) {
-            this.dialog.show({
-                title: "Info",
-                body: "This color list is already saved.",
-                actions: [
-                    Dialog.OKAction()
-                ]
-            });
-        } else {
-            this.dialog.show({
-                title: "Save Color List",
-                body: "Enter a name for this color list:",
-                prompt: Dialog.TextPrompt({ placeholder: "Name" }),
-                actions: [
-                    Dialog.CancelAction(),
-                    Dialog.OKAction(dialog => {
-                        const colorListName = dialog.value;
-                        if (Object.keys(this.state.colorLists).includes(colorListName)) {
-
-                            this.dialog.show({
-                                title: "Confirmation",
-                                body: 'Would you like to overwrite the existing "'
-                                    + colorListName + '" color list? ('
-                                    + this.state.colorLists[colorListName] + ')',
-                                actions: [
-                                    Dialog.CancelAction(),
-                                    Dialog.DefaultAction(
-                                        "Overwrite",
-                                        () => this.saveColorList(colorListName, this.state.enteredColorList),
-                                        "btn-warning"
-                                    )
-                                ]
-                            });
-
-                        } else {
-                            this.saveColorList(dialog.value, this.state.enteredColorList);
-                        }
-                    })
-                ]
-            });
-        }
-    };
-
     newColorListPrompt = () => {
         this.dialog.show({
             title: "New Color List",
@@ -367,6 +386,7 @@ export default class LightConfigForm extends React.Component {
                                 colorLists: newColorLists,
                                 selectedColorList: colorListName,
                                 enteredColorList: newColorLists[colorListName],
+                                selectedColorListIndex: -1,
                                 editingColor: ""
                             });
                         }
@@ -392,7 +412,7 @@ export default class LightConfigForm extends React.Component {
                         axios.delete("/api/user/data", config)
                             .then(response => {
                                 console.log(response.data);
-                                this.updateSavedData();
+                                this.updateSavedData(true);
                             })
                             .catch(error => console.log(error));
                     },
@@ -484,8 +504,99 @@ export default class LightConfigForm extends React.Component {
         this.setState({
             selectedColorList: event.target.value,
             enteredColorList: colorList,
-            selectedColorListValue: colorList[0],
-            editingColor: colorList[0]
+            selectedColorListIndex: -1,
+            editingColor: ""
+        });
+    };
+
+    /**
+     * Handle a different color being selected from the list of entered colors.
+     * @param event - The change event from the select
+     */
+    handleColorListValueSelect = (event) => {
+        let newSelectedIndex = Number(event.target.value);
+        let newEditingColor = this.state.enteredColorList[newSelectedIndex];
+
+        if (event.target.value === "") {
+            newSelectedIndex = -1;
+            newEditingColor = ""
+        }
+
+        this.setState({
+            selectedColorListIndex: newSelectedIndex,
+            editingColor: newEditingColor,
+        });
+    };
+
+    /**
+     * Handle ColorListEntry's onChange event. Update the color list in state
+     * with the edited value.
+     */
+    handleColorListChange = (event) => {
+        this.setState({ editingColor: event.color });
+
+        let newColors = this.state.enteredColorList.slice();
+        newColors[this.state.selectedColorListIndex] = event.color;
+        this.setState({ enteredColorList: newColors });
+    };
+
+    /**
+     * Handle ColorListEntry's "New color" button being pressed. Add an empty
+     * string to the color list.
+     */
+    handleNewColor = () => {
+        const newColors = this.state.enteredColorList.slice();
+        let newSelectedIndex = this.state.selectedColorListIndex;
+
+        // color selected -> new color after selected
+        // no color selected -> new color at the front
+        if (newSelectedIndex >= 0 &&
+            newSelectedIndex < newColors.length) {
+            newSelectedIndex +=  1;
+            newColors.splice(newSelectedIndex, 0, "");
+        } else {
+            // newSelectedIndex should only be -1
+            newColors.splice(0, 0, ""); // push to front of list
+            newSelectedIndex = 0;
+        }
+
+        this.setState({
+            enteredColorList: newColors,
+            selectedColorListIndex: newSelectedIndex,
+            editingColor: "",
+        });
+    };
+
+    /**
+     * Handle the "Delete color" button being pressed. Remove the currently
+     * selected color from the color list.
+     */
+    handleDeleteColor = () => {
+        const newColors = this.state.enteredColorList.slice();
+        let newSelectedIndex = this.state.selectedColorListIndex;
+        let newEditingColor = this.state.editingColor;
+
+        // color must be selected for one to be deleted
+        if (newSelectedIndex >= 0 &&
+            newSelectedIndex < newColors.length) {
+            // delete element at selected index
+            newColors.splice(newSelectedIndex, 1);
+
+            // select element before deleted one
+            newSelectedIndex -= 1;
+
+            // index of -1 indicates that nothing is selected
+            if (newSelectedIndex === -1) {
+                newEditingColor = "";
+            } else {
+                newEditingColor = newColors[newSelectedIndex];
+            }
+        }
+
+        this.setState({
+            enteredColorList: newColors,
+            selectedColorListIndex: newSelectedIndex,
+            editingColor: newEditingColor
         });
     };
 
@@ -534,44 +645,6 @@ export default class LightConfigForm extends React.Component {
 
         this.submit(data);
     };
-
-    /**
-     * Get the current color based on if the current pattern utilizes the color
-     * field and if a custom color is entered.
-     */
-    getCurrentColor() {
-        if (this.state.pattern["takes"] === "color") {
-            const selected = this.state.colors[this.state.selectedColor];
-            if (this.state.enteredColor !== selected) {
-                return this.state.enteredColor;
-            }
-            return selected;
-        }
-        return null;
-    }
-
-    /**
-     * Get the current color list based on if the current pattern utilitzes
-     * the color_list field.
-     */
-    getCurrentColorList() {
-        if (this.state.pattern["takes"] === "color_list") {
-            // TODO: Update this logic when color list entry is implemented
-            return this.state.colorLists[this.state.selectedColorList];
-        }
-        return null;
-    }
-
-    /**
-     * Get the current speed based on if the current pattern is static or
-     * dynamic.
-     */
-    getCurrentSpeed() {
-        if (this.state.pattern["type"] === "dynamic") {
-            return this.state.speed;
-        }
-        return null;
-    }
 
     /**
      * Submit data to the Webcandy API to run a lighting configuration. Valid

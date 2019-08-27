@@ -15,7 +15,8 @@ import ChromePicker from "react-color";
 export default class ColorEntry extends React.Component {
     static propTypes = {
         color: PropTypes.string, // format #RRGGBB
-        disabled: PropTypes.bool,
+        textDisabled: PropTypes.bool,
+        buttonDisabled: PropTypes.bool,
         buttonText: PropTypes.string,
         buttonVariant: PropTypes.string,
         overlayPlacement: PropTypes.string, // Overlay "placement" prop
@@ -27,7 +28,8 @@ export default class ColorEntry extends React.Component {
     static defaultProps = {
         buttonText: "Save",
         buttonVariant: "success",
-        disabled: false
+        textDisabled: false,
+        buttonDisabled: false
     };
 
     // use state to determine whether a custom color is entered to avoid
@@ -60,7 +62,7 @@ export default class ColorEntry extends React.Component {
                         type="text"
                         placeholder="#RRGGBB"
                         value={this.props.color}
-                        disabled={this.props.disabled}
+                        disabled={this.props.textDisabled}
                         onChange={this.handleFieldChange}
                         onFocus={() => this.setState({ customColor: true })}
                         onBlur={() => this.setState({ customColor: false })}
@@ -68,7 +70,7 @@ export default class ColorEntry extends React.Component {
                     <InputGroup.Append>
                         <Button variant={this.props.buttonVariant}
                                 onClick={this.props.onButtonClick}
-                                disabled={this.props.disabled}>
+                                disabled={this.props.buttonDisabled}>
                             {this.props.buttonText}
                         </Button>
                     </InputGroup.Append>
