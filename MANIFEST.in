@@ -1,0 +1,5 @@
+include LICENSE README.md
+include static/index.html
+include static/dist/bundle.js
+recursive-include static/css *
+recursive-include static/img *
