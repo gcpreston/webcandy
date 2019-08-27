@@ -26,8 +26,6 @@ class Config:
                           'configured; using default value',
                           RuntimeWarning)
             SECRET_KEY = 'dev-secret'
-    else:
-        print(os.getenv('SECRET_KEY'))
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL') or f'sqlite:///{DATA_DIR}/webcandy.db'
