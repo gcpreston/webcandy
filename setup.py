@@ -1,5 +1,5 @@
 from os import path
-from setuptools import setup, find_namespace_packages
+from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/gcpreston/webcandy',
-    packages=find_namespace_packages(include=['server.webcandy']),
+    packages=find_packages(exclude=('webcandy.tests',)),
     include_package_data=True,
     zip_safe=False,
     install_requires=[

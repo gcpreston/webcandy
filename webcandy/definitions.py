@@ -2,9 +2,10 @@ import os
 
 from typing import Tuple
 
-ROOT_DIR = os.sep.join(os.path.dirname(__file__).split(os.sep)[:-1])
+ROOT_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
-STATIC_DIR = os.path.join(ROOT_DIR, 'webcandy', 'static')
+USERS_DIR = os.path.join(DATA_DIR, 'users')
+STATIC_DIR = os.path.join(ROOT_DIR, 'static')
 
 # define Address to be (host, port) tuple
 Address = Tuple[str, int]
