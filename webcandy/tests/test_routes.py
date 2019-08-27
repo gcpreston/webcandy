@@ -73,7 +73,8 @@ class TestAPI(unittest.TestCase):
         response = self.get('/api/user/data', self.token)
         # ensure that the "rainbow" color list is present
         self.assertEqual(
-            json.loads(response.get_data())['color_lists']['rainbow'], [
+            json.loads(response.get_data())['color_lists']['rainbow'],
+            [
                 "#ff0000",
                 "#ff7f00",
                 "#ffff00",
