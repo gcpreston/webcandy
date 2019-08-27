@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from webcandy.definitions import ROOT_DIR, DATA_DIR
+from webcandy.definitions import ROOT_DIR, DATA_DIR, STATIC_DIR
 
 
 class TestDefinitions(unittest.TestCase):
@@ -14,8 +14,8 @@ class TestDefinitions(unittest.TestCase):
         ROOT_DIR should point to the project root.
         """
         root = os.listdir(ROOT_DIR)
-        for folder in {'server', 'static'}:
-            self.assertTrue(folder in root)
+        for item in {'webcandy', 'setup.py'}:
+            self.assertTrue(item in root)
 
     def test_data_dir(self):
         """
@@ -23,3 +23,9 @@ class TestDefinitions(unittest.TestCase):
         """
         for f in os.listdir(DATA_DIR):
             self.assertTrue(f.endswith('.json'))
+
+    def test_static_dir(self):
+        """
+        STATIC_DIR should contain index.html at the very least.
+        """
+        self.assertTrue('index.html' in os.listdir(STATIC_DIR))

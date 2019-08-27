@@ -71,23 +71,13 @@ class TestAPI(unittest.TestCase):
         Test the /color_lists URI.
         """
         response = self.get('/api/user/data', self.token)
-        self.assertEqual(json.loads(response.get_data()),
-                         {
-                             'colors': {
-                                 "blue": "#4169e1",
-                                 "green": "#00ff80",
-                                 "pink": "#ff69b4",
-                                 "purple": "#8a2be2",
-                                 "yellow": "#ffff99"
-                             },
-                             'color_lists': {
-                                 "rainbow": [
-                                     "#ff0000",
-                                     "#ff7f00",
-                                     "#ffff00",
-                                     "#00ff00",
-                                     "#0000ff",
-                                     "#8b00ff"
-                                 ]
-                             }
-                         })
+        # ensure that the "rainbow" color list is present
+        self.assertEqual(
+            json.loads(response.get_data())['color_lists']['rainbow'], [
+                "#ff0000",
+                "#ff7f00",
+                "#ffff00",
+                "#00ff00",
+                "#0000ff",
+                "#8b00ff"
+            ])
