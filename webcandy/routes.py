@@ -53,9 +53,9 @@ def favicon():
 
 @views.route('/manifest.json', methods=['GET'])
 def manifest():
-    return send_from_directory(os.path.join(STATIC_DIR, 'img'),
+    return send_from_directory(os.path.join(STATIC_DIR),
                                'manifest.json',
-                               mimetype='image/png')
+                               mimetype='application/json')
 
 
 @views.route('/', defaults={'path': ''}, methods=['GET'])
