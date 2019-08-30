@@ -1,0 +1,5 @@
+include LICENSE README.md
+include webcandy/static/index.html
+include webcandy/static/dist/bundle.js
+recursive-include webcandy/static/css *
+recursive-include webcandy/static/img *

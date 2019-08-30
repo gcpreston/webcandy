@@ -5,9 +5,10 @@ import logging
 from dotenv import load_dotenv
 
 from . import util
-from .definitions import ROOT_DIR
+from .definitions import ROOT_DIR, DATA_DIR
 
-load_dotenv(f'{ROOT_DIR}/server/.env')
+# TODO: This may need additional handling
+load_dotenv(f'{ROOT_DIR}/../.env')
 
 
 class Config:
@@ -27,7 +28,7 @@ class Config:
             SECRET_KEY = 'dev-secret'
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL') or f'sqlite:///{ROOT_DIR}/server/webcandy.db'
+        'DATABASE_URL') or f'sqlite:///{DATA_DIR}/webcandy.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     LOG_LEVEL = util.get_level(os.getenv('LOG_LEVEL')) or logging.INFO

@@ -1,6 +1,9 @@
-from setuptools import setup
+from os import path
+from setuptools import setup, find_packages
 
-with open('README.md') as readme:
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, 'README.md')) as readme:
     long_description = readme.read()
 
 setup(
@@ -12,12 +15,14 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/gcpreston/webcandy',
-    packages=['webcandy'],
+    packages=find_packages(exclude=('webcandy.tests',)),
+    include_package_data=True,
     zip_safe=False,
     install_requires=[
         'Flask',
         'Flask-HTTPAuth',
         'Flask-Migrate',
+        'Flask-RESTful',
         'Flask-SQLAlchemy',
         'gunicorn',
         'itsdangerous',

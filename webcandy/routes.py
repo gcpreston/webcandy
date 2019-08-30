@@ -10,13 +10,14 @@ from flask_restful import Resource
 from werkzeug.exceptions import NotFound
 
 from . import util
-from .definitions import ROOT_DIR, DATA_DIR
+from .definitions import USERS_DIR, STATIC_DIR
 from .models import User
 from .extensions import auth, db
 from .server import proxy_server, clients
 
-views = Blueprint('views', __name__, static_folder=f'{ROOT_DIR}/static/dist',
-                  template_folder=f'{ROOT_DIR}/static')
+views = Blueprint('views', __name__,
+                  static_folder=f'{STATIC_DIR}/dist',
+                  template_folder=STATIC_DIR)
 
 # -------------------------------
 # Login functions
@@ -45,7 +46,7 @@ def verify_auth_token(token: str) -> bool:
 
 @views.route('/favicon.ico', methods=['GET'])
 def favicon():
-    return send_from_directory(os.path.join(ROOT_DIR, 'static', 'img'),
+    return send_from_directory(os.path.join(STATIC_DIR, 'img'),
                                'favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
 
@@ -128,7 +129,7 @@ class NewUser(Resource):
         app.logger.debug(f'Created new user {user.username} <{user.email}>')
 
         # create data file
-        with open(f'{ROOT_DIR}/server/data/{user.user_id}.json', 'w+') as file:
+        with open(f'{USERS_DIR}/{user.user_id}.json', 'w+') as file:
             json.dump({'colors': dict(), 'color_lists': dict()}, file)
 
         return (
@@ -212,7 +213,7 @@ class UserData(Resource):
         """
         retval = defaultdict(lambda: defaultdict(dict))
 
-        with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
+        with open(f'{USERS_DIR}/{g.user.user_id}.json') as data_file:
             json_data = json.load(data_file)
 
         for section, data in request.get_json().items():
@@ -245,7 +246,7 @@ class UserData(Resource):
                         json_data['color_lists'][name] = color_list
 
         # re-open to overwrite rather than append to using r+
-        with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
+        with open(f'{USERS_DIR}/{g.user.user_id}.json', 'w') as data_file:
             json.dump(json_data, data_file, indent=4)
 
         return retval
@@ -283,7 +284,7 @@ class UserData(Resource):
         """
         retval = defaultdict(lambda: defaultdict(dict))
 
-        with open(f'{DATA_DIR}/{g.user.user_id}.json') as data_file:
+        with open(f'{USERS_DIR}/{g.user.user_id}.json') as data_file:
             json_data = json.load(data_file)
 
         # section: str, data: List[str]
@@ -296,7 +297,7 @@ class UserData(Resource):
                     del json_data[section][name]
 
         # re-open to overwrite rather than append to using r+
-        with open(f'{DATA_DIR}/{g.user.user_id}.json', 'w') as data_file:
+        with open(f'{USERS_DIR}/{g.user.user_id}.json', 'w') as data_file:
             json.dump(json_data, data_file, indent=4)
 
         return retval

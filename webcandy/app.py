@@ -1,3 +1,4 @@
+import os
 import signal
 
 from flask import Flask
@@ -30,6 +31,13 @@ def create_app(start_proxy: bool = True):
 
     if start_proxy:
         proxy_server.start(host=host)
+
+    # create database file if it doesn't exist
+    if not os.path.exists(Config.SQLALCHEMY_DATABASE_URI[10:]):
+        with app.app_context():
+            db.create_all()
+            db.session.commit()
+        app.logger.info('New database file created')
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
     return app
