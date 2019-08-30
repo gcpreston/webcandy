@@ -1,11 +1,17 @@
 {
+  "short_name": "Webcandy",
   "name": "Webcandy",
   "icons": [
     {
-      "src": "img/icon-256.png",
+      "src": "img/icons-192.png",
       "type": "image/png",
-      "sizes": "256x256"
+      "sizes": "192x192"
     },
+    {
+      "src": "img/icons-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
   ],
   "start_url": "/?source=pwa",
   "background_color": "#000000",

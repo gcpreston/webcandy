@@ -19,6 +19,7 @@ views = Blueprint('views', __name__,
                   static_folder=f'{STATIC_DIR}/dist',
                   template_folder=STATIC_DIR)
 
+
 # -------------------------------
 # Login functions
 # -------------------------------
@@ -46,16 +47,20 @@ def verify_auth_token(token: str) -> bool:
 
 @views.route('/favicon.ico', methods=['GET'])
 def favicon():
-    return send_from_directory(os.path.join(STATIC_DIR, 'img'),
-                               'favicon.ico',
+    return send_from_directory(STATIC_DIR, 'favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
 
 
 @views.route('/manifest.json', methods=['GET'])
 def manifest():
-    return send_from_directory(os.path.join(STATIC_DIR),
-                               'manifest.json',
+    return send_from_directory(STATIC_DIR, 'manifest.json',
                                mimetype='application/json')
+
+
+@views.route('/img/<path:name>', methods=['GET'])
+def img(name: str):
+    return send_from_directory(os.path.join(STATIC_DIR, 'img'), name,
+                               mimetype='image/png')
 
 
 @views.route('/', defaults={'path': ''}, methods=['GET'])
