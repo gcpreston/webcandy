@@ -3,7 +3,7 @@ import re
 import json
 
 from typing import Optional, Dict
-from .definitions import DATA_DIR, Address
+from .definitions import USERS_DIR, Address
 
 
 def is_color(s: str) -> bool:
@@ -48,7 +48,7 @@ def load_user_data(user_id: int) -> Dict:
     :param user_id: ID of the user to get data of
     :return: the JSON contents as a dictionary
     """
-    fp = f'{DATA_DIR}/{user_id}.json'
+    fp = f'{USERS_DIR}/{user_id}.json'
     if not os.path.isfile(fp):
         raise ValueError(f'Data not found for user {user_id}')
     with open(fp) as file:
