@@ -51,6 +51,13 @@ def favicon():
                                mimetype='image/vnd.microsoft.icon')
 
 
+@views.route('/manifest.json', methods=['GET'])
+def manifest():
+    return send_from_directory(os.path.join(STATIC_DIR, 'img'),
+                               'manifest.json',
+                               mimetype='image/png')
+
+
 @views.route('/', defaults={'path': ''}, methods=['GET'])
 @views.route('/<path:path>')
 def index(path: str):
