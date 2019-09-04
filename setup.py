@@ -14,7 +14,7 @@ setup(
     description='API and web interface for Fadecandy',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/gcpreston/webcandy',
+    url='https://webcandy.io',
     packages=find_packages(exclude=('webcandy.tests',)),
     include_package_data=True,
     zip_safe=False,
@@ -30,5 +30,16 @@ setup(
         'python-dotenv',
         'websockets',
         'werkzeug'
-    ]
+    ],
+    # python_requires='>=3.7',
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+    ],
+    project_urls={
+        'Documentation': 'https://webcandy.readthedocs.io',
+        'Source': 'https://github.com/gcpreston/webcandy',
+    },
 )
