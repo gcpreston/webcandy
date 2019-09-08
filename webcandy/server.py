@@ -141,8 +141,7 @@ class ClientDataSchema(Schema):
         name = fields.Str(required=True)
         type = fields.Str(required=True,
                           validate=one_of('static', 'dynamic'))
-        takes = fields.Str(allow_none=True, required=True,
-                           validate=one_of('color', 'color_list', None))
+        args = fields.List(fields.Str(), required=True)
         default_speed = fields.Int(validate=lambda v: v >= 0)
 
     token = fields.Str(required=True)

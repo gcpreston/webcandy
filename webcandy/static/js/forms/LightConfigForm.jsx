@@ -57,7 +57,7 @@ export default class LightConfigForm extends React.Component {
      * field and if a custom color is entered.
      */
     getCurrentColor() {
-        if (this.state.pattern["takes"] === "color") {
+        if (this.state.pattern["args"].includes("color")) {
             const selected = this.state.colors[this.state.selectedColor];
             if (this.state.enteredColor !== selected) {
                 return this.state.enteredColor;
@@ -72,8 +72,20 @@ export default class LightConfigForm extends React.Component {
      * the color_list field.
      */
     getCurrentColorList() {
-        if (this.state.pattern["takes"] === "color_list") {
+        if (this.state.pattern["args"].includes("color_list")) {
             return this.state.enteredColorList;
+        }
+        return null;
+    }
+
+    /**
+     * Get the current width value if the current pattern utilizes the width
+     * field.
+     */
+    getCurrentWidth() {
+        if (this.state.pattern["args"].includes("width")) {
+            // TODO: Implement width entry UI component
+            return 10;
         }
         return null;
     }
@@ -240,9 +252,9 @@ export default class LightConfigForm extends React.Component {
         // Set config based on if color or color_list needs to be entered
         let config;
         if (this.state.pattern) {
-            if (this.state.pattern["takes"] === "color") {
+            if (this.state.pattern["args"].includes("color")) {
                 config = colorEntry;
-            } else if (this.state.pattern["takes"] === "color_list") {
+            } else if (this.state.pattern["args"].includes("color_list")) {
                 config = colorListEntry;
             }
         }
@@ -621,6 +633,11 @@ export default class LightConfigForm extends React.Component {
         const currentColorList = this.getCurrentColorList();
         if (currentColorList) {
             data["color_list"] = currentColorList;
+        }
+
+        const currentWidth = this.getCurrentWidth();
+        if (currentWidth) {
+            data["width"] = currentWidth;
         }
 
         const currentSpeed = this.getCurrentSpeed();
