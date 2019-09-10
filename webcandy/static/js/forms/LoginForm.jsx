@@ -1,6 +1,7 @@
 import React from 'react';
-import axios from 'axios';
 import { Button, Form } from 'react-bootstrap';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 /**
  * Login form.
@@ -57,7 +58,8 @@ export default class LoginForm extends React.Component {
 
         axios.post("/api/token", data).then(response => {
             const token = response.data["token"];
-            sessionStorage.setItem("token", token);
+            // set cookie to expire in 2 weeks
+            Cookies.set("token", token, { expires: 14 });
             window.location = "/";
         }).catch(error => {
             if (error.response.status === 401) {

@@ -1,9 +1,11 @@
+import Cookies from 'js-cookie';
+
 /**
  * Get config with authorization token to make Webcandy API calls.
  * @return {{headers: {Authorization: string}}}
  */
 function getAuthConfig() {
-    const token = sessionStorage.getItem("token");
+    const token = Cookies.get("token");
     return {
         headers: {
             Authorization: "Bearer " + token,

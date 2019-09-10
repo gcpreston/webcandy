@@ -6,6 +6,7 @@ import {
     Switch,
     Redirect
 } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 import App from './pages/App';
 import Login from './pages/Login';
@@ -22,7 +23,7 @@ const router = (
             <Switch>
                 <Route exact path="/" render={() => {
                     // App will redirect back to login if token has expired
-                    return sessionStorage.getItem("token") !== null ? <App/> : <Redirect to="/login"/>;
+                    return Cookies.get("token") ? <App/> : <Redirect to="/login"/>;
                 }}/>
                 <Route path="/login" component={Login}/>
                 <Route path="/create-account" component={CreateAccount}/>

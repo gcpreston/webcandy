@@ -1,9 +1,11 @@
 import React from 'react';
-import axios from 'axios';
 import { Form, Button } from 'react-bootstrap';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 import LightConfigForm from '../forms/LightConfigForm';
 import logo from "../../img/webcandy_logo.png";
+import { getAuthConfig } from "../util";
 
 /**
  * Webcandy main app page.
@@ -19,11 +21,7 @@ export default class App extends React.Component {
         // TODO: Figure out better way to handle errors for production
         this.updateConnectedClients();
 
-        axios.get("/api/user/info", {
-            headers: {
-                "Authorization": "Bearer " + sessionStorage.getItem("token")
-            }
-        }).then(response => {
+        axios.get("/api/user/info", getAuthConfig()).then(response => {
             const data = response.data;
             this.setState({ username: data['username'] })
         }).catch(error => {
@@ -84,11 +82,7 @@ export default class App extends React.Component {
     }
 
     updateConnectedClients = () => {
-        axios.get("/api/user/clients", {
-            headers: {
-                "Authorization": "Bearer " + sessionStorage.getItem("token")
-            }
-        }).then(response => {
+        axios.get("/api/user/clients", getAuthConfig()).then(response => {
             const connectedClients = response.data;
             this.setState({ connectedClients: connectedClients });
 
@@ -105,7 +99,7 @@ export default class App extends React.Component {
     };
 
     handleLogout = () => {
-        sessionStorage.removeItem("token");
+        Cookies.remove("token");
         window.location = "/login";
     };
 }
