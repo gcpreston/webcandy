@@ -40,6 +40,7 @@ export default class App extends React.Component {
                 <img className="centerImage" src={logo} alt="Webcandy logo"/>
                 <div className="title">
                     <p>Logged in as {this.state.username}</p>
+                    <p>Cookie: {Cookies.get("token")}</p>
                 </div>
 
                 <div className="clientSelect">
