@@ -16,7 +16,6 @@ import NotFound from './pages/NotFound';
 import "bootstrap/dist/css/bootstrap.css";
 import '../css/index.css';
 
-// TODO: Going to /hello tries to load /hello/dist/bundle.js??
 const router = (
     <Router>
         <div>

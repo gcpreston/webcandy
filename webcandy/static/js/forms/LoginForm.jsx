@@ -13,7 +13,6 @@ export default class LoginForm extends React.Component {
         errors: [],
     };
 
-    // TODO: Remember me
     render() {
         return (
             <React.Fragment>
