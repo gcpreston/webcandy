@@ -89,6 +89,8 @@ class CatchAll(Resource):
         return util.format_error(404, NotFound().description)
 
 
+# ========== Public ==========
+
 class Token(Resource):
     """
     Provide an authentication token.
@@ -96,6 +98,11 @@ class Token(Resource):
 
     @staticmethod
     def post():
+        """
+        JSON body fields:
+        - "username"
+        - "password"
+        """
         req_json = request.get_json()
 
         user = User.query.filter_by(username=req_json['username']).first()
@@ -115,6 +122,12 @@ class NewUser(Resource):
 
     @staticmethod
     def post():
+        """
+        JSON body fields:
+        - "username"
+        - "password"
+        - "email" (optional)
+        """
         username = request.json.get('username')
         email = request.json.get('email')  # optional
         password = request.json.get('password')
@@ -151,14 +164,20 @@ class NewUser(Resource):
         )
 
 
+# ========== Private ==========
+
 class UserInfo(Resource):
     """
-    Get account information for the current user.
+    Manage user account information, i.e. username and email. Requires
+    authentication.
     """
 
     @staticmethod
     @auth.login_required
     def get():
+        """
+        Retrieve account information: user_id, username, email.
+        """
         return {'user_id': g.user.user_id, 'username': g.user.username,
                 'email': g.user.email}
 
@@ -166,12 +185,17 @@ class UserInfo(Resource):
 # TODO: Schema validation would be useful for methods here that accept data
 class UserData(Resource):
     """
-    Get or modify saved user data for the current user.
+    Manage a user's saved data, i.e. colors and color lists. Requires
+    authentication.
     """
 
+    # TODO: Allow user to specify exact data to retrieve (thinking like GraphQL)
     @staticmethod
     @auth.login_required
     def get():
+        """
+        Retrieve all user data: colors, color_lists.
+        """
         return util.load_user_data(g.user.user_id)
 
     @staticmethod
@@ -346,19 +370,20 @@ class UserClients(Resource):
 class Submit(Resource):
     """
     Handle the submission of a lighting configuration to run.
-
-    POST JSON fields:
-    - "pattern": the name of the pattern to run (required)
-    - "strobe": whether to add a strobe effect
-    - "color": the color to use, if applicable
-    - "color_list": the color list to use, if applicable
-
-    :return: JSON indicating if running was successful
     """
 
     @staticmethod
     @auth.login_required
     def post():
+        """
+        JSON body fields:
+        - "pattern": the name of the pattern to run (required)
+        - "strobe": whether to add a strobe effect
+        - "color": the color to use, if applicable
+        - "color_list": the color list to use, if applicable
+
+        :return: JSON indicating if running was successful
+        """
         data = request.get_json()
         app.logger.debug(f'Received submission data from {g.user.username}: '
                          f'{data}')

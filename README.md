@@ -1,4 +1,5 @@
-# Webcandy
+<img src="https://raw.githubusercontent.com/gcpreston/webcandy/master/webcandy/static/img/webcandy_logo.png" alt="Webcandy" width="500" height="85">
+
 API and web interface for Fadecandy control. For the client-side code
 responsible for receiving requests from the Webcandy server and running lighting
 configurations on the Fadecandy itself, see
@@ -14,17 +15,16 @@ configurations on the Fadecandy itself, see
 ## Setup
 To install the necessary node modules, run:
 ```
-> cd static
-> npm install
+$ cd webcandy/static
+$ npm install
 ```
 
 ### virtualenv
 It is recommended to use a virtual Python environment. To set up virtualenv, run
 the following:
 ```
-> pip install virtualenv
-> cd server
-> virtualenv venv
+$ pip install virtualenv
+$ virtualenv venv
 ```
 The virtual environment is now created. **To use it, it must be activated like
 so**:

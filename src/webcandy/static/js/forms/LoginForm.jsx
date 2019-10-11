@@ -57,8 +57,8 @@ export default class LoginForm extends React.Component {
 
         axios.post("/api/token", data).then(response => {
             const token = response.data["token"];
-            // set cookie to expire in 2 weeks
-            Cookies.set("token", token, { expires: 14 });
+            // set cookie to expire in 1 month
+            Cookies.set("token", token, { expires: 31 });
             window.location = "/";
         }).catch(error => {
             if (error.response.status === 401) {
