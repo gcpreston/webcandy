@@ -54,7 +54,7 @@ class User(db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
-    def generate_auth_token(self, expiration: int = 24 * 3600) -> str:
+    def generate_auth_token(self, expiration: int = 31 * 24 * 3600) -> str:
         """
         Generate an authentication token storing this ``User``'s ID.
         :param expiration: the number of seconds the token should expire in
