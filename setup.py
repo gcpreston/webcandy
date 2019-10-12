@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md')) as readme:
 
 setup(
     name='webcandy',
-    version='0.0.1',
+    version='0.0.2',
     author='Graham Preston',
     author_email='graham.preston@gmail.com',
     description='API and web interface for Fadecandy',
