@@ -15,7 +15,8 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://webcandy.io',
-    packages=find_packages(exclude=('webcandy.tests',)),
+    package_dir={'': 'src'},
+    packages=find_packages('src', exclude=('webcandy.tests',)),
     include_package_data=True,
     zip_safe=False,
     install_requires=[
