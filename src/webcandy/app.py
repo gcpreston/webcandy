@@ -1,19 +1,23 @@
 import os
 import signal
+import threading
+import asyncio
 
 from flask import Flask
 from flask.logging import default_handler
+from webcandy_client import start_client
+from opclib import FadecandyServer
 
 from . import routes
 from .config import Config, configure_logger
 from .extensions import db, migrate, api
+from .models import User
 from .server import clients, proxy_server
 
 
-def create_app(start_proxy: bool = True):
+def create_app():
     """
     Build the Flask app and start the client manager.
-    :param start_proxy: whether to start the proxy server
     """
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -29,8 +33,36 @@ def create_app(start_proxy: bool = True):
     else:
         host = '127.0.0.1'
 
-    if start_proxy:
-        proxy_server.start(host=host)
+    # TODO: Allow non-default port for proxy server
+    proxy_server.start(host=host)
+
+    if Config.STANDALONE:
+        token = None
+
+        with app.app_context():
+            user = User.get_user(Config.WC_USERID)
+
+            if user:
+                token = user.generate_auth_token().decode('ascii')
+            else:
+                app.logger.error(f'User {Config.WC_USERID!r} not found, '
+                                 f'standalone client not started')
+
+        # if token retrieval was successful, spin up client on background thread
+        if token:
+            # TODO: Make this reusable and configurable
+            FadecandyServer().start()
+
+            def _go():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+                loop.run_until_complete(
+                    start_client(host, 6543, token, Config.WC_CLIENTNAME))
+                loop.run_forever()
+
+            client_thread = threading.Thread(target=_go)
+            client_thread.start()
 
     # create database file if it doesn't exist
     if not os.path.exists(Config.SQLALCHEMY_DATABASE_URI[10:]):

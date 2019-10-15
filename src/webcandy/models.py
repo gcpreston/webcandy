@@ -54,9 +54,10 @@ class User(db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
-    def generate_auth_token(self, expiration: int = 31 * 24 * 3600) -> str:
+    def generate_auth_token(self, expiration: int = 31 * 24 * 3600) -> bytes:
         """
         Generate an authentication token storing this ``User``'s ID.
+
         :param expiration: the number of seconds the token should expire in
         :return: the generated authentication token
         """
@@ -66,6 +67,7 @@ class User(db.Model):
     def get_colors(self) -> Optional[Dict[str, str]]:
         """
         Get this user's saved colors.
+
         :return: a dictionary of name-color pairs; ``None`` if none are defined
         """
         return util.load_user_data(self.user_id).get('colors')
@@ -73,6 +75,7 @@ class User(db.Model):
     def get_color_lists(self) -> Optional[Dict[str, str]]:
         """
         Get this user's saved color lists.
+
         :return: a dictionary of name-color list pairs; ``None`` if none are
             defined
         """

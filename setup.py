@@ -28,7 +28,9 @@ setup(
         'gunicorn',
         'itsdangerous',
         'marshmallow',
+        'opclib',
         'python-dotenv',
+        'webcandy-client',
         'websockets',
         'werkzeug'
     ],

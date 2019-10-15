@@ -10,10 +10,10 @@ from flask_restful import Resource
 from werkzeug.exceptions import NotFound
 
 from . import util
-from .definitions import USERS_DIR, STATIC_DIR
 from .models import User
 from .extensions import auth, db
 from .server import proxy_server, clients
+from .definitions import USERS_DIR, STATIC_DIR
 
 views = Blueprint('views', __name__,
                   static_folder=f'{STATIC_DIR}/dist',
@@ -76,6 +76,8 @@ def index(path: str):
 # API routes
 # -------------------------------
 
+# ========== Public ==========
+
 class CatchAll(Resource):
     """
     This will only be reached if a user tries to get /api/<non-existing path>.
@@ -88,8 +90,6 @@ class CatchAll(Resource):
         del path
         return util.format_error(404, NotFound().description)
 
-
-# ========== Public ==========
 
 class Token(Resource):
     """
@@ -105,6 +105,7 @@ class Token(Resource):
         """
         req_json = request.get_json()
 
+        # TODO: Use marshmallow for JSON verification?
         user = User.query.filter_by(username=req_json['username']).first()
         if not user or not user.check_password(req_json['password']):
             description = 'Invalid username and password combination'
@@ -392,6 +393,8 @@ class Submit(Resource):
             client_id = data['client_id']
             del data['client_id']
 
+            # TODO: If standalone, send directly to controller (might end up
+            #   being done within proxy_server.send conditionally)
             return dict(
                 success=proxy_server.send(g.user.user_id, client_id, data))
         except KeyError:
