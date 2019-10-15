@@ -36,4 +36,3 @@ found here.
    :maxdepth: 2
 
    api/webcandy_api
-   api/opclib_api

@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/gcpreston/webcandy/master/webcandy/static/img/webcandy_logo.png" alt="Webcandy" width="500" height="85">
+<img src="https://raw.githubusercontent.com/gcpreston/webcandy/master/src/webcandy/static/img/webcandy_logo.png" alt="Webcandy" width="500" height="85">
 
 API and web interface for Fadecandy control. For the client-side code
 responsible for receiving requests from the Webcandy server and running lighting
