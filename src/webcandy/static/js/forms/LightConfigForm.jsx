@@ -142,9 +142,12 @@ export default class LightConfigForm extends React.Component {
 
             this.setState({
                 patterns: patterns,
-                pattern: patterns ? patterns[0] : "",
                 offButton: offButtonVal,
             });
+
+            if (patterns) {
+                this.selectPattern(patterns[0])
+            }
         }).catch(error => {
             if (error.response && error.response.status === 401) {
                 // api key has expired; redirect to login page
@@ -186,6 +189,19 @@ export default class LightConfigForm extends React.Component {
             } else {
                 console.log(error);
             }
+        });
+    }
+
+    selectPattern(pattern) {
+        let speed;
+        if (pattern.hasOwnProperty("default_speed"))
+            speed = pattern["default_speed"];
+        else
+             speed = this.state.speed;
+
+        this.setState({
+            pattern: pattern,
+            speed: speed
         });
     }
 
@@ -485,15 +501,7 @@ export default class LightConfigForm extends React.Component {
     handlePatternSelect = (event) => {
         const pattern = getMatchingObject(
             this.state.patterns, "name", event.target.value);
-
-        let speed = this.state.speed;
-        if (pattern.hasOwnProperty("default_speed"))
-            speed = pattern["default_speed"];
-
-        this.setState({
-            pattern: pattern,
-            speed: speed
-        })
+        this.selectPattern(pattern);
     };
 
     /**
