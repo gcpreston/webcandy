@@ -63,6 +63,13 @@ def img(name: str):
                                mimetype='image/png')
 
 
+@views.route('/.well-known/acme-challenge/<path:name>', methods=['GET'])
+def well_known(name: str):
+    return send_from_directory(os.path.join(
+        STATIC_DIR, '.well-known', 'acme-challenge'),
+        name, mimetype='text/plain')
+
+
 @views.route('/', defaults={'path': ''}, methods=['GET'])
 @views.route('/<path:path>')
 def index(path: str):
