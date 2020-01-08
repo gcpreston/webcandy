@@ -39,6 +39,6 @@ sphinxcontrib-qthelp==1.0.2
 sphinxcontrib-serializinghtml==1.1.3
 SQLAlchemy==1.3.2
 urllib3==1.25.3
-webcandy-client=0.1.5
+webcandy-client==0.1.5
 websockets==7.0
 Werkzeug==0.15.5
