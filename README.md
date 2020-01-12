@@ -19,17 +19,29 @@ $ cd webcandy/static
 $ npm install
 ```
 
+### Pipenv
+This project supports Pipenv, which I recommend using for finer dependancy
+tracking.
+```
+$ pip install pipenv
+$ pipenv install
+```
+
+For more info on Pipenv, you can [read the docs](https://pipenv.readthedocs.io/en/latest/).
+
 ### virtualenv
-It is recommended to use a virtual Python environment. To set up virtualenv, run
-the following:
+If you don't want to use Pipenv, it is recommended that a virtual environment
+is used.
 ```
 $ pip install virtualenv
 $ virtualenv venv
 ```
-The virtual environment is now created. **To use it, it must be activated like
-so**:
+The virtual environment is now created. To activate it:
 - Windows: `> .\venv\Scripts\activate`
 - Mac/Linux: `$ source ./venv/bin/activate`
+
+**Please note: if you are using virtualenv, you need to make sure to activate
+and deactivate manually while working on the project.**
 
 Then, install the project requirements:
 ```
@@ -40,7 +52,7 @@ Then, install the project requirements:
 ### Dev environment
 In a development environment, Webcandy should be run using Flask:
 ```
-(venv) $ flask run
+$ flask run
 ```
 
 Then, in a different terminal:
@@ -56,7 +68,7 @@ to refresh and clear cache.
 To run Webcandy from a local server, activate the virtual environment and run
 the server using `gunicorn`:
 ```
-(venv) $ gunicorn 'webcandy:create_app()'
+$ gunicorn 'webcandy:create_app()'
 ```
 
 To build the front-end code, run:

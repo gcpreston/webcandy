@@ -2,13 +2,8 @@ import os
 import warnings
 import logging
 
-from dotenv import load_dotenv
-
 from . import util
-from .definitions import ROOT_DIR, DATA_DIR
-
-# TODO: This may need additional handling
-load_dotenv(f'{ROOT_DIR}/../.env')
+from .definitions import DATA_DIR
 
 
 class Config:
