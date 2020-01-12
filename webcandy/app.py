@@ -34,7 +34,8 @@ def create_app():
         host = '127.0.0.1'
 
     # TODO: Allow non-default port for proxy server
-    proxy_server.start(host=host)
+    if not proxy_server.running:
+        proxy_server.start(host=host)
 
     if Config.STANDALONE:
         token = None
@@ -71,7 +72,9 @@ def create_app():
             db.session.commit()
         app.logger.info('New database file created')
 
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow keyboard interrupt
+
     return app
 
 

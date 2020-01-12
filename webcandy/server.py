@@ -52,7 +52,6 @@ class ClientManager:
         """
         Register a new client. This method is async in order to be able to send
         messages to `protocol`.
-
         :param token: authorization token provided by the client
         :param client_name: the client name to use; must be unique for this user
         :param patterns: available patterns provided by the client
@@ -82,7 +81,6 @@ class ClientManager:
     def unregister(self, user_id: int, client_name: str) -> None:
         """
         Close a client's transport and unregister it from the client manager.
-
         :param user_id: the user who owns the client
         :param client_name: the name of the client to unregister
         :raises ValueError: if user has no associated clients
@@ -206,7 +204,6 @@ class ProxyServer:
     def start(self, host: str = '127.0.0.1', port: int = 6543) -> None:
         """
         Start the proxy server.
-
         :param host: the host to serve on
         :param port: the port to serve on
         """
@@ -241,7 +238,6 @@ class ProxyServer:
     def send(self, user_id: int, client_name: str, data: dict) -> bool:
         """
         Send dictionary data to a client associated with the specified user.
-
         :param user_id: ID of the user whose client to send data to
         :param client_name: name of client to send to
         :param data: the data to send

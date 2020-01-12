@@ -12,7 +12,7 @@ from werkzeug.exceptions import NotFound
 from . import util
 from .models import User
 from .extensions import auth, db
-from .server import proxy_server, clients
+from .server import clients, proxy_server
 from .definitions import USERS_DIR, STATIC_DIR
 
 views = Blueprint('views', __name__,
@@ -257,9 +257,9 @@ class UserData(Resource):
         """
         retval = defaultdict(lambda: defaultdict(dict))
 
-        with open(f'{USERS_DIR}/{g.user.user_id}.json') as data_file:
-            json_data = json.load(data_file)
+        json_data = util.load_user_data(g.user.user_id)
 
+        # section: str, data: List[str]
         for section, data in request.get_json().items():
 
             # ensure section is valid
@@ -328,8 +328,7 @@ class UserData(Resource):
         """
         retval = defaultdict(lambda: defaultdict(dict))
 
-        with open(f'{USERS_DIR}/{g.user.user_id}.json') as data_file:
-            json_data = json.load(data_file)
+        json_data = util.load_user_data(g.user.user_id)
 
         # section: str, data: List[str]
         for section, data in request.get_json().items():

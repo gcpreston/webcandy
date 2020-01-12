@@ -4,9 +4,8 @@ from itsdangerous import (
     SignatureExpired,
     BadSignature
 )
-from typing import Union, Optional, Dict
+from typing import Union, Optional
 
-from . import util
 from .config import Config
 from .extensions import db
 
@@ -63,23 +62,6 @@ class User(db.Model):
         """
         s = Serializer(Config.SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.user_id})
-
-    def get_colors(self) -> Optional[Dict[str, str]]:
-        """
-        Get this user's saved colors.
-
-        :return: a dictionary of name-color pairs; ``None`` if none are defined
-        """
-        return util.load_user_data(self.user_id).get('colors')
-
-    def get_color_lists(self) -> Optional[Dict[str, str]]:
-        """
-        Get this user's saved color lists.
-
-        :return: a dictionary of name-color list pairs; ``None`` if none are
-            defined
-        """
-        return util.load_user_data(self.user_id).get('color_lists')
 
     def __repr__(self):
         return f'<User {self.username}>'
